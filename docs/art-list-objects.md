@@ -108,6 +108,15 @@ Single object icon, centered, filling most of the frame, monochrome linocut wood
 | camp-cave.png | 바위굴 거점 | The mouth of a shallow rock cave with a bed of dry branches inside, a few supplies stacked in a hollow by the entrance, faint firelight, wide 3:2 composition |
 | camp-house.png | 집 거점 | The inside of an abandoned mountain hut turned into a shelter, boarded window, sleeping mat, a lantern and stacked cans on a shelf, wide 3:2 composition |
 
+## 4-3. 안정과 정찰 (21단계 예정, 2장)
+
+자리를 안정시키면(둘러보기 · 불이나 지붕 · 하룻밤) 장면 왼쪽 위 '지은 것' 칸에 표식이 붙고, 정찰은 아래 선택지 줄에서 한다.
+
+| 파일 | 쓰임 | 크기 | 프롬프트 |
+|---|---|---|---|
+| mark-secured.png | 안정된 자리 표식 | 768×512 (3:2) | A small campfire ring of stacked stones with embers glowing, next to it a stick marker tied with a strip of cloth, on a ridge at dawn, wide 3:2 composition |
+| event-scout.png | 정찰 결과 띠 그림 | 1536×512 (3:1) | A lone figure with a backpack standing on a rocky ridge shading their eyes, looking north into layered mountains and haze, a thin line of smoke far away, wide 3:1 composition |
+
 ## 5. 이야기 그림 (16단계용, 나중에) — 지금은 뽑지 않아도 된다
 
 | 파일 | 장면 | 프롬프트 |
