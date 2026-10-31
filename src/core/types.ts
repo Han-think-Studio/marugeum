@@ -29,6 +29,7 @@ export interface MapNode {
   lastForageDay: number; // 마지막으로 뒤진 날
   waterLeft: number; // 물. -1 무제한, 0 없음, n 남은 횟수
   camp: boolean; // 거점을 세운 곳
+  campTier: CampTier; // 0 없음, 1 텐트, 2 바위굴, 3 지붕 있는 집
   store: Store | null; // 거점 저장고
   equip: Equip[]; // 거점에 둔 장비
   objects: SceneObject[]; // 이 자리에 놓인 사물
@@ -267,6 +268,7 @@ export interface When {
   facility?: EquipKind; // 지금 자리 거점에서 이 시설이 돌아가고 있어야 (전기 포함)
   noFacility?: EquipKind; // 이 시설이 돌아가고 있지 않아야
   noUpgrade?: UpgradeId; // 이 보강이 없어야
+  campTier?: CampTier; // 지금 자리가 이 단계의 거점이어야 (1 텐트, 2 바위굴, 3 집)
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
   minClues?: number; // 가족 단서를 이만큼 모았어야
@@ -404,6 +406,28 @@ export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
   hearth: { label: '화덕', desc: '불이 두 배 오래 타고 안이 더 따뜻하다', story: '돌을 쌓아 화덕을 만들고 연통을 냈다. 연기가 밖으로 빠지니 불을 밤새 둘 수 있다.', hours: 2, wood: 1, parts: 0 },
 };
 export const UPGRADE_IDS: UpgradeId[] = ['window', 'earth', 'roof', 'hearth'];
+
+// 거점 단계. 자리가 정한다. 텐트(1) → 바위굴(2) → 지붕 있는 집(3)
+// 단계가 높을수록 저장고가 크고 보강을 더 할 수 있고 잠이 낫다
+export type CampTier = 0 | 1 | 2 | 3;
+
+export interface CampTierInfo {
+  label: string;
+  desc: string;
+  story: string; // 세우는 장면
+  hours: number;
+  storeCap: number; // 저장고에 들어가는 보급품 수
+  upgrades: UpgradeId[]; // 할 수 있는 보강
+}
+
+export const CAMP_TIERS: Record<1 | 2 | 3, CampTierInfo> = {
+  1: { label: '텐트 거점', desc: '비와 바람을 반쯤 막는다. 저장고는 바위틈 하나. 보강은 못 한다', story: '텐트를 치고 끝자락을 돌로 눌렀다. 바위틈에 비닐을 깔아 작은 저장고를 만들었다. 작지만 돌아올 자리다.', hours: 1, storeCap: 8, upgrades: [] },
+  2: { label: '바위굴 거점', desc: '바위가 비와 낙진을 막는다. 흙 덮기와 화덕을 할 수 있다', story: '굴 안쪽을 고르고 마른 가지를 깔았다. 입구 옆 움푹한 곳에 짐을 쌓았다. 바위는 비도 낙진도 뚫지 못한다.', hours: 2, storeCap: 16, upgrades: ['earth', 'hearth'] },
+  3: { label: '집 거점', desc: '지붕과 벽. 모든 보강과 시설을 둘 수 있다', story: '창을 막고 잠자리를 만들고 저장고를 비웠다. 벽 안쪽에 내 자리가 생겼다.', hours: 3, storeCap: 40, upgrades: ['window', 'earth', 'roof', 'hearth'] },
+};
+
+// 지붕 있는 거점은 자리 종류로 부른다
+export const CAMP_HOUSE_LABEL: Partial<Record<NodeKind, string>> = { start: '관리동 거점', temple: '산사 거점', shelter: '대피소 거점', village: '빈집 거점', military: '막사 거점' };
 export const WINDBREAK = { label: '바람막이', desc: '이 자리의 추위가 줄어든다', story: '돌과 가지를 허리 높이로 쌓아 바람을 막았다. 등 뒤가 조용해졌다.', hours: 1, wood: 1 };
 
 // ---------- 이야기 ----------

@@ -1,4 +1,4 @@
-import type { GameState } from '../core/types';
+import { INDOOR, type GameState } from '../core/types';
 
 // 저장. 브라우저 저장소에 상태를 통째로 넣는다. 함수가 없는 평범한 객체라 그대로 된다
 const KEY = 'marugeum.save.v3';
@@ -19,10 +19,18 @@ export function loadGame(): GameState | null {
     if (!raw) return null;
     const data = JSON.parse(raw) as { v: number; state: GameState };
     if (!data || data.v !== 3 || !data.state || !Array.isArray(data.state.nodes)) return null;
-    return data.state;
+    return upgrade(data.state);
   } catch {
     return null;
   }
+}
+
+// 예전 저장에 없던 칸을 채운다. 거점 단계는 자리에서 되짚는다
+function upgrade(state: GameState): GameState {
+  for (const n of state.nodes) {
+    if (n.campTier === undefined) n.campTier = n.camp ? (INDOOR.has(n.kind) ? 3 : n.cave ? 2 : 1) : 0;
+  }
+  return state;
 }
 
 export function clearSave(): void {

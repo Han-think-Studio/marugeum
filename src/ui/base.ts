@@ -1,6 +1,6 @@
-import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, UPGRADES, UPGRADE_IDS, WINDBREAK, type GameState } from '../core/types';
+import { CAMP_TIERS, EQUIP_INFO, INDOOR, SUPPLY_KEYS, SUPPLY_LABEL, UPGRADES, UPGRADE_IDS, WINDBREAK, type GameState } from '../core/types';
 import {
-  build, buildWindbreak, canBuild, canWindbreak,
+  build, buildWindbreak, canBuild, canStrikeTent, canWindbreak, campLabel, storeCap, storeUsed,
   canCarry, canDepart, currentNode, dailyUse, depart, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator,
   heaterHoursLeft, heavyCarried, heavyLimit, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
   toggleGenerator, toggleHeater,
@@ -40,14 +40,15 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
         <img src="./art/upgrade-${img}.webp" alt="" onerror="this.remove()">
         <div class="ubody"><b>${label}</b><span class="muted">${desc}</span><span class="cost">${built ? '지었다' : cost}</span>${btn}</div>
       </div>`;
-    const upgrades = (): string => `<div class="ucards">${UPGRADE_IDS.map((id) => {
+    const allowed = node.campTier !== 0 ? CAMP_TIERS[node.campTier].upgrades : [];
+    const upgrades = (): string => (allowed.length === 0 ? `<p class="muted">${campLabel(node)}에는 보강을 못 한다. 바위굴이나 지붕 있는 곳을 찾으면 더 할 수 있다.</p>` : '') + `<div class="ucards">${UPGRADE_IDS.filter((id) => allowed.includes(id)).map((id) => {
       const u = UPGRADES[id];
       const built = node.upgrades.includes(id);
       const cost = [u.wood ? `땔감 ${u.wood}` : '', u.parts ? `부품 ${u.parts}` : '', `${u.hours}시간`].filter(Boolean).join(' · ');
       return card(id, u.label, u.desc, cost, built, built ? '' : `<button data-build="${id}" ${canBuild(state, id) ? '' : 'disabled'}>짓기</button>`);
     }).join('')}</div>`;
     const windbreakCard = (): string => {
-      if (node.kind === 'start' || ['temple', 'shelter', 'village', 'military'].includes(node.kind)) return '<p class="muted">지붕이 있는 곳이라 바람막이는 필요 없다.</p>';
+      if (INDOOR.has(node.kind)) return '<p class="muted">지붕이 있는 곳이라 바람막이는 필요 없다.</p>';
       return `<div class="ucards">${card('windbreak', WINDBREAK.label, WINDBREAK.desc, `땔감 ${WINDBREAK.wood} · ${WINDBREAK.hours}시간`, node.windbreak, node.windbreak ? '' : `<button data-windbreak="1" ${canWindbreak(state) ? '' : 'disabled'}>쌓기</button>`)}</div>`;
     };
     const facilities = (): string => {
@@ -75,27 +76,29 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     const partsHere = p.parts + st.parts;
     const equipRow = (e: { kind: string; broken: boolean }, i: number, where: 'pack' | 'base') => {
       const info = EQUIP_INFO[e.kind as keyof typeof EQUIP_INFO];
-      const canTake = where === 'base' ? canCarry(state, e.kind as never) : true;
+      const strike = where === 'base' && e.kind === 'tent' && node.camp && node.campTier === 1;
+      const canTake = where === 'base' ? canCarry(state, e.kind as never) && (!strike || canStrikeTent(state)) : true;
+      const takeLabel = strike ? (canStrikeTent(state) ? '텐트 걷기 (거점이 사라진다)' : '텐트 걷기 (저장고를 비워야)') : `가져가기${canTake ? '' : ' (무거운 장비 한도)'}`;
       return `<li class="${e.broken ? 'broken' : ''}">
         <span class="icon"><img src="./art/equip-${e.kind}.webp" alt="" onerror="this.parentElement.remove()">${e.broken ? '<b class="badge">고장</b>' : ''}</span>
         <span class="name">${equipLabel(e as never)}${info.heavy ? ' <span class="muted">무거움</span>' : ''}</span>
         <span class="desc muted">${info.desc}</span>
         <span class="ops">
           ${e.broken ? `<button data-rep="${where}" data-i="${i}" ${partsHere <= 0 ? 'disabled' : ''}>수리 ${chance}% · 부품 1 · 2시간</button>` : ''}
-          ${where === 'pack' ? `<button data-eq="toBase" data-i="${i}">${node.camp ? '거점에 두기' : '여기 두기'}</button>` : `<button data-eq="toPack" data-i="${i}" ${canTake ? '' : 'disabled'}>가져가기${canTake ? '' : ' (무거운 장비 한도)'}</button>`}
+          ${where === 'pack' ? `<button data-eq="toBase" data-i="${i}">${node.camp ? '거점에 두기' : '여기 두기'}</button>` : `<button data-eq="toPack" data-i="${i}" ${canTake ? '' : 'disabled'}>${takeLabel}</button>`}
         </span></li>`;
     };
     el.innerHTML = `
       <div class="card wide">
-        <div class="head"><h2>${camp ? '거점' : '짐 정리'} · ${node.name}</h2><span class="muted">${timeLabel(state)}</span><button class="close"><span class="num">Esc</span> ${camp ? '조사 나가기' : '닫기'}</button></div>
+        <div class="head"><h2>${camp ? campLabel(node) : '짐 정리'} · ${node.name}</h2><span class="muted">${timeLabel(state)}</span><button class="close"><span class="num">Esc</span> ${camp ? '조사 나가기' : '닫기'}</button></div>
         <div class="cols">
           <section>
-            ${camp ? `<h3>저장고 ↔ 배낭</h3>
+            ${camp ? `<h3>저장고 ↔ 배낭 <span class="muted">저장고 ${storeUsed(node)}/${storeCap(node)}</span></h3>
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
             <p class="muted">무거운 장비 ${heavyCarried(state)}/${heavyLimit(state)} 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
-            ${camp ? `<h3>시설</h3>${facilities()}<h3>보강</h3>${upgrades()}` : `<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p><h3>안식처</h3>${windbreakCard()}`}
+            ${camp ? `<h3>시설</h3>${facilities()}<h3>보강</h3>${upgrades()}${INDOOR.has(node.kind) ? '' : `<h3>안식처</h3>${windbreakCard()}`}` : `<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p><h3>안식처</h3>${windbreakCard()}`}
             ${canDepart(state) ? `<h3>떠나기</h3>
-            <p class="muted">배낭에 든 것만 가져간다: ${storeText(p)}. 무거운 장비 ${heavyCarried(state)}/2. 발전기와 냉장고는 두고 간다. 돌아올 수는 있다.</p>
+            <p class="muted">배낭에 든 것만 가져간다: ${storeText(p)}. 무거운 장비 ${heavyCarried(state)}/${heavyLimit(state)}. 발전기와 냉장고는 두고 간다. 돌아올 수는 있다.</p>
             <button class="depart ${armed ? 'armed' : ''}" data-depart="1">${armed ? '정말 떠난다. 능선을 따라 북쪽으로' : '북쪽으로 떠난다'}</button>` : ''}
           </section>
           <section>

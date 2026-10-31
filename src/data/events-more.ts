@@ -622,4 +622,66 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '능선에서 지켜본다', outcomes: [{ text: '내린 사람 중에 작은 사람이 있었다. 너무 멀어서 알 수 없었다. 알 수 없어서 걸을 수 있었다.', effects: { mind: 5 } }] },
     ],
   },
+  // ---------- 거점 단계별 밤 ----------
+  {
+    id: 'tentcamp_wind',
+    trigger: 'night',
+    title: '텐트가 운다',
+    text: '바람이 능선을 타고 내려온다. 텐트 천이 밤새 펄럭이고 폴대가 휘청인다. 돌로 눌러 둔 끝자락 하나가 벗겨졌다.',
+    weight: 4,
+    when: { campTier: 1, outdoor: true },
+    choices: [
+      { text: '나가서 돌을 더 올린다', hint: '1시간 · 추위', outcomes: [{ text: '손이 곱도록 돌을 주워 네 귀를 눌렀다. 돌아와 누우니 천이 조용했다. 작은 집도 집이다.', effects: { hours: 1, temp: -6, mind: 4, flag: 'tent_pinned' } }] },
+      { text: '그냥 잔다', outcomes: [
+        { chance: 0.6, text: '펄럭이는 소리를 들으며 잠들었다. 아침에 보니 텐트 한 귀가 들려 안에 비가 들어왔다. 담요 끝이 젖었다.', effects: { temp: -8, mind: -3 } },
+        { text: '바람은 새벽에 잤다. 텐트는 버텼다.', effects: { mind: 1 } },
+      ] },
+    ],
+  },
+  {
+    id: 'tentcamp_smell',
+    trigger: 'night',
+    title: '천막 너머의 숨소리',
+    text: '텐트 밖에서 무엇이 코를 킁킁거린다. 천 하나를 사이에 두고 짐승의 숨이 느껴진다. 먹을 것 냄새를 맡고 왔다.',
+    once: true,
+    weight: 3,
+    when: { campTier: 1, outdoor: true, minDay: 2 },
+    choices: [
+      { text: '소리를 질러 쫓는다', outcomes: [
+        { chance: 0.7, text: '고함을 지르고 텐트 벽을 쳤다. 발소리가 급하게 멀어졌다. 한참 뒤에야 다시 누울 수 있었다.', effects: { mind: -2, fatigue: -5 } },
+        { text: '고함에도 가지 않았다. 천을 긁는 소리가 났다. 그러다 저절로 가 버렸다. 아침에 보니 텐트 한쪽이 찢어졌다. 묶어 두면 쓸 수 있다.', effects: { mind: -6, fatigue: -8 } },
+      ] },
+      { text: '먹을 것을 멀리 던진다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '통조림을 따서 바위 너머로 던졌다. 짐승은 그쪽으로 갔다. 비싼 잠이었다.', effects: { food: -1, mind: 1 } }] },
+      { text: '숨을 죽인다', outcomes: [{ text: '움직이지 않았다. 숨소리가 텐트를 한 바퀴 돌고 사라졌다. 저장고의 비닐이 들쳐져 있었다. 다음부터는 먹을 것을 먼 바위틈에 두자.', effects: { food: -1, mind: -3 } }] },
+    ],
+  },
+  {
+    id: 'cavecamp_drip',
+    trigger: 'night',
+    title: '굴 안의 물소리',
+    text: '굴 안쪽 어둠에서 물이 한 방울씩 떨어진다. 바위를 타고 온 물이다. 비가 오지 않는데도 떨어진다. 깨끗한 물일지도 모른다.',
+    once: true,
+    weight: 4,
+    when: { campTier: 2 },
+    choices: [
+      { text: '통을 받쳐 둔다', outcomes: [{ text: '빈 통을 받쳐 두고 잤다. 아침에 반쯤 차 있었다. 바위를 지나온 물은 맑았다. 낙진은 바위를 뚫지 못한다.', effects: { water: 1, mind: 4, flag: 'cave_drip' } }] },
+      { text: '소리를 들으며 잔다', outcomes: [{ text: '똑, 똑. 시계 같았다. 하율이 좋아하던 자장가의 박자였다. 오래 못 잤다.', effects: { mind: 3, fatigue: -4 } }] },
+    ],
+  },
+  {
+    id: 'cavecamp_old',
+    trigger: 'night',
+    title: '먼저 살던 사람',
+    text: '불빛에 굴 벽이 드러났다. 그을음 자국, 그리고 못으로 긁은 글씨. 날짜 하나와 이름 하나. 날짜는 올해다. 누가 여기서 겨울을 보내려 했다.',
+    once: true,
+    weight: 3,
+    when: { campTier: 2, minDay: 3 },
+    choices: [
+      { text: '내 이름도 긁어 쓴다', outcomes: [{ text: '그 아래에 내 이름과 날짜를 썼다. 수연, 하율. 두 이름도. 누가 읽든 상관없다. 벽이 기억한다.', effects: { mind: 6, flag: 'cave_names' } }] },
+      { text: '벽을 더 살핀다', hint: '1시간', outcomes: [
+        { chance: 0.5, text: '구석 바위 밑에 비닐로 싼 꾸러미가 있었다. 양초와 성냥, 깡통 둘. 먼저 살던 사람이 돌아오지 않은 것이다.', effects: { hours: 1, food: 2, gear: 'matches', mind: 2 } },
+        { text: '글씨뿐이었다. 바닥에 돌로 눌러 둔 마른 나물 한 줌. 바스러졌다.', effects: { hours: 1, mind: -2 } },
+      ] },
+    ],
+  },
 ];

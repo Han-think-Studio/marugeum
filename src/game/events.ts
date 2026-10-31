@@ -45,6 +45,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.facility && !facilityRunning(node, when.facility)) return false;
   if (when.noFacility && facilityRunning(node, when.noFacility)) return false;
   if (when.noUpgrade && node.upgrades.includes(when.noUpgrade)) return false;
+  if (when.campTier !== undefined && !(node.camp && node.campTier === when.campTier)) return false;
   if (when.phase && state.phase !== when.phase) return false;
   const clues = clueCount(state);
   if (when.minClues !== undefined && clues < when.minClues) return false;

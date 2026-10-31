@@ -2,7 +2,7 @@ import { INDOOR, UPGRADES, type GameState, type MapNode, type NodeKind, type Sce
 import { objectLabel, visibleObjects, hiddenCount } from '../game/objects';
 import { hasEquip } from '../game/equip';
 import { isPowered } from '../game/facilities';
-import { hasFire } from '../game/state';
+import { campLabel, hasFire } from '../game/state';
 import { isNight } from '../game/weather';
 import { darkness, mix } from '../map/render';
 
@@ -452,19 +452,21 @@ export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: num
 // 보강과 바람막이는 장면 왼쪽 위에 작은 카드로 보인다. "내가 만든 곳"
 
 const upImgs: Record<string, HTMLImageElement | null> = {};
-function upImg(id: string, onload: () => void): HTMLImageElement | null {
-  if (id in upImgs) return upImgs[id];
-  upImgs[id] = null;
+function upImg(file: string, onload: () => void): HTMLImageElement | null {
+  if (file in upImgs) return upImgs[file];
+  upImgs[file] = null;
   const img = new Image();
-  img.onload = () => { upImgs[id] = img; onload(); };
-  img.src = `./art/upgrade-${id}.webp`;
+  img.onload = () => { upImgs[file] = img; onload(); };
+  img.src = `./art/${file}.webp`;
   return null;
 }
 
+// 지은 것 표시. 거점이면 거점 단계 그림부터, 그 다음 바람막이와 보강
 export function drawBuilt(ctx: CanvasRenderingContext2D, node: MapNode, onload: () => void): void {
   const items: [string, string][] = [];
-  if (node.windbreak) items.push(['windbreak', '바람막이']);
-  for (const u of node.upgrades) items.push([u, UPGRADES[u].label]);
+  if (node.camp && node.campTier > 0) items.push([`camp-${node.campTier === 1 ? 'tent' : node.campTier === 2 ? 'cave' : 'house'}`, campLabel(node)]);
+  if (node.windbreak) items.push(['upgrade-windbreak', '바람막이']);
+  for (const u of node.upgrades) items.push([`upgrade-${u}`, UPGRADES[u].label]);
   if (items.length === 0) return;
   let x = 14;
   const y = 14;

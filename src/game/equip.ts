@@ -1,8 +1,13 @@
-import { DEFAULT_CHARGES, EQUIP_INFO, HEAVY_LIMIT, HEAVY_LIMIT_CARRIER, type Equip, type EquipKind, type GameState } from '../core/types';
+import { DEFAULT_CHARGES, EQUIP_INFO, HEAVY_LIMIT, HEAVY_LIMIT_CARRIER, type Equip, type EquipKind, type GameState, type MapNode } from '../core/types';
 
 // 지닌 장비 중 멀쩡한 것이 있는가
 export function hasEquip(state: GameState, kind: EquipKind): boolean {
   return state.equip.some((e) => e.kind === kind && !e.broken);
+}
+
+// 이 자리에 쓸 수 있는 텐트가 있는가. 배낭에 들었거나 여기 쳐 두었거나
+export function tentAt(state: GameState, node: MapNode): boolean {
+  return hasEquip(state, 'tent') || node.equip.some((e) => e.kind === 'tent' && !e.broken);
 }
 
 export function heavyCount(list: Equip[]): number {

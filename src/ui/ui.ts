@@ -1,7 +1,7 @@
-import { ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
+import { CAMP_HOUSE_LABEL, CAMP_TIERS, ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
-  WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
+  WATER_LABEL, atCamp, boil, buildWindbreak, campLabel, campTierHere, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
@@ -296,7 +296,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
   refs.place.innerHTML =
     `<span class="kind">${KIND_LABEL[cur.kind]}</span> <span class="name">${cur.name}</span>` +
-    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.windbreak ? ' · 바람막이' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.upgrades.length ? ' · ' + cur.upgrades.map((u) => UPGRADES[u].label).join(', ') : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
+    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.windbreak ? ' · 바람막이' : ''}${cur.camp ? ` · <b>${campLabel(cur)}</b>` : ''}${cur.upgrades.length ? ' · ' + cur.upgrades.map((u) => UPGRADES[u].label).join(', ') : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
 
   refs.log.innerHTML = state.log
     .slice(-8)
@@ -356,7 +356,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const cap = packCap(state);
   act('사진 보기', 'O', canLookPhoto(state) ? `단서 ${clueCount(state)}개` : '오늘은 봤다', () => lookPhoto(state), canLookPhoto(state));
   act('쉬기', 'R', '2시간', () => rest(state));
-  act(cur.camp ? '거점에서 자기' : INDOOR.has(cur.kind) ? '실내에서 자기' : '노숙', 'S', '8시간', () => sleep(state));
+  act(cur.camp ? (cur.campTier === 1 ? '텐트에서 자기' : cur.campTier === 2 ? '굴에서 자기' : '거점에서 자기') : INDOOR.has(cur.kind) ? '실내에서 자기' : cur.cave ? '굴에서 자기' : hasEquip(state, 'tent') ? '텐트에서 자기' : '노숙', 'S', '8시간', () => sleep(state));
   act('마시기', 'W', wk !== 'none' ? WATER_LABEL[wk] + (wk === 'stored' ? ` ${cur.waterLeft}회` : '') : p.water + p.dirty > 0 ? '배낭에서' : '물이 없다', () => drink(state), canDrink(state));
   act('물 담기', 'Q', wk === 'none' ? '물이 없다' : p.water + p.dirty >= cap.water ? '배낭이 가득' : WATER_LABEL[wk], () => fill(state), canFill(state));
   act('먹기', 'E', p.food + p.fresh > 0 ? `${p.food + p.fresh}개 있음` : '먹을 것 없음', () => eat(state), canEat(state));
@@ -368,7 +368,13 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   if (state.equip.some((e) => e.kind === 'iodine')) act('요오드 먹기', 'I', canTakeIodine(state) ? '피폭 -15 · 하루 한 번' : '오늘은 먹었다', () => takeIodine(state), canTakeIodine(state));
   if (state.equip.some((e) => e.kind === 'medkit')) act('응급처치', 'U', canFirstAid(state) ? '체력 +25 · 1시간' : '다친 데가 없다', () => firstAid(state), canFirstAid(state));
   if (state.equip.some((e) => e.kind === 'purifier')) act('정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
-  if (canCamp(state)) act('거점 세우기', 'B', '3시간', () => makeCamp(state));
+  if (!cur.camp) {
+    const tier = campTierHere(state, cur);
+    if (tier !== 0) {
+      const info = CAMP_TIERS[tier];
+      act(`거점 세우기 · ${tier === 3 ? (CAMP_HOUSE_LABEL[cur.kind] ?? info.label) : info.label}`, 'B', `${info.hours}시간 · 저장고 ${info.storeCap}`, () => makeCamp(state), canCamp(state));
+    } else act('거점 세우기', 'B', '텐트나 바위굴, 지붕이 필요하다', () => false, false);
+  }
   if (!INDOOR.has(cur.kind) && !cur.windbreak) act('바람막이 쌓기', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
   act(atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 장비 · 수리' : `장비 두고 가져가기 · 수리${cur.equip.length ? ` · 여기 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
   if (atCamp(state)) {
@@ -385,7 +391,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const rk = routeRisk(state, n);
     const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>`;
     const info = n.visited
-      ? ` · 사물 ${visibleObjects(n).filter((o) => !o.used).length}${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}${n.cave ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
+      ? ` · 사물 ${visibleObjects(n).filter((o) => !o.used).length}${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ` · ${campLabel(n)}` : ''}${n.cave && !n.camp ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
     btn.className = n.stage < cur.stage ? 'back' : '';
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span><span class="meta">${riskTxt}</span>`;

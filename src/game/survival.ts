@@ -1,7 +1,7 @@
 import { Rng } from '../core/rng';
 import { EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
-import { hasEquip } from './equip';
+import { hasEquip, tentAt } from './equip';
 import { facilityRunning, spoilFresh, tickFacilities } from './facilities';
 import { refreshObjects } from './objects';
 import { addLog } from './log';
@@ -29,7 +29,7 @@ export function radPerHour(state: GameState, node: MapNode, indoor: boolean): nu
   const roof = indoor && node.camp && node.upgrades.includes('roof');
   if (state.weather === 'rain') r *= roof ? 1.5 : 3;
   if (state.wind !== 'calm' && state.wind === node.side) r *= 1.8;
-  if (indoor) r *= node.camp ? 0.15 : 0.35;
+  if (indoor) r *= node.camp && node.campTier >= 3 ? 0.15 : node.camp && node.campTier === 2 ? 0.25 : 0.35;
   if (indoor && node.camp && node.upgrades.includes('earth')) r *= 0.5;
   return r;
 }
@@ -43,10 +43,14 @@ export interface TickOpts {
 // 한 시간이 흐를 때 몸에 일어나는 일
 function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, opts: TickOpts): void {
   const night = isNight(state.hour);
-  // 텐트가 있으면 지붕 없는 곳에서도 비와 바람을 반쯤 막는다
-  const tent = act !== 'travel' && !INDOOR.has(node.kind) && (hasEquip(state, 'tent') || node.cave);
-  const indoor = act !== 'travel' && (INDOOR.has(node.kind) || tent);
+  // 텐트가 있으면 지붕 없는 곳에서도 비와 바람을 반쯤 막는다. 바위굴은 그보다 낫고, 지붕 있는 거점이 가장 낫다
+  const house = INDOOR.has(node.kind);
+  const caveHere = act !== 'travel' && !house && node.cave;
+  const tentHere = act !== 'travel' && !house && !caveHere && tentAt(state, node);
+  const tent = tentHere || caveHere;
+  const indoor = act !== 'travel' && (house || tent);
   const camp = indoor && node.camp;
+  const tier = camp ? node.campTier : 0;
   const heater = camp && facilityRunning(node, 'heater');
   const lamp = camp && facilityRunning(node, 'lamp');
 
@@ -59,7 +63,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
     const base = opts.uphill ? -4.2 : -3.0;
     add(state, 'fatigue', base * (night ? 1.4 : 1) * (opts.known ? 0.8 : 1) * (opts.heavy ? 1.3 : 1));
   } else if (act === 'rest') add(state, 'fatigue', 5);
-  else if (act === 'sleep') add(state, 'fatigue', camp ? 12 : indoor ? 11 : 8);
+  else if (act === 'sleep') add(state, 'fatigue', camp ? (tier >= 3 ? 12 : 11.5) : house ? 11 : indoor ? 10 : 8);
   else if (act === 'work') add(state, 'fatigue', -2.5);
   else add(state, 'fatigue', -1.5);
 
@@ -70,7 +74,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   if (camp && node.upgrades.includes('roof') && state.weather === 'rain') env += 5; // 비가 새지 않는다
   if (!indoor && state.weather === 'rain' && hasEquip(state, 'raincoat')) env += 5; // 우비
   const chill = Math.max(0, 6 - env);
-  let coldMul = camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35;
+  let coldMul = camp ? (tier >= 3 ? 0.05 : tier === 2 ? 0.08 : 0.12) : house ? 0.1 : caveHere ? 0.12 : tentHere ? 0.15 : act === 'sleep' ? 0.2 : 0.35;
   if (!indoor && node.windbreak) coldMul *= 0.5;
   if (camp && node.upgrades.includes('window')) coldMul *= 0.5;
   if (act === 'sleep' && hasEquip(state, 'blanket')) coldMul *= 0.5;
@@ -78,7 +82,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   const cold = chill * coldMul;
   if (cold > 0) add(state, 'temp', -cold);
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
-  if (camp && act === 'sleep') add(state, 'temp', 2);
+  if (camp && act === 'sleep') add(state, 'temp', tier >= 3 ? 2 : 1);
   if (fire) add(state, 'temp', 3);
   if (fire && camp && node.upgrades.includes('hearth')) add(state, 'temp', 2);
   if (heater) add(state, 'temp', 3);
@@ -91,12 +95,12 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   }
 
   // 피폭
-  let radNow = radPerHour(state, node, indoor) * (tent ? 1.5 : 1);
+  let radNow = radPerHour(state, node, indoor) * (tentHere ? 1.5 : 1); // 천막은 낙진을 반밖에 못 막는다. 바위는 막는다
   if (!indoor && state.weather === 'rain' && hasEquip(state, 'mask')) radNow *= 0.5; // 방독면
   add(state, 'rad', radNow);
 
   // 정신
-  if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
+  if (act === 'sleep') add(state, 'mind', (camp ? (tier >= 3 ? 3.5 : 3) : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
   else if (act === 'rest') add(state, 'mind', 1);
   else if (night) add(state, 'mind', lamp ? 0 : -1);
   const s = state.stats;
@@ -112,7 +116,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   if (s.rad >= 60) dmg += (s.rad - 60) / 15;
   if (s.mind <= 0) dmg += 1;
   if (dmg > 0) add(state, 'hp', -dmg);
-  else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', camp ? 2.5 : 1.5);
+  else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', camp ? (tier >= 3 ? 2.5 : 2) : 1.5);
 
   // 거점 시설은 내가 어디 있든 돈다
   tickFacilities(state, rng);

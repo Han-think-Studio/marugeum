@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  CARRIER_EXTRA, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
+  CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
@@ -13,12 +13,12 @@ export { clueCount } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';
-import { canCarry, equipLabel, hasEquip, heavyCount, useCharge } from './equip';
+import { canCarry, equipLabel, hasEquip, heavyCount, tentAt, useCharge } from './equip';
 import { isNight, rollWeather } from './weather';
 import { syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 
-export { hasEquip, canCarry, equipLabel, heavyLimit } from './equip';
+export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt } from './equip';
 export { addLog } from './log';
 
 export function createGame(seed: number, opts: { knownStages?: number[]; runNo?: number } = {}): GameState {
@@ -260,7 +260,7 @@ export function sleep(state: GameState): boolean {
   const res = passHours(state, rng, node, 8, 'sleep');
   giveRng(state, rng);
   if (!res.died) {
-    const where = node.camp ? '거점의 잠자리에서' : node.kind === 'temple' ? '법당 구석에서' : INDOOR.has(node.kind) ? '벽 안쪽에서' : '바람을 등지고';
+    const where = node.camp ? (node.campTier === 1 ? '텐트 안에서' : node.campTier === 2 ? '굴 안쪽 잠자리에서' : '거점의 잠자리에서') : node.kind === 'temple' ? '법당 구석에서' : INDOOR.has(node.kind) ? '벽 안쪽에서' : node.cave ? '굴 안에서' : hasEquip(state, 'tent') ? '텐트를 치고' : '바람을 등지고';
     addLog(state, `${where} 여덟 시간을 잤다.`);
   }
   afterAction(state);
@@ -715,6 +715,7 @@ function hasMaterial(state: GameState, node: MapNode, key: 'wood' | 'parts', n: 
 export function canBuild(state: GameState, id: UpgradeId): boolean {
   const n = currentNode(state);
   if (busy(state) || !n.camp || n.upgrades.includes(id)) return false;
+  if (n.campTier === 0 || !CAMP_TIERS[n.campTier].upgrades.includes(id)) return false;
   const u = UPGRADES[id];
   return hasMaterial(state, n, 'wood', u.wood) && hasMaterial(state, n, 'parts', u.parts);
 }
@@ -738,28 +739,74 @@ export function build(state: GameState, id: UpgradeId): boolean {
 
 // ---------- 거점 ----------
 
-export function canCamp(state: GameState): boolean {
-  const n = currentNode(state);
-  return INDOOR.has(n.kind) && !n.camp;
+// 이 자리에 세울 수 있는 거점의 단계. 지붕이 있으면 집(3), 바위굴을 찾았으면 굴(2), 텐트가 있으면 텐트(1)
+export function campTierHere(state: GameState, node: MapNode = currentNode(state)): CampTier {
+  if (INDOOR.has(node.kind)) return 3;
+  if (node.cave) return 2;
+  if (tentAt(state, node)) return 1;
+  return 0;
 }
 
-// 거점 세우기. 세 시간 일한다. 저장고가 생기고 여기서 자면 훨씬 낫다
+export function canCamp(state: GameState): boolean {
+  const n = currentNode(state);
+  return !n.camp && campTierHere(state, n) > 0;
+}
+
+// 거점 이름. 텐트 거점, 바위굴 거점, 그리고 지붕 있는 곳은 자리 이름으로
+export function campLabel(node: MapNode): string {
+  if (!node.camp || node.campTier === 0) return '';
+  if (node.campTier === 3) return CAMP_HOUSE_LABEL[node.kind] ?? CAMP_TIERS[3].label;
+  return CAMP_TIERS[node.campTier].label;
+}
+
+// 저장고 크기와 든 양
+export function storeCap(node: MapNode): number {
+  return node.camp && node.campTier !== 0 ? CAMP_TIERS[node.campTier].storeCap : 0;
+}
+
+export function storeUsed(node: MapNode): number {
+  return node.store ? supplyTotal(node.store) : 0;
+}
+
+// 거점 세우기. 단계마다 걸리는 시간이 다르다. 텐트 거점은 텐트를 여기 쳐 둔다
 export function makeCamp(state: GameState): boolean {
   if (busy(state) || !canCamp(state)) return false;
   const node = currentNode(state);
+  const tier = campTierHere(state, node);
+  if (tier === 0) return false;
+  const info = CAMP_TIERS[tier];
   const rng = takeRng(state);
-  const res = passHours(state, rng, node, 3, 'work');
+  const res = passHours(state, rng, node, info.hours, 'work');
   giveRng(state, rng);
   if (!res.died) {
     node.camp = true;
+    node.campTier = tier;
     node.store = emptySupplies();
-    node.equip = [];
     node.genOn = false;
     node.heaterOn = false;
-    addLog(state, `${node.name}에 거점을 세웠다. 창을 막고 잠자리를 만들고 저장고를 비웠다.`);
+    if (tier === 1) {
+      const i = state.equip.findIndex((e) => e.kind === 'tent' && !e.broken);
+      if (i >= 0) node.equip.push(...state.equip.splice(i, 1));
+    }
+    addLog(state, `${node.name}에 ${campLabel(node)}을 세웠다. ${info.story}`);
   }
   afterAction(state);
   return true;
+}
+
+// 텐트 걷기. 텐트 거점의 텐트를 다시 배낭에 넣으면 거점은 사라진다. 저장고는 비어 있어야 한다
+export function canStrikeTent(state: GameState): boolean {
+  const n = currentNode(state);
+  return !busy(state) && n.camp && n.campTier === 1 && storeUsed(n) === 0;
+}
+
+function strikeTent(state: GameState, node: MapNode): void {
+  node.camp = false;
+  node.campTier = 0;
+  node.store = null;
+  node.genOn = false;
+  node.heaterOn = false;
+  addLog(state, `텐트를 걷었다. ${node.name}의 거점은 바위틈 비닐 한 장으로 남았다.`);
 }
 
 export function atCamp(state: GameState): boolean {
@@ -778,6 +825,7 @@ export function moveSupply(state: GameState, key: SupplyKey, dir: 'toBase' | 'to
   const st = node.store;
   const cap = packCap(state);
   let room = Infinity;
+  if (dir === 'toBase') room = storeCap(node) - storeUsed(node);
   if (dir === 'toPack') {
     if (key === 'water' || key === 'dirty') room = cap.water - p.water - p.dirty;
     else if (key === 'food' || key === 'fresh') room = cap.food - p.food - p.fresh;
@@ -803,8 +851,12 @@ export function moveEquip(state: GameState, dir: 'toBase' | 'toPack', idx: numbe
   const item = from[idx];
   if (!item) return false;
   if (dir === 'toPack' && !canCarry(state, item.kind)) return false;
+  // 텐트 거점의 텐트는 저장고를 비워야 걷을 수 있다. 걷으면 거점이 사라진다
+  const strike = dir === 'toPack' && item.kind === 'tent' && node.camp && node.campTier === 1 && !node.equip.some((e, i) => i !== idx && e.kind === 'tent' && !e.broken);
+  if (strike && !canStrikeTent(state)) return false;
   from.splice(idx, 1);
   (dir === 'toBase' ? node.equip : state.equip).push(item);
+  if (strike) strikeTent(state, node);
   return true;
 }
 
@@ -813,12 +865,16 @@ export function deposit(state: GameState): boolean {
   const node = currentNode(state);
   if (busy(state) || !node.camp || !node.store) return false;
   if (supplyTotal(state.pack) === 0) return false;
+  let room = storeCap(node) - storeUsed(node);
+  if (room <= 0) return false;
   for (const k of SUPPLY_KEYS) {
-    node.store[k] += state.pack[k];
-    state.pack[k] = 0;
+    const n = Math.min(room, state.pack[k]);
+    node.store[k] += n;
+    state.pack[k] -= n;
+    room -= n;
   }
   syncFresh(state);
-  addLog(state, `저장고에 맡겼다. ${storeText(node.store)}.`);
+  addLog(state, `저장고에 맡겼다. ${storeText(node.store)}.${room <= 0 && supplyTotal(state.pack) > 0 ? ' 저장고가 찼다.' : ''}`);
   return true;
 }
 

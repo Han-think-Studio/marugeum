@@ -94,6 +94,7 @@ export function generateMap(rng: Rng): MapNode[] {
       lastForageDay: 0,
       waterLeft: WATER[kind],
       camp: false,
+      campTier: 0,
       store: null,
       equip: [],
       objects: [],
@@ -154,6 +155,7 @@ export function generateMap(rng: Rng): MapNode[] {
   base.visited = true;
   base.looked = true;
   base.camp = true;
+  base.campTier = 3;
   base.store = { water: 4, dirty: 0, food: 6, fresh: 0, wood: 2, gasoline: 2, diesel: 0, parts: 1 };
   base.equip = [
     { kind: 'generator', broken: true },
