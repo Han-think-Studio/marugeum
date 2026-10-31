@@ -1,4 +1,5 @@
-import { KIND_GLYPH, type GameState, type MapNode } from '../core/types';
+import { KIND_GLYPH, edgeKey, type GameState, type MapNode } from '../core/types';
+import { neighbors } from '../game/state';
 import { isNight } from '../game/weather';
 import { STAGES } from './generate';
 
@@ -102,22 +103,22 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   ctx.fillRect(0, h * 0.55, w, h * 0.45);
 
   const cur = state.nodes[state.nodeId];
-  const nextIds = new Set(cur.links);
+  const nextIds = new Set(neighbors(state).map((n) => n.id));
 
-  // 연결선
+  // 연결선. 아는 길은 실선, 모르는 길은 희미한 점선, 지금 갈 수 있는 길은 노란색
   for (const n of state.nodes) {
     const [x1, y1] = toPx(v, n);
     for (const id of n.links) {
       const m = state.nodes[id];
       const [x2, y2] = toPx(v, m);
-      const walked = n.visited && m.visited;
-      const open = n.id === cur.id;
+      const known = !!state.known[edgeKey(n.id, m.id)];
+      const open = n.id === cur.id || m.id === cur.id;
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.lineWidth = open ? 2.2 : walked ? 2 : 1;
-      ctx.strokeStyle = open ? 'rgba(255, 214, 120, 0.9)' : walked ? 'rgba(220, 220, 220, 0.75)' : 'rgba(255,255,255,0.18)';
-      ctx.setLineDash(open ? [6, 4] : []);
+      ctx.lineWidth = open ? 2.2 : known ? 2 : 1;
+      ctx.strokeStyle = open ? 'rgba(255, 214, 120, 0.9)' : known ? 'rgba(220, 220, 220, 0.7)' : 'rgba(255,255,255,0.16)';
+      ctx.setLineDash(open && !known ? [6, 4] : known ? [] : [3, 5]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -159,10 +160,21 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     ctx.font = `${isCur ? 13 : 11}px "Noto Sans KR", "Malgun Gothic", sans-serif`;
     ctx.fillText(KIND_GLYPH[n.kind], x, y + 1);
 
-    if (isCur || isNext || n.kind === 'goal') {
+    // 거점 표시
+    if (n.camp) {
+      ctx.beginPath();
+      ctx.moveTo(x + r + 2, y - r - 2);
+      ctx.lineTo(x + r + 2, y - r - 14);
+      ctx.lineTo(x + r + 12, y - r - 10);
+      ctx.closePath();
+      ctx.fillStyle = '#f2c76a';
+      ctx.fill();
+    }
+
+    if (isCur || isNext || n.kind === 'goal' || n.camp) {
       ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
-      ctx.fillStyle = isCur ? '#ffe3a3' : '#e8e8e8';
-      ctx.fillText(n.name, x, y - r - 10);
+      ctx.fillStyle = isCur ? '#ffe3a3' : n.visited ? '#e8e8e8' : 'rgba(232,232,232,0.75)';
+      ctx.fillText(n.visited || isCur ? n.name : `${n.name.split(' ')[0]} ?`, x, y - r - 10);
     }
   }
 

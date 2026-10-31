@@ -1,9 +1,9 @@
 import { Rng } from '../core/rng';
-import { INDOOR, type GameState, type MapNode, type StatKey } from '../core/types';
+import { INDOOR, REGROWS, REGROW_DAYS, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
 import { addLog } from './log';
 
-export type Activity = 'travel' | 'rest' | 'sleep' | 'forage';
+export type Activity = 'travel' | 'rest' | 'sleep' | 'forage' | 'work';
 
 function clamp(v: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, v));
@@ -13,43 +13,59 @@ function add(state: GameState, key: StatKey, delta: number): void {
   state.stats[key] = clamp(state.stats[key] + delta);
 }
 
+// 날이 갈수록 바다에서 오는 비가 더러워진다. 오래 머물 수 없게 만드는 시계
+export function falloutFactor(state: GameState): number {
+  return 1 + (state.day - 1) * 0.03;
+}
+
 // 시간당 피폭량. 낮은 땅, 비, 바다 쪽 바람이 겹치면 급격히 오른다
 export function radPerHour(state: GameState, node: MapNode, indoor: boolean): number {
   let r = node.alt < 0.35 ? 1.2 : node.alt < 0.6 ? 0.5 : 0.1;
   r *= 1 + node.stage * 0.08; // 북쪽으로 갈수록 짙어진다
+  r *= falloutFactor(state);
   if (state.weather === 'rain') r *= 3;
   if (state.wind !== 'calm' && state.wind === node.side) r *= 1.8;
-  if (indoor) r *= 0.35;
+  if (indoor) r *= node.camp ? 0.2 : 0.35;
   return r;
 }
 
+export interface TickOpts {
+  uphill?: boolean;
+  known?: boolean; // 아는 길이면 덜 지친다
+}
+
 // 한 시간이 흐를 때 몸에 일어나는 일
-function tickOneHour(state: GameState, node: MapNode, act: Activity, uphill: boolean): void {
+function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickOpts): void {
   const night = isNight(state.hour);
   const indoor = act !== 'travel' && INDOOR.has(node.kind);
+  const camp = indoor && node.camp;
 
   // 허기, 갈증
   add(state, 'hunger', act === 'sleep' ? -0.8 : act === 'travel' ? -1.6 : -1.0);
   add(state, 'thirst', act === 'sleep' ? -0.8 : act === 'travel' ? -2.0 : -1.2);
 
   // 피로
-  if (act === 'travel') add(state, 'fatigue', (uphill ? -4.2 : -3.0) * (night ? 1.4 : 1));
-  else if (act === 'rest') add(state, 'fatigue', 5);
-  else if (act === 'sleep') add(state, 'fatigue', indoor ? 11 : 8);
+  if (act === 'travel') {
+    const base = opts.uphill ? -4.2 : -3.0;
+    add(state, 'fatigue', base * (night ? 1.4 : 1) * (opts.known ? 0.8 : 1));
+  } else if (act === 'rest') add(state, 'fatigue', 5);
+  else if (act === 'sleep') add(state, 'fatigue', camp ? 12 : indoor ? 11 : 8);
+  else if (act === 'work') add(state, 'fatigue', -2.5);
   else add(state, 'fatigue', -1.5);
 
   // 체온. 체감 6도 아래부터 식는다. 지붕 아래면 훨씬 덜하고, 웅크리고 자면 조금 덜하다
   const env = envTemp(state, node);
   const chill = Math.max(0, 6 - env);
-  const cold = chill * (indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35);
+  const cold = chill * (camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35);
   if (cold > 0) add(state, 'temp', -cold);
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
+  if (camp && act === 'sleep') add(state, 'temp', 2);
 
   // 피폭
   add(state, 'rad', radPerHour(state, node, indoor));
 
   // 정신
-  if (act === 'sleep') add(state, 'mind', node.kind === 'temple' ? 4 : 2.5);
+  if (act === 'sleep') add(state, 'mind', camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5);
   else if (act === 'rest') add(state, 'mind', 1);
   else if (night) add(state, 'mind', -1);
   const s = state.stats;
@@ -65,14 +81,33 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, uphill: boo
   if (s.rad >= 60) dmg += (s.rad - 60) / 15;
   if (s.mind <= 0) dmg += 1;
   if (dmg > 0) add(state, 'hp', -dmg);
-  else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', 1.5);
+  else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', camp ? 2.5 : 1.5);
 
   // 시계
   state.hour += 1;
   if (state.hour >= 24) {
     state.hour = 0;
     state.day += 1;
+    onNewDay(state);
   }
+}
+
+// 자정마다. 자연 자원이 조금 돌아오고, 낙진 소식이 온다
+function onNewDay(state: GameState): void {
+  for (const n of state.nodes) {
+    if (!REGROWS.has(n.kind) || n.forageLeft >= n.forageMax) continue;
+    if (state.day - n.lastForageDay >= REGROW_DAYS) {
+      n.forageLeft += 1;
+      n.lastForageDay = state.day;
+    }
+  }
+  const notes: Record<number, string> = {
+    4: '비가 점점 더 더러워진다. 한곳에 오래 머물 수 없다.',
+    8: '능선 위에서도 입안에 쇠맛이 돈다. 서둘러야 한다.',
+    12: '하늘이 누렇다. 남쪽은 이미 끝났을 것이다.',
+    16: '이제는 비를 한 번만 맞아도 위험하다.',
+  };
+  if (notes[state.day]) addLog(state, notes[state.day]);
 }
 
 export interface TickResult {
@@ -80,9 +115,9 @@ export interface TickResult {
 }
 
 // hours 만큼 시간을 흘린다. 날씨도 함께 흐른다
-export function passHours(state: GameState, rng: Rng, node: MapNode, hours: number, act: Activity, uphill = false): TickResult {
+export function passHours(state: GameState, rng: Rng, node: MapNode, hours: number, act: Activity, opts: TickOpts = {}): TickResult {
   for (let i = 0; i < hours; i++) {
-    tickOneHour(state, node, act, uphill);
+    tickOneHour(state, node, act, opts);
     tickWeather(state, rng, 1);
     if (state.stats.hp <= 0) {
       state.over = 'dead';

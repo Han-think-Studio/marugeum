@@ -89,7 +89,11 @@ export function generateMap(rng: Rng): MapNode[] {
       links: [],
       visited: false,
       forageLeft: FORAGE_TRIES[kind],
+      forageMax: FORAGE_TRIES[kind],
+      lastForageDay: 0,
       waterLeft: WATER[kind],
+      camp: false,
+      store: null,
     };
     nodes.push(node);
     return node;
@@ -113,6 +117,7 @@ export function generateMap(rng: Rng): MapNode[] {
       n.kind = 'peak';
       n.side = 'ridge';
       n.forageLeft = FORAGE_TRIES.peak;
+      n.forageMax = FORAGE_TRIES.peak;
       n.waterLeft = 0;
       n.alt = rng.range(0.82, 1.0);
       n.y = 0.1 + (1 - n.alt) * 0.72;

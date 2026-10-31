@@ -25,8 +25,27 @@ export interface MapNode {
   links: number[]; // 다음 단계로 이어지는 노드 id
   visited: boolean;
   forageLeft: number; // 이 노드에서 먹을 것을 더 찾을 수 있는 횟수
+  forageMax: number; // 자연 자원은 며칠마다 이 값까지 회복한다
+  lastForageDay: number; // 마지막으로 뒤진 날
   waterLeft: number; // 물. -1 무제한, 0 없음, n 남은 횟수
+  camp: boolean; // 거점을 세운 곳
+  store: Store | null; // 거점 저장고
 }
+
+// 배낭과 저장고에 들어가는 것. 단위 수량
+export interface Store {
+  water: number; // 깨끗한 물
+  dirty: number; // 오염된 물
+  food: number;
+}
+
+export const PACK_CAP = { water: 3, food: 4 } as const;
+export const WATER_UNIT = 40; // 물 한 단위가 채우는 갈증
+export const FOOD_UNIT = 30; // 음식 한 단위가 채우는 허기
+
+// 자연에서 다시 나는 자원이 있는 곳
+export const REGROWS: ReadonlySet<NodeKind> = new Set(['valley', 'spring', 'peak', 'pass']);
+export const REGROW_DAYS = 3;
 
 export const KIND_LABEL: Record<NodeKind, string> = {
   start: '출발지',
@@ -87,8 +106,14 @@ export interface GameState {
   weather: Weather;
   wind: Wind;
   weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
+  pack: Store; // 배낭
+  known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
   rngState: number; // 게임 진행용 난수 상태
+}
+
+export function edgeKey(a: number, b: number): string {
+  return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
