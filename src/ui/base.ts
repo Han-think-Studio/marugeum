@@ -1,7 +1,8 @@
 import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, type GameState } from '../core/types';
 import {
-  canCarry, currentNode, dailyUse, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator, heaterHoursLeft,
-  heavyCarried, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, timeLabel, toggleGenerator, toggleHeater,
+  canCarry, canDepart, currentNode, dailyUse, depart, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator,
+  heaterHoursLeft, heavyCarried, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
+  toggleGenerator, toggleHeater,
 } from '../game/state';
 import { audio } from '../audio/engine';
 
@@ -12,6 +13,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
   const node = currentNode(state);
   const el = document.createElement('div');
   el.className = 'overlay base';
+  let armed = false;
   const draw = () => {
     const camp = node.camp && node.store !== null;
     const st = node.store ?? { water: 0, dirty: 0, food: 0, fresh: 0, wood: 0, gasoline: 0, diesel: 0, parts: 0 };
@@ -75,6 +77,9 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
             <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
             ${camp ? `<h3>시설</h3>${facilities()}` : '<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p>'}
+            ${canDepart(state) ? `<h3>떠나기</h3>
+            <p class="muted">배낭에 든 것만 가져간다: ${storeText(p)}. 무거운 장비 ${heavyCarried(state)}/2. 발전기와 냉장고는 두고 간다. 돌아올 수는 있다.</p>
+            <button class="depart ${armed ? 'armed' : ''}" data-depart="1">${armed ? '정말 떠난다. 능선을 따라 북쪽으로' : '북쪽으로 떠난다'}</button>` : ''}
           </section>
           <section>
             <h3>${camp ? '거점 장비' : '여기 둔 장비'} <span class="muted">${node.equip.length}</span></h3>
@@ -106,6 +111,11 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     else if (b.dataset.rep) changed = repair(state, b.dataset.rep as 'pack' | 'base', Number(b.dataset.i));
     else if (b.dataset.fac === 'gen') changed = toggleGenerator(state, node);
     else if (b.dataset.fac === 'heater') changed = toggleHeater(state, node);
+    else if (b.dataset.depart) {
+      if (!armed) { armed = true; draw(); return; }
+      if (depart(state)) { audio.sfx('step'); close(); }
+      return;
+    }
     if (changed) {
       audio.sfx('click');
       if (state.over !== 'none') { close(); return; }

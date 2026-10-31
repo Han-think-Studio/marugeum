@@ -33,6 +33,8 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.gear && !hasEquip(state, when.gear)) return false;
   if (when.noGear && hasEquip(state, when.noGear)) return false;
   if (when.facility && !facilityRunning(node, when.facility)) return false;
+  if (when.phase && state.phase !== when.phase) return false;
+  if (when.firstRun !== undefined && (state.runNo === 1) !== when.firstRun) return false;
   return true;
 }
 
@@ -69,6 +71,14 @@ export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: bo
 }
 
 // 밤 이벤트. 잠에서 깬 뒤에 닥친다
+// 시작 장면. 첫 아침
+export function startEvent(state: GameState, rng: Rng, node: MapNode): boolean {
+  const ev = pickWeighted(rng, pool(state, node, 'start'));
+  if (!ev) return false;
+  open(state, ev);
+  return true;
+}
+
 export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   if (state.over !== 'none' || state.event) return false;
   // 전등이 켜진 거점은 밤이 덜 위험하다. 대신 라디오 소식은 전등과 상관없이 온다

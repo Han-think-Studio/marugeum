@@ -7,7 +7,7 @@ import {
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
 import { passHours, warnings } from './survival';
-import { choose, closeEvent, maybeArrive, maybeNight } from './events';
+import { choose, closeEvent, maybeArrive, maybeNight, startEvent } from './events';
 import { canCarry, equipLabel, hasEquip, heavyCount } from './equip';
 import { isNight, rollWeather } from './weather';
 import { syncFresh } from './facilities';
@@ -41,6 +41,9 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     runNo: opts.runNo ?? 1,
     started: Date.now(),
     recorded: false,
+    phase: 'base',
+    departedDay: 0,
+    baseId: 0,
     log: [],
     over: 'none',
     overText: '',
@@ -48,9 +51,27 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
   };
   const rng = takeRng(state);
   rollWeather(state, rng, true);
+  addLog(state, '중산리 야영장, 대피령 엿새째. 바다는 죽었고 낮은 땅은 비에 젖으면 위험하다. 사람들은 떠났고 두고 간 것들이 남았다.');
+  startEvent(state, rng, nodes[0]);
   giveRng(state, rng);
-  addLog(state, '지리산 천왕봉. 바다는 죽었고 낮은 땅은 비에 젖으면 위험하다. 배낭에는 물 한 통과 먹을 것 하나. 능선을 따라 북쪽으로 간다.');
   return state;
+}
+
+// 북쪽으로 떠난다. 배낭에 든 것만 가지고. 거점 시설은 끄고 간다
+export function canDepart(state: GameState): boolean {
+  return state.phase === 'base' && state.nodeId === state.baseId && !busy(state);
+}
+
+export function depart(state: GameState): boolean {
+  if (!canDepart(state)) return false;
+  const base = currentNode(state);
+  base.genOn = false;
+  base.heaterOn = false;
+  state.phase = 'trek';
+  state.departedDay = state.day;
+  addLog(state, `${state.day}일째. 야영장을 떠난다. 배낭에 ${storeText(state.pack)}. 능선을 따라 북쪽으로.`);
+  afterAction(state);
+  return true;
 }
 
 // 진행용 난수는 상태에 숫자로만 저장한다. 저장과 불러오기를 위해서다

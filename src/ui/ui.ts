@@ -199,6 +199,7 @@ function renderHud(refs: Refs, state: GameState): void {
   const geiger = hasEquip(state, 'geiger') ? ` · <span class="geiger">☢ ${radPerHour(state, cur, INDOOR.has(cur.kind)).toFixed(1)}/시</span>` : '';
   refs.hud.innerHTML =
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
+    `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
     `<span class="pack">물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted">(신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
     `${p.gasoline ? ` · 휘발유 ${p.gasoline}` : ''}${p.diesel ? ` · 경유 ${p.diesel}` : ''}${p.parts ? ` · 부품 ${p.parts}` : ''}` +

@@ -424,7 +424,7 @@ export const EVENTS: EventDef[] = [
     text: '덕유산 설천봉. 리조트 곤돌라가 케이블 중간에 멈춰 있다. 가장 가까운 곤돌라 안에 사람들의 윤곽이 보인다. 움직이지 않는다. 정류장 매점은 유리가 깨져 있다.',
     once: true,
     weight: 3,
-    when: { stages: [1] },
+    when: { stages: [2] },
     choices: [
       { text: '매점을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.7, text: '진열대 아래 생수와 초코바가 흩어져 있었다. 곤돌라 쪽은 보지 않으려고 등을 돌리고 주웠다.', effects: { water: 2, food: 1, hours: 1, mind: -3 } },
@@ -441,7 +441,7 @@ export const EVENTS: EventDef[] = [
     text: '세 도가 만나는 봉우리. 기념탑 아래 돌무더기에 쪽지들이 눌려 있다. 수십 장. 이름과 날짜, 어디로 간다는 말. 누군가를 찾는다는 말.',
     once: true,
     weight: 3,
-    when: { stages: [2], kinds: ['peak', 'pass'] },
+    when: { stages: [3], kinds: ['peak', 'pass'] },
     choices: [
       { text: '쪽지를 전부 읽는다', hint: '1시간 · 정보', outcomes: [{ text: '대부분 북쪽으로 간다고 적혀 있다. 한 장에는 "속리산 법주사에 쌀이 있다"고, 다른 한 장에는 "소백 죽령은 밤에 지나라"고. 머릿속에 적어 두었다.', effects: { hours: 1, mind: 4, flag: 'notes_samdobong' } }] },
       { text: '내 쪽지를 남긴다', outcomes: [{ text: '날짜와 이름, 북쪽으로 간다는 말. 돌로 눌렀다. 누가 읽을지는 모른다.', effects: { mind: 6, flag: 'note_left' } }] },
@@ -455,7 +455,7 @@ export const EVENTS: EventDef[] = [
     text: '황악산 아래 큰 절. 승려들은 없고 대웅전 벽에 종이가 빼곡히 붙어 있다. 거쳐 간 사람들의 이름이다. 공양간 문에는 "먹을 만큼만"이라고 쓰여 있다.',
     once: true,
     weight: 3,
-    when: { stages: [3], kinds: ['temple', 'village'] },
+    when: { stages: [4], kinds: ['temple', 'village'] },
     choices: [
       { text: '먹을 만큼만 가져간다', hint: '먹을 것', outcomes: [{ text: '쌀통에 아직 반이 남아 있었다. 두 끼 분량만 덜었다. 뚜껑을 닫으며 다음 사람을 생각했다.', effects: { food: 2, mind: 5 } }] },
       { text: '있는 대로 챙긴다', hint: '먹을 것 · 정신', outcomes: [{ text: '배낭이 찰 때까지 담았다. 벽의 이름들이 등을 보고 있는 것 같았다.', effects: { food: 4, mind: -8, flag: 'took_all_jikji' } }] },
@@ -469,7 +469,7 @@ export const EVENTS: EventDef[] = [
     text: '속리산 법주사. 서른 미터 금동 미륵불이 흐린 하늘 아래 서 있다. 발치에 타다 남은 모닥불 자리와 비닐 천막들. 사람들이 여기 모였다가 흩어졌다.',
     once: true,
     weight: 3,
-    when: { stages: [4] },
+    when: { stages: [5] },
     choices: [
       { text: '천막을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.6, text: '버려진 천막 안에 라면과 생수가 있었다. 그리고 아이 신발 한 짝. 신발은 두고 왔다.', effects: { food: 2, water: 1, hours: 1, mind: -3 } },
@@ -486,7 +486,7 @@ export const EVENTS: EventDef[] = [
     text: '소백산 죽령. 옛 고갯길 아래 고속도로 터널 입구가 보인다. 차들이 터널 안쪽까지 줄지어 멈춰 있고 입구에 바리케이드가 넘어져 있다. 안은 완전한 어둠이다.',
     once: true,
     weight: 3,
-    when: { stages: [5] },
+    when: { stages: [6] },
     choices: [
       { text: '터널 안 차들을 뒤진다', hint: '2시간 · 물건 · 위험', outcomes: [
         { chance: 0.55, text: '어둠 속에서 손으로 더듬어 트렁크를 열었다. 생수 묶음과 과자 상자. 뒤쪽에서 무언가 움직이는 소리에 뛰쳐나왔다.', effects: { water: 2, food: 2, hours: 2, mind: -6 } },
@@ -503,7 +503,7 @@ export const EVENTS: EventDef[] = [
     text: '태백. 산비탈에 막장 입구가 입을 벌리고 있다. 안쪽에서 희미한 불빛과 사람 소리. 피난민들이 갱도에 들어가 있다. 바위 수십 미터 아래라면 비는 닿지 않는다.',
     once: true,
     weight: 3,
-    when: { stages: [6] },
+    when: { stages: [7] },
     choices: [
       { text: '들어가 하룻밤 청한다', hint: '8시간 · 피폭 거의 없음', outcomes: [
         { chance: 0.7, text: '노인들과 아이들이 대부분이었다. 그들은 자리를 내주고 멀건 죽 한 그릇을 건넸다. 갱도 안은 바위 냄새가 났고 비 소리가 들리지 않았다.', effects: { hours: 8, fatigue: 50, temp: 20, hunger: 15, mind: 10, flag: 'mine_people' } },
@@ -520,7 +520,7 @@ export const EVENTS: EventDef[] = [
     text: '함백산 만항재. 포장도로가 넘는 가장 높은 고개. 군용 트럭 다섯 대가 길을 막은 채 서 있다. 짐칸의 천막이 바람에 펄럭이고, 운전석에는 아무도 없다.',
     once: true,
     weight: 3,
-    when: { stages: [7], kinds: ['pass', 'peak', 'military'] },
+    when: { stages: [8], kinds: ['pass', 'peak', 'military'] },
     choices: [
       { text: '짐칸을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.6, text: '전투식량 상자 하나가 뜯기지 않은 채 남아 있었다. 그리고 담요. 군인들은 급하게 떠난 것이다.', effects: { food: 2, hours: 1, gear: 'blanket' } },
@@ -537,7 +537,7 @@ export const EVENTS: EventDef[] = [
     text: '두타산. 계곡 아래 마을에서 연기가 올라온다. 밥 짓는 연기다. 사람들이 살아 있다. 하지만 저 마을은 동해에서 십 킬로미터도 안 된다.',
     once: true,
     weight: 3,
-    when: { stages: [8] },
+    when: { stages: [9] },
     choices: [
       { text: '내려가 본다', hint: '3시간 · 피폭 · 정신', outcomes: [{ text: '바닷가에서 올라온 사람들이었다. 반은 누워 있었고 머리카락이 빠진 아이가 있었다. 그들은 내게 물을 달라 하지 않았다. 대신 북쪽으로 가라고 했다. 나는 가진 것을 조금 나누고 돌아섰다.', effects: { hours: 3, rad: 8, food: -1, mind: 6, flag: 'duta_people' } }] },
       { text: '능선에서 지켜본다', hint: '1시간', outcomes: [{ text: '한 시간을 지켜봤다. 연기는 세 줄에서 두 줄이 됐다. 내려가지 않은 이유를 스스로에게 설명하지 못했다.', effects: { hours: 1, mind: -6 } }] },
@@ -551,7 +551,7 @@ export const EVENTS: EventDef[] = [
     text: '오대산 월정사 전나무 숲길. 수백 년 된 전나무가 양쪽에 서 있다. 바람이 지나가면 숲 전체가 숨을 쉬는 소리를 낸다. 이 길만은 아무것도 변하지 않은 것 같다.',
     once: true,
     weight: 3,
-    when: { stages: [9] },
+    when: { stages: [10] },
     choices: [
       { text: '천천히 걷는다', hint: '2시간 · 정신', outcomes: [{ text: '두 시간을 걸었다. 전쟁도 바다도 없는 두 시간이었다. 숲 끝에서 다시 배낭을 고쳐 멨다.', effects: { hours: 2, mind: 14, fatigue: 5 } }] },
       { text: '쓰러진 나무에서 땔감을 모은다', hint: '1시간 · 땔감', outcomes: [{ text: '마른 전나무 가지는 불이 잘 붙는다. 송진 냄새가 손에 뱄다.', effects: { hours: 1, wood: 3, mind: 3 } }] },
@@ -565,7 +565,7 @@ export const EVENTS: EventDef[] = [
     text: '설악산 아래 고개. 처음으로 사람이 지키는 검문소를 만났다. 방독면을 쓴 군인 둘이 계수기를 들고 다가온다. "향로봉 가십니까? 측정하겠습니다."',
     once: true,
     weight: 4,
-    when: { stages: [10] },
+    when: { stages: [11] },
     choices: [
       { text: '순순히 측정을 받는다', hint: '피폭에 따라 다르다', outcomes: [{ text: '계수기가 몸을 훑었다. 군인은 수치를 적더니 통행증 대신 종이 한 장을 줬다. "향로봉 수용소. 수치 높은 분은 격리동입니다. 그래도 가세요. 거기가 낫습니다." 군인은 물 한 통을 건넸다.', effects: { water: 1, mind: 8, flag: 'checkpoint_pass' } }] },
       { text: '측정을 거부하고 우회한다', hint: '3시간 · 위험', outcomes: [
@@ -695,5 +695,67 @@ export const EVENTS: EventDef[] = [
       { text: '주인을 묻어 주고 챙긴다', hint: '2시간 · 정신', outcomes: [{ text: '밭 가장자리에 얕게 묻었다. 경운기 열쇠는 그 위에 올려 두었다. 기름통과 배추는 가져왔다.', effects: { diesel: 1, fresh: 2, hours: 2, mind: 6, flag: 'tractor_done' } }] },
       { text: '지나간다', outcomes: [{ text: '남의 밭이다. 아직은 그런 생각이 남아 있다.', effects: { mind: 2 } }] },
     ],
+  },
+
+  // ---------- 시작 장면과 첫 여정 안내 ----------
+  {
+    id: 'intro_morning',
+    trigger: 'start',
+    title: '엿새째 아침',
+    text: '중산리 야영장. 대피령이 내린 지 엿새째다. 버스는 한 대도 돌아오지 않았고 사람들은 걸어서 떠났다. 남은 건 텐트 한 동, 시동이 안 걸리는 발전기, 멀쩡한 냉장고, 기름통 둘, 그리고 나. 라디오는 북쪽 향로봉에 수용소가 있다고 했다. 여기서 능선을 따라 가면 닿는다. 걸어서.',
+    choices: [
+      { text: '짐을 살핀다', outcomes: [{ text: '물 네 통, 통조림과 라면 여섯 끼, 휘발유 둘, 부품 하나. 발전기를 고치면 냉장고와 전등이 돈다. 주변을 뒤지며 모아야 한다. 떠날 때 질 수 있는 만큼만 가져갈 수 있다.', effects: { mind: 3 } }] },
+      { text: '하늘을 본다', outcomes: [{ text: '남쪽 하늘이 누렇다. 바다 쪽이다. 비가 오면 저 색이 내려올 것이다. 오래 머물 수는 없다.', effects: { mind: -2 } }] },
+    ],
+  },
+  {
+    id: 'tut_scout',
+    trigger: 'arrive',
+    title: '첫 조사',
+    text: '야영장이 아래로 보인다. 여기서부터는 처음 걷는 길이다. 한 번 걸은 길은 돌아갈 때 빠르다. 배낭에 든 것만 가져갈 수 있고, 무거운 장비는 두 개까지다. 쓸 만한 것을 찾으면 야영장 저장고에 쌓아 두자.',
+    once: true,
+    weight: 10,
+    when: { stages: [1], firstRun: true, phase: 'base' },
+    choices: [{ text: '알았다', outcomes: [{ text: '배낭 끈을 조였다.', effects: {} }] }, { text: '야영장을 한 번 더 본다', outcomes: [{ text: '텐트가 작게 보인다. 돌아갈 곳이 있다는 건 좋은 일이다.', effects: { mind: 3 } }] }],
+  },
+  {
+    id: 'tut_water',
+    trigger: 'arrive',
+    title: '물',
+    text: '물소리. 약수터와 절의 물은 깨끗하지만 계곡과 우물은 낮은 땅의 물이라 오염되어 있다. 오염된 물은 불을 피워 끓이고 천에 거르면 마실 수 있다. 통에 담아 두면 길에서 마신다.',
+    once: true,
+    weight: 10,
+    when: { kinds: ['spring', 'valley'], firstRun: true },
+    choices: [{ text: '알았다', outcomes: [{ text: '물통을 꺼냈다.', effects: {} }] }],
+  },
+  {
+    id: 'tut_rain',
+    trigger: 'arrive',
+    title: '비',
+    text: '빗방울이 미끈하다. 바다를 지나온 비다. 비를 맞으면 피폭이 세 배로 오른다. 비 오는 날은 지붕 아래서 기다리는 게 낫고, 바람이 오는 쪽 사면은 피해야 한다. 가이거 계수기가 있으면 수치가 보인다.',
+    once: true,
+    weight: 10,
+    when: { weather: ['rain'], firstRun: true },
+    choices: [{ text: '알았다', outcomes: [{ text: '옷깃을 여몄다.', effects: {} }] }],
+  },
+  {
+    id: 'tut_night',
+    trigger: 'night',
+    title: '첫 밤',
+    text: '능선의 밤은 춥다. 지붕이 없으면 불을 피우거나 텐트를 치는 게 낫다. 담요는 밤을 절반으로 줄인다. 불이 있으면 오염된 물도 끓일 수 있다. 땔감은 나무가 있는 곳 어디서든 모은다.',
+    once: true,
+    weight: 10,
+    when: { outdoor: true, firstRun: true },
+    choices: [{ text: '알았다', outcomes: [{ text: '손을 비볐다.', effects: {} }] }],
+  },
+  {
+    id: 'tut_depart',
+    trigger: 'night',
+    title: '떠날 때',
+    text: '야영장의 밤. 날이 갈수록 비는 더러워지고 주변에서 찾을 것은 줄어든다. 언제 떠날지는 내가 정한다. 거점 화면에 "북쪽으로 떠난다"가 있다. 떠날 때 배낭에 든 것만 가져간다. 발전기와 냉장고는 두고 간다.',
+    once: true,
+    weight: 10,
+    when: { kinds: ['start'], firstRun: true, phase: 'base', minDay: 2 },
+    choices: [{ text: '알았다', outcomes: [{ text: '아직은 아니다. 하지만 곧.', effects: {} }] }],
   },
 ];

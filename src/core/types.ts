@@ -111,7 +111,7 @@ export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
 ) as Record<EquipKind, string>;
 
 // 땔감을 모을 수 있는 곳. 군 시설과 출발·도착지는 제외
-export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
+export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['start', 'peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
 
 export const GEN_HOURS_PER_UNIT = 8; // 발전기 연료 1통으로 도는 시간
 export const HEATER_HOURS_PER_UNIT = 10; // 난로 경유 1통으로 도는 시간
@@ -133,7 +133,7 @@ export const REGROWS: ReadonlySet<NodeKind> = new Set(['valley', 'spring', 'peak
 export const REGROW_DAYS = 3;
 
 export const KIND_LABEL: Record<NodeKind, string> = {
-  start: '출발지',
+  start: '야영장',
   peak: '봉우리',
   pass: '고개',
   temple: '산사',
@@ -146,7 +146,7 @@ export const KIND_LABEL: Record<NodeKind, string> = {
 };
 
 export const KIND_GLYPH: Record<NodeKind, string> = {
-  start: '기',
+  start: '營',
   peak: '봉',
   pass: '고',
   temple: '사',
@@ -159,7 +159,7 @@ export const KIND_GLYPH: Record<NodeKind, string> = {
 };
 
 // 지붕이 있어 비와 바람을 피할 수 있는 곳
-export const INDOOR: ReadonlySet<NodeKind> = new Set(['temple', 'shelter', 'village', 'military']);
+export const INDOOR: ReadonlySet<NodeKind> = new Set(['start', 'temple', 'shelter', 'village', 'military']);
 
 export const SIDE_LABEL: Record<Side, string> = { ridge: '능선', E: '동쪽 사면', W: '서쪽 사면' };
 
@@ -203,6 +203,9 @@ export interface GameState {
   runNo: number; // 몇 번째 여정인지
   started: number; // 시작 시각(ms)
   recorded: boolean; // 수첩에 적혔는지
+  phase: 'base' | 'trek'; // 거점기 / 종주기
+  departedDay: number; // 북쪽으로 떠난 날. 0 이면 아직
+  baseId: number; // 시작 거점 노드
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
@@ -216,7 +219,7 @@ export function edgeKey(a: number, b: number): string {
 // ---------- 이벤트 ----------
 // 이벤트는 src/data/events.ts 에 데이터로만 적는다. 코드 없이 이야기를 더할 수 있다
 
-export type Trigger = 'arrive' | 'night';
+export type Trigger = 'arrive' | 'night' | 'start';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
@@ -231,6 +234,8 @@ export interface When {
   gear?: GearKey;
   noGear?: GearKey;
   facility?: EquipKind; // 지금 자리 거점에서 이 시설이 돌아가고 있어야 (전기 포함)
+  phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
+  firstRun?: boolean; // 첫 여정에만 (안내용)
 }
 
 export interface Effect {
@@ -292,6 +297,7 @@ export interface RunRecord {
   farthest: number; // 가장 멀리 간 단계
   events: string[]; // 만난 이벤트 id
   gear: EquipKind[];
+  departedDay?: number; // 거점을 떠난 날
   endedAt: number;
 }
 

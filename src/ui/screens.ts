@@ -55,7 +55,8 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
   const runs = [...j.runs].reverse().slice(0, 20).map((r) => {
     const where = regionName(r.farthest);
     const what = r.over === 'won' ? '향로봉 도착' : `${where}에서 ${r.cause.replace(/^\d+일째, /, '')}`;
-    return `<li><b>${r.runNo}번째</b> · ${r.days}일 · 피폭 ${r.rad} · ${what}</li>`;
+    const left = r.departedDay ? ` · ${r.departedDay}일째 출발` : ' · 야영장에서';
+    return `<li><b>${r.runNo}번째</b> · ${r.days}일${left} · 피폭 ${r.rad} · ${what}</li>`;
   });
   const regions = REGIONS.map((name, i) => `<span class="region${j.knownStages.includes(i) ? ' known' : ''}">${name}</span>`).join('');
   const seen = Object.entries(j.eventsSeen)

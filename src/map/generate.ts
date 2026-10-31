@@ -1,10 +1,10 @@
 import { Rng } from '../core/rng';
 import type { MapNode, NodeKind } from '../core/types';
 
-export const STAGES = 12; // 0 출발, 11 목표
+export const STAGES = 13; // 0 중산리 야영장, 12 향로봉
 
 // 남쪽에서 북쪽으로 백두대간을 따라 올라간다
-export const REGIONS = ['지리', '덕유', '민주지', '황악', '속리', '소백', '태백', '함백', '두타', '오대', '설악', '향로'];
+export const REGIONS = ['중산리', '지리', '덕유', '민주지', '황악', '속리', '소백', '태백', '함백', '두타', '오대', '설악', '향로'];
 
 const KIND_POOL: readonly NodeKind[] = [
   'peak', 'peak', 'peak', 'peak', 'peak',
@@ -18,7 +18,7 @@ const KIND_POOL: readonly NodeKind[] = [
 ];
 
 const ALT_RANGE: Record<NodeKind, [number, number]> = {
-  start: [0.95, 1.0],
+  start: [0.22, 0.26],
   peak: [0.82, 1.0],
   pass: [0.58, 0.74],
   shelter: [0.64, 0.8],
@@ -43,7 +43,7 @@ const WATER: Record<NodeKind, number> = {
 function nameFor(rng: Rng, kind: NodeKind, region: string): string {
   switch (kind) {
     case 'start':
-      return '지리산 천왕봉';
+      return '중산리 야영장';
     case 'goal':
       return '향로봉 안전지대';
     case 'peak':
@@ -76,14 +76,14 @@ export function generateMap(rng: Rng): MapNode[] {
     // 고도가 높을수록 위쪽. 같은 단계 안에서는 slot으로 살짝 벌린다
     const spread = slots > 1 ? (slot / (slots - 1) - 0.5) * 0.08 : 0;
     const y = 0.1 + (1 - alt) * 0.72 + spread;
-    const onRidge = kind === 'start' || kind === 'goal' || kind === 'peak' || kind === 'pass';
+    const onRidge = kind === 'goal' || kind === 'peak' || kind === 'pass';
     const node: MapNode = {
       id: nodes.length,
       stage,
       kind,
       name: nameFor(rng, kind, REGIONS[stage]),
       alt,
-      side: onRidge ? 'ridge' : rng.chance(0.5) ? 'E' : 'W',
+      side: onRidge ? 'ridge' : kind === 'start' ? 'W' : rng.chance(0.5) ? 'E' : 'W',
       x,
       y: Math.min(0.9, Math.max(0.08, y)),
       links: [],
@@ -107,7 +107,7 @@ export function generateMap(rng: Rng): MapNode[] {
 
   byStage[0] = [make(0, 'start', 0, 1)];
   for (let s = 1; s < STAGES - 1; s++) {
-    const count = rng.int(2, 3);
+    const count = s <= 2 ? 3 : rng.int(2, 3);
     const used = new Set<NodeKind>();
     const list: MapNode[] = [];
     for (let i = 0; i < count; i++) {
@@ -140,7 +140,15 @@ export function generateMap(rng: Rng): MapNode[] {
     byStage[s] = list;
   }
   byStage[STAGES - 1] = [make(STAGES - 1, 'goal', 0, 1)];
-  byStage[0][0].visited = true;
+  const base = byStage[0][0];
+  base.visited = true;
+  base.camp = true;
+  base.store = { water: 4, dirty: 0, food: 6, fresh: 0, wood: 2, gasoline: 2, diesel: 0, parts: 1 };
+  base.equip = [
+    { kind: 'generator', broken: true },
+    { kind: 'fridge', broken: false },
+    { kind: 'lamp', broken: false },
+  ];
 
   // 연결. 가까운 고도끼리 잇고, 고아 노드는 가장 가까운 노드에서 이어준다
   for (let s = 0; s < STAGES - 1; s++) {
@@ -148,7 +156,7 @@ export function generateMap(rng: Rng): MapNode[] {
     const next = byStage[s + 1];
     for (const n of cur) {
       const sorted = [...next].sort((a, b) => Math.abs(a.y - n.y) - Math.abs(b.y - n.y));
-      const want = next.length === 1 ? 1 : rng.chance(0.55) ? 2 : 1;
+      const want = s === 0 ? next.length : next.length === 1 ? 1 : rng.chance(0.55) ? 2 : 1;
       for (let i = 0; i < want && i < sorted.length; i++) n.links.push(sorted[i].id);
     }
     for (const m of next) {

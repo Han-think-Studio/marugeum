@@ -48,6 +48,7 @@ export function recordRun(state: GameState): Journal {
     farthest,
     events: [...state.seen],
     gear: state.equip.filter((e) => !e.broken).map((e) => e.kind),
+    departedDay: state.departedDay,
     endedAt: Date.now(),
   };
   j.runs.push(rec);
