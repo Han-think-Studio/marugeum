@@ -16,6 +16,11 @@ const ARRIVE_AGAIN = 0.12;
 const NIGHT_OUTDOOR = 0.35;
 const NIGHT_INDOOR = 0.12;
 
+// 모은 가족 단서 수
+export function clueCount(state: GameState): number {
+  return Object.keys(state.flags).filter((k) => k.startsWith('clue:') && state.flags[k]).length;
+}
+
 export function eventById(id: string): EventDef | undefined {
   return EVENTS.find((e) => e.id === id) ?? OBJECT_EVENTS.find((e) => e.id === id);
 }
@@ -35,6 +40,11 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.noGear && hasEquip(state, when.noGear)) return false;
   if (when.facility && !facilityRunning(node, when.facility)) return false;
   if (when.phase && state.phase !== when.phase) return false;
+  const clues = clueCount(state);
+  if (when.minClues !== undefined && clues < when.minClues) return false;
+  if (when.maxClues !== undefined && clues > when.maxClues) return false;
+  if (when.minRad !== undefined && state.stats.rad < when.minRad) return false;
+  if (when.maxRad !== undefined && state.stats.rad > when.maxRad) return false;
   if (when.firstRun !== undefined && (state.runNo === 1) !== when.firstRun) return false;
   return true;
 }
@@ -99,6 +109,15 @@ export function startEvent(state: GameState, rng: Rng, node: MapNode): boolean {
   return true;
 }
 
+// 향로봉에 닿았을 때. 조건에 맞는 엔딩 장면 하나가 열린다
+export function openGoal(state: GameState, rng: Rng, node: MapNode): boolean {
+  const list = pool(state, node, 'arrive').filter((e) => e.when?.kinds?.includes('goal'));
+  const ev = pickWeighted(rng, list);
+  if (!ev) return false;
+  open(state, ev);
+  return true;
+}
+
 export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   if (state.over !== 'none' || state.event) return false;
   // 전등이 켜진 거점은 밤이 덜 위험하다. 대신 라디오 소식은 전등과 상관없이 온다
@@ -150,6 +169,15 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.gear && canCarry(state, e.gear)) state.equip.push({ kind: e.gear, broken: false });
   if (e.brokenGear && canCarry(state, e.brokenGear)) state.equip.push({ kind: e.brokenGear, broken: true });
   if (e.flag) state.flags[e.flag] = true;
+  if (e.clue && !state.flags[`clue:${e.clue}`]) {
+    state.flags[`clue:${e.clue}`] = true;
+    addLog(state, `가족의 흔적. 단서 ${clueCount(state)}개.`);
+  }
+  if (e.ending) {
+    state.ending = e.ending;
+    state.over = 'won';
+    state.overText = `${state.day}일째. ${e.ending === 'stay' ? '북쪽을 포기했다.' : '향로봉에 닿았다.'} 누적 피폭 ${Math.round(state.stats.rad)}. 단서 ${clueCount(state)}개.`;
+  }
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
   if (e.cave) node.cave = true;

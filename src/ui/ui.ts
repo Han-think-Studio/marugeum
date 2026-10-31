@@ -1,7 +1,7 @@
-import { INDOOR, KIND_LABEL, SIDE_LABEL, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
+import { ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
-  WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canWindbreak,
+  WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
@@ -218,6 +218,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
       c: () => { showBase(root, state, render); return false; },
       k: () => buildWindbreak(state),
+      o: () => lookPhoto(state),
     };
     const fn = map[e.key.toLowerCase()];
     if (fn && fn()) render();
@@ -298,9 +299,13 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
 
   if (state.over !== 'none') {
     const won = state.over === 'won';
+    const ending = won && state.ending ? ENDING_INFO[state.ending] : null;
+    const art = ending ? `<img class="ending-art" src="./art/ending-${state.ending}.webp" alt="" onerror="this.remove()">` : '';
     refs.choices.innerHTML =
-      `<div class="end ${won ? 'won' : 'dead'}"><p>${state.overText}</p><p class="muted">기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
+      `<div class="end ${won ? 'won' : 'dead'}">${art}${ending ? `<h3>${ending.title}</h3>` : ''}<p>${state.overText}</p>` +
+      `<p class="muted">${ending ? ending.short + ' · ' : ''}기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
       `<button class="restart"><span class="num">1</span> 새 여정</button> <button class="book-btn"><span class="num">J</span> 기록 수첩</button></div>`;
+    refs.hud.parentElement!.classList.add('has-event');
     refs.choices.querySelector('.restart')!.addEventListener('click', () => {
       location.href = location.pathname + '?new=1';
     });
@@ -323,6 +328,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const wk = waterKind(state);
   const p = state.pack;
   const cap = packCap(state);
+  act('사진 보기', 'O', canLookPhoto(state) ? `단서 ${clueCount(state)}개` : '오늘은 봤다', () => lookPhoto(state), canLookPhoto(state));
   act('쉬기', 'R', '2시간', () => rest(state));
   act(cur.camp ? '거점에서 자기' : INDOOR.has(cur.kind) ? '실내에서 자기' : '노숙', 'S', '8시간', () => sleep(state));
   act('마시기', 'W', wk !== 'none' ? WATER_LABEL[wk] + (wk === 'stored' ? ` ${cur.waterLeft}회` : '') : p.water + p.dirty > 0 ? '배낭에서' : '물이 없다', () => drink(state), canDrink(state));

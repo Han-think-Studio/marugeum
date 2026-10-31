@@ -213,6 +213,8 @@ export interface GameState {
   phase: 'base' | 'trek'; // 거점기 / 종주기
   departedDay: number; // 북쪽으로 떠난 날. 0 이면 아직
   baseId: number; // 시작 거점 노드
+  ending: EndingId | null; // 어떻게 끝났나
+  photoDay: number; // 마지막으로 사진을 본 날
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
@@ -243,6 +245,10 @@ export interface When {
   facility?: EquipKind; // 지금 자리 거점에서 이 시설이 돌아가고 있어야 (전기 포함)
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
+  minClues?: number; // 가족 단서를 이만큼 모았어야
+  maxClues?: number;
+  minRad?: number; // 피폭이 이 이상이어야
+  maxRad?: number;
 }
 
 export interface Effect {
@@ -256,6 +262,8 @@ export interface Effect {
   flag?: string;
   fireOut?: boolean;
   poisonWell?: boolean; // 이 자리의 물을 못 쓰게 된다
+  clue?: string; // 가족 단서를 얻는다
+  ending?: EndingId; // 여정이 이렇게 끝난다
   objUsed?: boolean; // 이 사물을 다 썼다 (object 이벤트에서)
   objRemove?: boolean; // 이 사물이 사라진다
   bury?: boolean; // 묻어 준다. 두 시간, 수첩에 이름
@@ -311,6 +319,8 @@ export interface RunRecord {
   gear: EquipKind[];
   departedDay?: number; // 거점을 떠난 날
   buried?: string[]; // 묻어 준 사람들
+  ending?: EndingId | null;
+  clues?: number;
   endedAt: number;
 }
 
@@ -368,3 +378,18 @@ export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
 };
 export const UPGRADE_IDS: UpgradeId[] = ['window', 'earth', 'roof', 'hearth'];
 export const WINDBREAK = { label: '바람막이', desc: '이 자리의 추위가 줄어든다', story: '돌과 가지를 허리 높이로 쌓아 바람을 막았다. 등 뒤가 조용해졌다.', hours: 1, wood: 1 };
+
+// ---------- 이야기 ----------
+// 주인공은 중산리에 가족과 왔다가 대피 때 헤어졌다. 아내 수연과 일곱 살 하율은 버스로 북쪽 수용소로 갔다.
+// 단서는 flags 의 'clue:<이름>' 으로 쌓인다. 엔딩은 도착할 때의 단서 수와 피폭, 그리고 선택으로 갈린다
+
+export type EndingId = 'reunion' | 'quarantine' | 'names' | 'stay';
+
+export const ENDING_INFO: Record<EndingId, { title: string; short: string }> = {
+  reunion: { title: '재회', short: '향로봉에서 가족을 만났다' },
+  quarantine: { title: '유리창', short: '격리동 유리창 너머로 가족을 봤다' },
+  names: { title: '이름', short: '향로봉에 닿았지만 가족은 없었다. 이름을 적었다' },
+  stay: { title: '남기', short: '북쪽을 포기하고 폐광 사람들과 남았다' },
+};
+
+export const FAMILY = { spouse: '수연', child: '하율' };

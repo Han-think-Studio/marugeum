@@ -1,6 +1,6 @@
 import type { GameState, Journal, RunRecord } from '../core/types';
 import { REGIONS } from '../map/generate';
-import { eventById } from './events';
+import { clueCount, eventById } from './events';
 
 // 기록 수첩. 여정이 끝날 때마다 한 줄 적힌다. 죽어도 남는 유일한 것
 const KEY = 'marugeum.journal.v1';
@@ -50,6 +50,8 @@ export function recordRun(state: GameState): Journal {
     gear: state.equip.filter((e) => !e.broken).map((e) => e.kind),
     departedDay: state.departedDay,
     buried: [...state.buried],
+    ending: state.ending,
+    clues: clueCount(state),
     endedAt: Date.now(),
   };
   j.runs.push(rec);

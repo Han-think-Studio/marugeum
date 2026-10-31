@@ -2,12 +2,14 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId,
+  FAMILY, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
 import { passHours, warnings } from './survival';
-import { choose, closeEvent, maybeArrive, maybeNight, openObject, startEvent } from './events';
+import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
+
+export { clueCount } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';
@@ -49,6 +51,8 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     phase: 'base',
     departedDay: 0,
     baseId: 0,
+    ending: null,
+    photoDay: 0,
     log: [],
     over: 'none',
     overText: '',
@@ -178,9 +182,15 @@ export function travelTo(state: GameState, id: number): boolean {
   const back = to.stage < from.stage ? '되돌아' : '';
   addLog(state, `${hours}시간을 ${back}${dir}가 ${to.name}에 ${first ? '처음 ' : '다시 '}닿았다.${known ? ' 아는 길이라 수월했다.' : ''}`);
   if (to.kind === 'goal') {
-    state.over = 'won';
-    state.overText = `${state.day}일 만에 향로봉 안전지대에 닿았다. 누적 피폭 ${Math.round(state.stats.rad)}.`;
     addLog(state, '안전지대의 불빛이 보인다. 살아서 도착했다.');
+    const rng3 = takeRng(state);
+    const opened = openGoal(state, rng3, to);
+    giveRng(state, rng3);
+    if (!opened) {
+      state.over = 'won';
+      state.ending = 'names';
+      state.overText = `${state.day}일 만에 향로봉 안전지대에 닿았다. 누적 피폭 ${Math.round(state.stats.rad)}.`;
+    }
     return true;
   }
   afterAction(state);
@@ -505,6 +515,32 @@ export function boil(state: GameState): boolean {
     addLog(state, `물을 끓이고 천에 걸렀다. 깨끗한 물 ${n}통이 됐다.`);
   }
   giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+// ---------- 사진 ----------
+
+// 배낭 속 가족사진. 하루에 한 번 꺼내 본다. 단서가 쌓일수록 다른 말이 떠오른다
+export function canLookPhoto(state: GameState): boolean {
+  return !busy(state) && state.photoDay !== state.day;
+}
+
+export function lookPhoto(state: GameState): boolean {
+  if (!canLookPhoto(state)) return false;
+  state.photoDay = state.day;
+  const n = clueCount(state);
+  const lines = [
+    `사진을 꺼냈다. ${FAMILY.spouse}과 ${FAMILY.child}이, 그리고 나. 중산리 첫날. 모서리가 닳았다.`,
+    `${FAMILY.child}이 웃고 있다. 버스를 탈 때도 웃었을까. 사진을 도로 넣었다.`,
+    `${FAMILY.spouse}의 글씨가 생각난다. "꼭 와." 사진 뒤에 내가 적어 둔 날짜가 벌써 오래됐다.`,
+    `이 길 어딘가를 두 사람이 먼저 걸었다. 사진 속 ${FAMILY.child}의 신발이 지금도 그 신발일까.`,
+    `흔적이 북쪽으로 이어진다. 사진을 보는 시간이 짧아졌다. 걷는 시간이 길어졌다.`,
+    `${FAMILY.child}이 열이 있었다고 했다. 사진 속 아이는 멀쩡하다. 멀쩡한 쪽을 믿기로 했다.`,
+    `헬기가 데려갔다면 지금쯤 거기 있다. 사진을 보며 처음으로 숨을 길게 쉬었다.`,
+  ];
+  addLog(state, lines[Math.min(n, lines.length - 1)]);
+  state.stats.mind = Math.min(100, state.stats.mind + (n >= 4 ? 6 : 3));
   afterAction(state);
   return true;
 }

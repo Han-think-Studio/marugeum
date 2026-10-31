@@ -1,4 +1,4 @@
-import type { Journal } from '../core/types';
+import { ENDING_INFO, type Journal } from '../core/types';
 import { eventTitle, lessons, regionName } from '../game/journal';
 import { REGIONS } from '../map/generate';
 import { audio } from '../audio/engine';
@@ -66,9 +66,9 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
   el.className = 'overlay book';
   const runs = [...j.runs].reverse().slice(0, 20).map((r) => {
     const where = regionName(r.farthest);
-    const what = r.over === 'won' ? '향로봉 도착' : `${where}에서 ${r.cause.replace(/^\d+일째, /, '')}`;
+    const what = r.over === 'won' ? (r.ending ? `${ENDING_INFO[r.ending].title} · ${ENDING_INFO[r.ending].short}` : '향로봉 도착') : `${where}에서 ${r.cause.replace(/^\d+일째, /, '')}`;
     const left = r.departedDay ? ` · ${r.departedDay}일째 출발` : ' · 야영장에서';
-    return `<li><b>${r.runNo}번째</b> · ${r.days}일${left} · 피폭 ${r.rad} · ${what}</li>`;
+    return `<li><b>${r.runNo}번째</b> · ${r.days}일${left} · 피폭 ${r.rad}${r.clues !== undefined ? ` · 단서 ${r.clues}` : ''}${r.buried && r.buried.length ? ` · 묻어 준 ${r.buried.length}명` : ''} · ${what}</li>`;
   });
   const regions = REGIONS.map((name, i) => `<span class="region${j.knownStages.includes(i) ? ' known' : ''}">${name}</span>`).join('');
   const seen = Object.entries(j.eventsSeen)
