@@ -150,6 +150,7 @@ export type Trigger = 'arrive' | 'night';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
+  stages?: number[]; // 이 지역(단계)에서만. 0 지리 … 11 향로
   weather?: Weather[];
   night?: boolean; // 밤에만 (arrive)
   outdoor?: boolean; // 지붕 없는 곳에서만 (night)

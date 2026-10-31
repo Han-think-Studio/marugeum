@@ -20,6 +20,7 @@ export function eventById(id: string): EventDef | undefined {
 function matches(when: When | undefined, state: GameState, node: MapNode, trigger: Trigger): boolean {
   if (!when) return true;
   if (when.kinds && !when.kinds.includes(node.kind)) return false;
+  if (when.stages && !when.stages.includes(node.stage)) return false;
   if (when.weather && !when.weather.includes(state.weather)) return false;
   if (when.night !== undefined && isNight(state.hour) !== when.night) return false;
   if (when.outdoor !== undefined && trigger === 'night' && INDOOR.has(node.kind) === when.outdoor) return false;
