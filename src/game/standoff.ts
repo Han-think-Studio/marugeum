@@ -1,6 +1,7 @@
 import { Rng } from '../core/rng';
 import { STANDOFF_INFO, type GameState, type StandoffAction, type StandoffKind } from '../core/types';
 import { addLog } from './log';
+import { hasEquip } from './equip';
 
 // 받침에 따라 조사를 고른다. 멧돼지가, 탈영병이
 function josa(word: string, pair: '이/가' | '은/는' | '을/를'): string {
@@ -46,6 +47,7 @@ export function standoffOdds(state: GameState, action: StandoffAction): number {
     case 'fight': {
       let p = s.kind === 'boar' ? 0.4 : s.kind === 'dogs' ? 0.5 : 0.35;
       if (fire && s.kind !== 'deserter') p += 0.15;
+      if (hasEquip(state, 'knife')) p += 0.15;
       if (s.distance === 2) p -= 0.1;
       return Math.max(0.1, Math.min(0.9, p));
     }

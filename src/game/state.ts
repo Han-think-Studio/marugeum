@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
+  CARRIER_EXTRA, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
@@ -13,12 +13,12 @@ export { clueCount } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';
-import { canCarry, equipLabel, hasEquip, heavyCount } from './equip';
+import { canCarry, equipLabel, hasEquip, heavyCount, useCharge } from './equip';
 import { isNight, rollWeather } from './weather';
 import { syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 
-export { hasEquip, canCarry, equipLabel } from './equip';
+export { hasEquip, canCarry, equipLabel, heavyLimit } from './equip';
 export { addLog } from './log';
 
 export function createGame(seed: number, opts: { knownStages?: number[]; runNo?: number } = {}): GameState {
@@ -98,7 +98,12 @@ function giveRng(state: GameState, rng: Rng): void {
 }
 
 export function packCap(state: GameState): PackCap {
-  return hasEquip(state, 'bigPack') ? PACK_BIG : PACK_SMALL;
+  const base = hasEquip(state, 'bigPack') ? PACK_BIG : PACK_SMALL;
+  if (!hasEquip(state, 'carrier')) return base;
+  return {
+    water: base.water + CARRIER_EXTRA.water, food: base.food + CARRIER_EXTRA.food, wood: base.wood + CARRIER_EXTRA.wood,
+    fuel: base.fuel + CARRIER_EXTRA.fuel, parts: base.parts + CARRIER_EXTRA.parts,
+  };
 }
 
 export function foodTotal(s: Supplies): number {
@@ -138,8 +143,9 @@ export function travelHours(state: GameState, from: MapNode, to: MapNode): numbe
   const pen = known ? 0.5 : 1;
   if (state.weather === 'fog') h += 1 * pen;
   if (state.weather === 'rain') h += 1;
-  if (isNight(state.hour)) h += 2 * pen;
+  if (isNight(state.hour)) h += 2 * pen * (hasEquip(state, 'flashlight') ? 0.5 : 1);
   if (state.stats.fatigue < 30) h += 2;
+  if (hasEquip(state, 'carrier')) h += 1; // 지게는 부피가 크다
   h += weightPenalty(state);
   return Math.max(2, Math.round(h));
 }
@@ -152,9 +158,13 @@ export function packWeight(state: GameState): number {
   return Math.round(w * 10) / 10;
 }
 
-// 12 까지는 제값, 그 위로 6 마다 한 시간씩 더 걸린다
+// 12 까지는 제값(지게가 있으면 18), 그 위로 6 마다 한 시간씩 더 걸린다
+export function weightLimit(state: GameState): number {
+  return hasEquip(state, 'carrier') ? 18 : 12;
+}
+
 export function weightPenalty(state: GameState): number {
-  return Math.max(0, Math.ceil((packWeight(state) - 12) / 6));
+  return Math.max(0, Math.ceil((packWeight(state) - weightLimit(state)) / 6));
 }
 
 export function timeLabel(state: GameState): string {
@@ -495,9 +505,9 @@ export function hasFire(state: GameState): boolean {
   return state.fire !== null && state.fire.nodeId === state.nodeId;
 }
 
-// 비 오는 바깥에서는 불이 붙지 않는다
+// 비 오는 바깥에서는 불이 붙지 않는다. 라이터가 있으면 붙는다
 export function rainBlocksFire(state: GameState): boolean {
-  return state.weather === 'rain' && !INDOOR.has(currentNode(state).kind);
+  return state.weather === 'rain' && !INDOOR.has(currentNode(state).kind) && !hasEquip(state, 'matches');
 }
 
 export function canLightFire(state: GameState): boolean {
@@ -565,6 +575,56 @@ export function standoffClose(state: GameState): boolean {
 }
 
 export { standoffOdds, canThrow } from './standoff';
+
+// ---------- 쓰는 물건 ----------
+
+export function canTakeIodine(state: GameState): boolean {
+  return !busy(state) && state.equip.some((e) => e.kind === 'iodine' && (e.charges ?? 0) > 0) && state.flags[`iodine:${state.day}`] !== true;
+}
+
+export function takeIodine(state: GameState): boolean {
+  if (!canTakeIodine(state)) return false;
+  useCharge(state, 'iodine');
+  state.flags[`iodine:${state.day}`] = true;
+  state.stats.rad = Math.max(0, state.stats.rad - 15);
+  addLog(state, '요오드 알약을 삼켰다. 입안이 쓰다. 효과가 있는지는 모르지만 무언가를 했다.');
+  afterAction(state);
+  return true;
+}
+
+export function canFirstAid(state: GameState): boolean {
+  return !busy(state) && state.equip.some((e) => e.kind === 'medkit' && (e.charges ?? 0) > 0) && state.stats.hp < 100;
+}
+
+export function firstAid(state: GameState): boolean {
+  if (!canFirstAid(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'rest');
+  giveRng(state, rng);
+  if (!res.died) {
+    useCharge(state, 'medkit');
+    state.stats.hp = Math.min(100, state.stats.hp + 25);
+    addLog(state, '상처를 씻고 소독하고 붕대를 감았다. 한 시간. 제대로 손본 건 오랜만이다.');
+  }
+  afterAction(state);
+  return true;
+}
+
+export function canPurify(state: GameState): boolean {
+  return !busy(state) && state.pack.dirty > 0 && state.equip.some((e) => e.kind === 'purifier' && (e.charges ?? 0) > 0);
+}
+
+export function purify(state: GameState): boolean {
+  if (!canPurify(state)) return false;
+  useCharge(state, 'purifier');
+  const n = Math.min(2, state.pack.dirty);
+  state.pack.dirty -= n;
+  state.pack.water += n;
+  addLog(state, `정수 알약을 넣고 삼십 분을 기다렸다. 깨끗한 물 ${n}통.`);
+  afterAction(state);
+  return true;
+}
 
 // ---------- 경로 위험 ----------
 

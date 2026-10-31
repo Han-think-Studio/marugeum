@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type PackCap, type Req, type Trigger, type When,
 } from '../core/types';
-import { canCarry, hasEquip } from './equip';
+import { gainEquip, hasEquip } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
 import { startStandoff } from './standoff';
 import { EVENTS as EVENTS1 } from '../data/events';
@@ -141,6 +141,7 @@ export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   let chance = INDOOR.has(node.kind) ? NIGHT_INDOOR : NIGHT_OUTDOOR;
   if (node.kind === 'start' && state.phase === 'base') chance = 0.4; // 거점기의 밤은 일이 많다
   if (lit) chance *= 0.3;
+  if (!INDOOR.has(node.kind) && hasEquip(state, 'flashlight')) chance *= 0.7;
   if (radio) chance = Math.max(chance, 0.5);
   if (!rng.chance(chance)) return false;
   const ev = pickWeighted(rng, pool(state, node, 'night'));
@@ -182,8 +183,9 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.diesel) p.diesel = Math.max(0, Math.min(cap.fuel - p.gasoline, p.diesel + e.diesel));
   if (e.parts) p.parts = Math.max(0, Math.min(cap.parts, p.parts + e.parts));
   if (e.foodAll) { p.food = 0; p.fresh = 0; }
-  if (e.gear && canCarry(state, e.gear)) state.equip.push({ kind: e.gear, broken: false });
-  if (e.brokenGear && canCarry(state, e.brokenGear)) state.equip.push({ kind: e.brokenGear, broken: true });
+  if (e.gear) gainEquip(state, e.gear, false);
+  if (e.gear2) gainEquip(state, e.gear2, false);
+  if (e.brokenGear) gainEquip(state, e.brokenGear, true);
   if (e.flag) state.flags[e.flag] = true;
   if (e.clue && !state.flags[`clue:${e.clue}`]) {
     state.flags[`clue:${e.clue}`] = true;

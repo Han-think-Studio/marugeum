@@ -68,6 +68,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   const fire = act !== 'travel' && state.fire !== null && state.fire.nodeId === node.id;
   let env = envTemp(state, node);
   if (camp && node.upgrades.includes('roof') && state.weather === 'rain') env += 5; // 비가 새지 않는다
+  if (!indoor && state.weather === 'rain' && hasEquip(state, 'raincoat')) env += 5; // 우비
   const chill = Math.max(0, 6 - env);
   let coldMul = camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35;
   if (!indoor && node.windbreak) coldMul *= 0.5;
@@ -90,7 +91,9 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   }
 
   // 피폭
-  add(state, 'rad', radPerHour(state, node, indoor) * (tent ? 1.5 : 1));
+  let radNow = radPerHour(state, node, indoor) * (tent ? 1.5 : 1);
+  if (!indoor && state.weather === 'rain' && hasEquip(state, 'mask')) radNow *= 0.5; // 방독면
+  add(state, 'rad', radNow);
 
   // 정신
   if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));

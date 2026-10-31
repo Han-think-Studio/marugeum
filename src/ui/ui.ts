@@ -5,6 +5,7 @@ import {
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
+  canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
@@ -230,6 +231,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       c: () => { showBase(root, state, render); return false; },
       k: () => buildWindbreak(state),
       o: () => lookPhoto(state),
+      i: () => takeIodine(state),
+      u: () => firstAid(state),
+      y: () => purify(state),
     };
     const fn = map[e.key.toLowerCase()];
     if (fn && fn()) render();
@@ -282,7 +286,7 @@ function renderHud(refs: Refs, state: GameState): void {
   const wt = packWeight(state);
   const wpen = weightPenalty(state);
   packLine.innerHTML =
-    `<span>배낭</span> <span class="${wpen ? 'heavy' : ''}" title="12까지는 제값, 그 위로 6마다 이동 한 시간씩">무게 ${wt}${wpen ? ` (+${wpen}시간)` : ''}</span> · 물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted"> (신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
+    `<span>배낭</span> <span class="${wpen ? 'heavy' : ''}" title="${weightLimit(state)}까지는 제값, 그 위로 6마다 이동 한 시간씩">무게 ${wt}/${weightLimit(state)}${wpen ? ` (+${wpen}시간)` : ''}</span> · 물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted"> (신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
     `${p.gasoline ? ` · 휘발유 ${p.gasoline}` : ''}${p.diesel ? ` · 경유 ${p.diesel}` : ''}${p.parts ? ` · 부품 ${p.parts}` : ''}` +
     `${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}`;
 }
@@ -361,6 +365,9 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act('땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
   act(hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1개 · 10시간', () => lightFire(state), canLightFire(state));
   act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
+  if (state.equip.some((e) => e.kind === 'iodine')) act('요오드 먹기', 'I', canTakeIodine(state) ? '피폭 -15 · 하루 한 번' : '오늘은 먹었다', () => takeIodine(state), canTakeIodine(state));
+  if (state.equip.some((e) => e.kind === 'medkit')) act('응급처치', 'U', canFirstAid(state) ? '체력 +25 · 1시간' : '다친 데가 없다', () => firstAid(state), canFirstAid(state));
+  if (state.equip.some((e) => e.kind === 'purifier')) act('정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
   if (canCamp(state)) act('거점 세우기', 'B', '3시간', () => makeCamp(state));
   if (!INDOOR.has(cur.kind) && !cur.windbreak) act('바람막이 쌓기', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
   act(atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 장비 · 수리' : `장비 두고 가져가기 · 수리${cur.equip.length ? ` · 여기 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });

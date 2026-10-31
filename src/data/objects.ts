@@ -38,12 +38,12 @@ export const PLACE_OBJECTS: Record<NodeKind, PlaceObjects> = {
   shelter: {
     anchors: [[0.2, 0.74], [0.5, 0.8], [0.75, 0.7], [0.9, 0.78]],
     count: [3, 4],
-    pool: [{ kind: 'woodpile', weight: 2 }, { kind: 'closet', weight: 3, hidden: true }, { kind: 'crate', weight: 2 }, { kind: 'body', weight: 1, hidden: true }, { kind: 'pack', weight: 2 }, { kind: 'radio', weight: 1, hidden: true }],
+    pool: [{ kind: 'woodpile', weight: 2 }, { kind: 'closet', weight: 3, hidden: true }, { kind: 'crate', weight: 2 }, { kind: 'body', weight: 1, hidden: true }, { kind: 'pack', weight: 2 }, { kind: 'radio', weight: 1, hidden: true }, { kind: 'toolshed', weight: 1, hidden: true }],
   },
   village: {
     anchors: [[0.12, 0.72], [0.35, 0.78], [0.55, 0.82], [0.75, 0.7], [0.92, 0.6], [0.25, 0.62]],
     count: [4, 5],
-    pool: [{ kind: 'well', weight: 2 }, { kind: 'closet', weight: 3, hidden: true }, { kind: 'garden', weight: 2, reusableDays: 4 }, { kind: 'body', weight: 2, hidden: true }, { kind: 'clothesline', weight: 1 }, { kind: 'crate', weight: 2, hidden: true }, { kind: 'photo', weight: 1, hidden: true }, { kind: 'grave', weight: 1 }],
+    pool: [{ kind: 'well', weight: 2 }, { kind: 'closet', weight: 3, hidden: true }, { kind: 'garden', weight: 2, reusableDays: 4 }, { kind: 'toolshed', weight: 2, hidden: true }, { kind: 'body', weight: 2, hidden: true }, { kind: 'clothesline', weight: 1 }, { kind: 'crate', weight: 2, hidden: true }, { kind: 'photo', weight: 1, hidden: true }, { kind: 'grave', weight: 1 }],
   },
   valley: {
     anchors: [[0.2, 0.8], [0.5, 0.84], [0.1, 0.6], [0.8, 0.74]],
@@ -89,8 +89,9 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '버려진 배낭 하나. 주인은 없다. 지퍼가 열려 있고 비에 젖은 자국이 있다.',
     choices: [
       { text: '뒤진다', outcomes: [
-        { chance: 0.5, text: '통조림 둘과 담요. 밑바닥에 아이 그림이 한 장 있었다. 그림은 두고 왔다.', effects: { food: 2, gear: 'blanket', mind: -2, objUsed: true } },
-        { chance: 0.7, text: '먹을 것 둘과 물 한 통. 주인이 급히 떠난 모양이다.', effects: { food: 2, water: 1, objUsed: true } },
+        { chance: 0.35, text: '통조림 둘과 담요. 밑바닥에 아이 그림이 한 장 있었다. 그림은 두고 왔다.', effects: { food: 2, gear: 'blanket', mind: -2, objUsed: true } },
+        { chance: 0.35, text: '등산용 로프와 접이식 칼. 주인은 산을 아는 사람이었다.', effects: { gear: 'rope', brokenGear: 'knife', objUsed: true } },
+        { chance: 0.6, text: '먹을 것 둘과 물 한 통. 주인이 급히 떠난 모양이다.', effects: { food: 2, water: 1, objUsed: true } },
         { text: '젖은 옷가지뿐이었다.', effects: { objUsed: true } },
       ] },
       { text: '그냥 둔다', outcomes: [{ text: '주인이 돌아올지도 모른다. 그럴 리 없다는 걸 알면서도.', effects: {} }] },
@@ -103,7 +104,9 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '나무 상자. 못이 박혀 있다. 흔들면 안에서 소리가 난다.',
     choices: [
       { text: '뜯는다', hint: '30분', outcomes: [
-        { chance: 0.45, text: '통조림과 부품 상자. 누군가 챙기려다 못 챙긴 것이다.', effects: { food: 3, parts: 1, objUsed: true } },
+        { chance: 0.35, text: '통조림과 부품 상자. 누군가 챙기려다 못 챙긴 것이다.', effects: { food: 3, parts: 1, objUsed: true } },
+        { chance: 0.3, text: '구급상자. 붕대와 소독약, 요오드 알약 한 통, 정수 알약.', effects: { gear: 'medkit', objUsed: true, flag: 'crate_med' } },
+        { chance: 0.3, text: '정수 알약 한 통과 요오드. 누군가 대피 물품을 챙겼다가 두고 갔다.', effects: { gear: 'purifier', objUsed: true } },
         { chance: 0.6, text: '생수 묶음과 라면. 아직 봉인이 그대로다.', effects: { water: 2, food: 2, objUsed: true } },
         { text: '빈 병과 쓰레기. 소리는 깨진 유리였다.', effects: { objUsed: true } },
       ] },
@@ -121,7 +124,8 @@ export const OBJECT_EVENTS: EventDef[] = [
         { text: '연료통은 거의 비어 있었다. 한 통도 안 됐다.', effects: { gasoline: 1, hours: 1, objUsed: true } },
       ] },
       { text: '차 안을 뒤진다', hint: '30분', outcomes: [
-        { chance: 0.5, text: '글로브박스에서 사탕과 손전등 건전지. 트렁크의 담요도 챙겼다.', effects: { food: 1, gear: 'blanket', objUsed: true } },
+        { chance: 0.4, text: '글로브박스에서 사탕과 라이터. 트렁크의 담요도 챙겼다.', effects: { food: 1, gear: 'matches', objUsed: true } },
+        { chance: 0.4, text: '글로브박스에 손전등. 켜 보니 밝다.', effects: { gear: 'flashlight', objUsed: true } },
         { text: '아이 의자 밑에 장난감 하나. 그것뿐이었다.', effects: { mind: -3, objUsed: true } },
       ] },
       { text: '지나간다', outcomes: [{ text: '차는 쓸모없다. 길도 끊겼고 기름도 없다.', effects: {} }] },
@@ -138,7 +142,8 @@ export const OBJECT_EVENTS: EventDef[] = [
         { text: '탱크는 비어 있었다. 짐칸에서 반 통을 찾았다.', effects: { diesel: 1, hours: 1, objUsed: true } },
       ] },
       { text: '짐칸을 뒤진다', hint: '30분', outcomes: [
-        { chance: 0.5, text: '전투식량과 부품 상자.', effects: { food: 2, parts: 1, objUsed: true } },
+        { chance: 0.4, text: '전투식량과 부품 상자.', effects: { food: 2, parts: 1, objUsed: true } },
+        { chance: 0.4, text: '방독면 하나와 구급낭. 군인 것이다. 군인은 없다.', effects: { gear: 'mask', gear2: 'medkit', objUsed: true } },
         { text: '빈 탄약 상자와 군화 한 짝. 바닥에 피 자국이 말라 있었다.', effects: { mind: -4, objUsed: true } },
       ] },
       { text: '지나간다', outcomes: [{ text: '트럭은 두고 왔다.', effects: {} }] },
@@ -230,8 +235,9 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '벽장 문이 비뚤게 닫혀 있다. 안에서 쌀 냄새와 곰팡이 냄새가 같이 난다.',
     choices: [
       { text: '뒤진다', hint: '30분', outcomes: [
-        { chance: 0.5, text: '쌀 한 봉지와 라면. 그리고 겨울 외투. 외투는 입었다.', effects: { food: 3, gear: 'blanket', objUsed: true } },
-        { chance: 0.7, text: '통조림 몇 개와 양초. 양초는 땔감 대신 쓸 수 있다.', effects: { food: 3, wood: 1, objUsed: true } },
+        { chance: 0.35, text: '쌀 한 봉지와 라면. 그리고 겨울 외투. 외투는 입었다.', effects: { food: 3, gear: 'blanket', objUsed: true } },
+        { chance: 0.35, text: '우비와 손전등. 손전등은 건전지가 반쯤 남았다.', effects: { gear: 'raincoat', brokenGear: 'flashlight', objUsed: true } },
+        { chance: 0.6, text: '통조림 몇 개와 양초. 양초는 땔감 대신 쓸 수 있다.', effects: { food: 3, wood: 1, objUsed: true } },
         { text: '곰팡이 핀 옷가지뿐이었다.', effects: { objUsed: true } },
       ] },
       { text: '닫아 둔다', outcomes: [{ text: '남의 집 벽장이다.', effects: {} }] },
@@ -243,6 +249,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     title: '물가',
     text: '물살이 느려지는 웅덩이. 그림자가 움직인다. 물고기다.',
     choices: [
+      { text: '칼로 작살을 만들어 잡는다', hint: '칼 · 2시간 · 신선식', req: { gear: 'knife' }, outcomes: [{ text: '가지 끝을 칼로 깎아 작살을 만들었다. 두 시간에 네 마리. 칼이 있으니 손질도 빨랐다.', effects: { fresh: 4, hours: 2, rad: 2, objUsed: true } }] },
       { text: '잡아 본다', hint: '2시간 · 신선식', outcomes: [
         { chance: 0.7, text: '두 시간 만에 세 마리. 손이 얼었지만 오늘은 먹는다. 낮은 땅의 물고기라는 건 잊기로 했다.', effects: { fresh: 3, hours: 2, rad: 2, objUsed: true } },
         { text: '두 시간 동안 한 마리도 못 잡았다. 그림자만 봤다.', effects: { hours: 2, objUsed: true } },
@@ -256,6 +263,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     title: '풀밭',
     text: '바위 사이 풀밭. 산나물과 산딸기, 그리고 모르는 버섯.',
     choices: [
+      { text: '칼로 뿌리째 캔다', hint: '칼 · 1시간 · 신선식', req: { gear: 'knife' }, outcomes: [{ text: '칼로 더덕과 도라지 뿌리까지 캤다. 흙냄새가 났다. 신선식 셋.', effects: { fresh: 3, hours: 1, objUsed: true } }] },
       { text: '아는 것만 뜯는다', hint: '1시간 · 신선식', outcomes: [{ text: '미나리와 산딸기 두 줌. 버섯은 두고 왔다.', effects: { fresh: 2, hours: 1, objUsed: true } }] },
       { text: '버섯도 뜯는다', hint: '위험', outcomes: [
         { chance: 0.6, text: '다행히 먹는 버섯이었다. 배낭이 조금 무거워졌다.', effects: { fresh: 2, hours: 1, objUsed: true } },
@@ -272,6 +280,17 @@ export const OBJECT_EVENTS: EventDef[] = [
     choices: [
       { text: '거둔다', hint: '1시간 · 신선식', outcomes: [{ text: '배추 두 포기와 무 몇 개. 흙을 털어 배낭에 넣었다. 며칠은 간다.', effects: { fresh: 3, hours: 1, rad: 1, objUsed: true } }] },
       { text: '두고 간다', outcomes: [{ text: '다음에 지나가는 사람 몫.', effects: { mind: 1 } }] },
+    ],
+  },
+  {
+    id: 'obj_toolshed',
+    trigger: 'object',
+    title: '농기구 창고',
+    text: '헛간 옆 창고. 괭이와 낫, 지게, 밧줄 뭉치. 농사짓던 사람의 손때가 묻은 것들이다.',
+    choices: [
+      { text: '지게를 멘다', hint: '지게', outcomes: [{ text: '지게를 등에 졌다. 어깨끈이 낡았지만 틀은 단단하다. 더 질 수 있다. 대신 걸음이 느려질 것이다.', effects: { gear: 'carrier', objUsed: true } }] },
+      { text: '낫과 밧줄을 챙긴다', hint: '칼 · 로프', outcomes: [{ text: '낫을 숫돌에 갈아 칼 대신 쓰기로 했다. 밧줄은 둘둘 말아 배낭에 묶었다.', effects: { gear: 'knife', gear2: 'rope', objUsed: true } }] },
+      { text: '두고 간다', outcomes: [{ text: '남의 연장이다. 아직은 그런 생각이 남아 있다.', effects: { mind: 1 } }] },
     ],
   },
   {

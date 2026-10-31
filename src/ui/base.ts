@@ -2,7 +2,7 @@ import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, UPGRADES, UPGRADE_IDS, WINDBREAK
 import {
   build, buildWindbreak, canBuild, canWindbreak,
   canCarry, canDepart, currentNode, dailyUse, depart, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator,
-  heaterHoursLeft, heavyCarried, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
+  heaterHoursLeft, heavyCarried, heavyLimit, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
   toggleGenerator, toggleHeater,
 } from '../game/state';
 import { audio } from '../audio/engine';
@@ -92,7 +92,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
           <section>
             ${camp ? `<h3>저장고 ↔ 배낭</h3>
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
-            <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
+            <p class="muted">무거운 장비 ${heavyCarried(state)}/${heavyLimit(state)} 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
             ${camp ? `<h3>시설</h3>${facilities()}<h3>보강</h3>${upgrades()}` : `<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p><h3>안식처</h3>${windbreakCard()}`}
             ${canDepart(state) ? `<h3>떠나기</h3>
             <p class="muted">배낭에 든 것만 가져간다: ${storeText(p)}. 무거운 장비 ${heavyCarried(state)}/2. 발전기와 냉장고는 두고 간다. 돌아올 수는 있다.</p>

@@ -76,7 +76,9 @@ export interface PackCap {
 }
 export const PACK_SMALL: PackCap = { water: 3, food: 4, wood: 3, fuel: 2, parts: 4 };
 export const PACK_BIG: PackCap = { water: 5, food: 6, wood: 5, fuel: 3, parts: 6 };
+export const CARRIER_EXTRA: PackCap = { water: 2, food: 2, wood: 2, fuel: 1, parts: 2 }; // 지게가 더 지는 양
 export const HEAVY_LIMIT = 2; // 무거운 장비는 이만큼만 지고 다닌다
+export const HEAVY_LIMIT_CARRIER = 4; // 지게가 있으면
 export const WATER_UNIT = 40; // 물 한 단위가 채우는 갈증
 export const FOOD_UNIT = 30; // 음식 한 단위가 채우는 허기
 export const FIRE_HOURS = 10; // 땔감 하나로 불이 타는 시간
@@ -84,13 +86,19 @@ export const FIRE_HOURS = 10; // 땔감 하나로 불이 타는 시간
 // 장비. 하나하나가 개체이고 정상이거나 고장이다
 export type EquipKind =
   | 'generator' | 'dieselGenerator' | 'fridge' | 'lamp' | 'radio' | 'heater'
-  | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent';
+  | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent'
+  | 'carrier' | 'rope' | 'flashlight' | 'mask' | 'raincoat' | 'knife'
+  | 'iodine' | 'medkit' | 'purifier' | 'matches';
 export type GearKey = EquipKind;
 
 export interface Equip {
   kind: EquipKind;
   broken: boolean;
+  charges?: number; // 쓰면 줄어드는 것. 요오드, 구급약, 정수 알약
 }
+
+// 쓰면 줄어드는 물건의 기본 횟수
+export const DEFAULT_CHARGES: Partial<Record<EquipKind, number>> = { iodine: 3, medkit: 2, purifier: 4 };
 
 export interface EquipInfo {
   label: string;
@@ -109,7 +117,17 @@ export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
   geiger: { label: '가이거 계수기', heavy: false, desc: '시간당 피폭을 보여 준다' },
   blanket: { label: '담요', heavy: false, desc: '잘 때 추위가 절반이 된다' },
   bigPack: { label: '큰 배낭', heavy: false, desc: '더 많이 진다' },
-  tent: { label: '텐트', heavy: true, desc: '지붕 없는 곳에서도 비와 바람을 막는다' },
+  tent: { label: '텐트', heavy: true, desc: '지붕 없는 곳에서도 비와 바람을 막는다. 텐트 거점을 세울 수 있다' },
+  carrier: { label: '지게', heavy: false, desc: '등에 지는 틀. 무거운 장비를 넷까지, 보급품도 더 진다. 대신 걸음이 한 시간 느리다' },
+  rope: { label: '로프', heavy: false, desc: '끊어진 다리와 급한 비탈을 안전하게 건넌다' },
+  flashlight: { label: '손전등', heavy: false, desc: '밤길이 덜 느리고 밤이 덜 위험하다' },
+  mask: { label: '방독면', heavy: false, desc: '비 올 때 밖에서 피폭이 절반이 된다' },
+  raincoat: { label: '우비', heavy: false, desc: '비 올 때 밖에서 추위가 덜하다' },
+  knife: { label: '칼', heavy: false, desc: '맞설 때 세고, 물고기와 나물을 더 챙긴다' },
+  iodine: { label: '요오드 알약', heavy: false, desc: '먹으면 피폭이 15 내려간다. 하루 한 번' },
+  medkit: { label: '구급약', heavy: false, desc: '응급처치로 체력 25 회복. 한 시간' },
+  purifier: { label: '정수 알약', heavy: false, desc: '불 없이 오염수 두 통을 깨끗하게' },
+  matches: { label: '라이터', heavy: false, desc: '비 오는 바깥에서도 불이 붙는다' },
 };
 export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
   (Object.keys(EQUIP_INFO) as EquipKind[]).map((k) => [k, EQUIP_INFO[k].label]),
@@ -127,6 +145,7 @@ export const DIESEL_GEN_BREAK_CHANCE = 0.004;
 // 지니고 다니는 장비가 하루 사이 고장 날 확률. 험한 길에서 흔들리고 젖는다
 export const WEAR_CHANCE: Partial<Record<EquipKind, number>> = {
   lamp: 0.03, radio: 0.03, geiger: 0.02, tools: 0.01, fridge: 0.01, heater: 0.01, generator: 0.01, dieselGenerator: 0.005, tent: 0.02,
+  flashlight: 0.03, carrier: 0.01, mask: 0.01, raincoat: 0.02,
 };
 
 export const REPAIR_HOURS = 2;
@@ -262,6 +281,7 @@ export interface Effect {
   gasoline?: number; diesel?: number; parts?: number;
   foodAll?: boolean; // 먹을 것을 전부 잃는다
   gear?: GearKey; // 장비를 얻는다
+  gear2?: GearKey; // 두 번째 장비
   brokenGear?: GearKey; // 고장 난 장비를 얻는다
   hours?: number; // 시간이 흐른다
   flag?: string;
@@ -344,7 +364,7 @@ export interface Journal {
 
 export type ObjectKind =
   | 'body' | 'pack' | 'crate' | 'car' | 'truck' | 'well' | 'woodpile' | 'cave' | 'note' | 'photo'
-  | 'clothesline' | 'radio' | 'closet' | 'fishing' | 'herbs' | 'shrine' | 'grave' | 'garden';
+  | 'clothesline' | 'radio' | 'closet' | 'fishing' | 'herbs' | 'shrine' | 'grave' | 'garden' | 'toolshed';
 
 export interface SceneObject {
   id: number;
@@ -360,7 +380,7 @@ export interface SceneObject {
 export const OBJECT_LABEL: Record<ObjectKind, string> = {
   body: '쓰러진 사람', pack: '배낭', crate: '상자', car: '멈춘 차', truck: '군용 트럭', well: '우물', woodpile: '장작더미',
   cave: '바위굴', note: '쪽지', photo: '사진', clothesline: '빨랫줄', radio: '라디오', closet: '벽장', fishing: '물가',
-  herbs: '풀밭', shrine: '서낭당', grave: '무덤', garden: '텃밭',
+  herbs: '풀밭', shrine: '서낭당', grave: '무덤', garden: '텃밭', toolshed: '농기구 창고',
 };
 
 // ---------- 안식처 ----------
