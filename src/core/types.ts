@@ -128,6 +128,11 @@ export interface GameState {
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
   flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
   event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
+  seen: string[]; // 이번 여정에서 만난 이벤트 id
+  knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
+  runNo: number; // 몇 번째 여정인지
+  started: number; // 시작 시각(ms)
+  recorded: boolean; // 수첩에 적혔는지
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
@@ -198,4 +203,28 @@ export interface EventDef {
 export interface ActiveEvent {
   id: string;
   result: string | null; // 선택 뒤 결과 문장. 확인을 누르면 닫힌다
+}
+
+// ---------- 기록 수첩 ----------
+// 여정이 끝나면 남는 것. 브라우저 저장소에 쌓인다
+
+export interface RunRecord {
+  runNo: number;
+  seed: number;
+  days: number;
+  over: 'dead' | 'won';
+  cause: string; // 사망 문장 또는 도착 문장
+  rad: number;
+  farthest: number; // 가장 멀리 간 단계
+  events: string[]; // 만난 이벤트 id
+  gear: GearKey[];
+  endedAt: number;
+}
+
+export interface Journal {
+  v: number;
+  runs: RunRecord[];
+  knownStages: number[]; // 가 본 지역
+  eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
+  deaths: Record<string, number>; // 사망 원인별 횟수
 }

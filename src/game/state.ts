@@ -11,7 +11,7 @@ import { isNight, rollWeather } from './weather';
 
 export { addLog } from './log';
 
-export function createGame(seed: number): GameState {
+export function createGame(seed: number, opts: { knownStages?: number[]; runNo?: number } = {}): GameState {
   const mapRng = new Rng(seed);
   const nodes = generateMap(mapRng);
   const stats: Stats = { hp: 100, hunger: 90, thirst: 90, temp: 100, fatigue: 100, rad: 0, mind: 100 };
@@ -31,6 +31,11 @@ export function createGame(seed: number): GameState {
     known: {},
     flags: {},
     event: null,
+    seen: [],
+    knownStages: opts.knownStages ?? [],
+    runNo: opts.runNo ?? 1,
+    started: Date.now(),
+    recorded: false,
     log: [],
     over: 'none',
     overText: '',

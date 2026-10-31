@@ -6,6 +6,9 @@ import {
   neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
 } from '../game/state';
 import { eventById, meetsReq } from '../game/events';
+import { loadJournal, recordRun } from '../game/journal';
+import { clearSave, saveGame } from '../game/save';
+import { showJournal, showMenu } from './screens';
 import { radPerHour } from '../game/survival';
 import { envTemp, weatherText } from '../game/weather';
 
@@ -70,9 +73,27 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   };
 
   const render = () => {
+    if (state.over !== 'none' && !state.recorded) {
+      state.recorded = true;
+      recordRun(state);
+      clearSave();
+    } else if (state.over === 'none') {
+      saveGame(state);
+    }
     drawMap(refs.ctx, state, view, hover);
     renderHud(refs, state);
     renderPanel(refs, state, () => render());
+  };
+
+  let menuOpen = false;
+  const openMenu = () => {
+    if (menuOpen) return;
+    menuOpen = true;
+    showMenu(root, {
+      onContinue: () => { menuOpen = false; },
+      onJournal: () => { showJournal(root, loadJournal(), () => undefined); },
+      onTitle: () => { saveGame(state); location.href = location.pathname; },
+    });
   };
 
   canvas.addEventListener('mousemove', (e) => {
@@ -91,7 +112,13 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (n && travelTo(state, n.id)) render();
   });
   window.addEventListener('keydown', (e) => {
-    if (state.over !== 'none') return;
+    if (root.querySelector('.overlay')) return;
+    if (e.key === 'Escape') { openMenu(); return; }
+    if (e.key.toLowerCase() === 'j') { showJournal(root, loadJournal(), () => undefined); return; }
+    if (state.over !== 'none') {
+      if (e.key === '1' || e.key === 'Enter') location.href = location.pathname + '?new=1';
+      return;
+    }
     const k = Number(e.key);
     if (state.event) {
       if (state.event.result !== null) {
@@ -113,6 +140,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (fn && fn()) render();
   });
   window.addEventListener('resize', resize);
+  refs.hud.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).classList.contains('menu-btn')) openMenu();
+  });
 
   resize();
   render();
@@ -135,7 +165,7 @@ function renderHud(refs: Refs, state: GameState): void {
   const gear = gearList(state);
   const geiger = state.gear.geiger ? ` · <span class="geiger">☢ ${radPerHour(state, cur, INDOOR.has(cur.kind)).toFixed(1)}/시</span>` : '';
   refs.hud.innerHTML =
-    `<span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
+    `<button class="menu-btn" title="메뉴 (Esc)">≡</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
     `<span class="pack">물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food}/${cap.food} · 땔감 ${p.wood}/${cap.wood}${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}</span>${chips}`;
 }
@@ -164,10 +194,13 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   if (state.over !== 'none') {
     const won = state.over === 'won';
     refs.choices.innerHTML =
-      `<div class="end ${won ? 'won' : 'dead'}"><p>${state.overText}</p>` +
-      `<button class="restart">새 여정 시작</button></div>`;
+      `<div class="end ${won ? 'won' : 'dead'}"><p>${state.overText}</p><p class="muted">기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
+      `<button class="restart"><span class="num">1</span> 새 여정</button> <button class="book-btn"><span class="num">J</span> 기록 수첩</button></div>`;
     refs.choices.querySelector('.restart')!.addEventListener('click', () => {
-      location.href = location.pathname;
+      location.href = location.pathname + '?new=1';
+    });
+    refs.choices.querySelector('.book-btn')!.addEventListener('click', () => {
+      showJournal(refs.choices.closest('.game')!.parentElement as HTMLElement, loadJournal(), () => undefined);
     });
     return;
   }
@@ -208,7 +241,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
     const info = n.visited
       ? ` · 먹을 것 ${n.forageLeft}회${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}`
-      : ' · 미탐사';
+      : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
     btn.className = n.stage < cur.stage ? 'back' : '';
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span>`;
     btn.addEventListener('click', () => {

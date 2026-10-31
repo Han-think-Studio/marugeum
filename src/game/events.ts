@@ -50,6 +50,7 @@ function pickWeighted(rng: Rng, list: EventDef[]): EventDef | null {
 function open(state: GameState, ev: EventDef): void {
   state.event = { id: ev.id, result: null };
   state.flags[`ev:${ev.id}`] = true;
+  state.seen.push(ev.id);
   addLog(state, `[${ev.title}]`);
 }
 

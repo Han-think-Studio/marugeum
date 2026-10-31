@@ -4,7 +4,7 @@ import type { MapNode, NodeKind } from '../core/types';
 export const STAGES = 12; // 0 출발, 11 목표
 
 // 남쪽에서 북쪽으로 백두대간을 따라 올라간다
-const REGIONS = ['지리', '덕유', '민주지', '황악', '속리', '소백', '태백', '함백', '두타', '오대', '설악', '향로'];
+export const REGIONS = ['지리', '덕유', '민주지', '황악', '속리', '소백', '태백', '함백', '두타', '오대', '설악', '향로'];
 
 const KIND_POOL: readonly NodeKind[] = [
   'peak', 'peak', 'peak', 'peak', 'peak',

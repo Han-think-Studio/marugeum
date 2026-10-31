@@ -180,9 +180,10 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     }
 
     if (isCur || isNext || n.kind === 'goal' || n.camp) {
+      const remembered = state.knownStages.includes(n.stage);
       ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
-      ctx.fillStyle = isCur ? '#ffe3a3' : n.visited ? '#e8e8e8' : 'rgba(232,232,232,0.75)';
-      ctx.fillText(n.visited || isCur ? n.name : `${n.name.split(' ')[0]} ?`, x, y - r - 10);
+      ctx.fillStyle = isCur ? '#ffe3a3' : n.visited || remembered ? '#e8e8e8' : 'rgba(232,232,232,0.75)';
+      ctx.fillText(n.visited || isCur || remembered ? n.name : `${n.name.split(' ')[0]} ?`, x, y - r - 10);
     }
   }
 
