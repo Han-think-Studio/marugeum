@@ -6,6 +6,7 @@ import {
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
 import { passHours, warnings } from './survival';
+import { choose, closeEvent, maybeArrive, maybeNight } from './events';
 import { isNight, rollWeather } from './weather';
 
 export { addLog } from './log';
@@ -28,6 +29,8 @@ export function createGame(seed: number): GameState {
     gear: { blanket: false, bigPack: false, geiger: false },
     fire: null,
     known: {},
+    flags: {},
+    event: null,
     log: [],
     over: 'none',
     overText: '',
@@ -52,6 +55,11 @@ function giveRng(state: GameState, rng: Rng): void {
 
 export function packCap(state: GameState): PackCap {
   return state.gear.bigPack ? PACK_BIG : PACK_SMALL;
+}
+
+// 이벤트 선택을 기다리는 동안에는 다른 행동을 못 한다
+export function busy(state: GameState): boolean {
+  return state.over !== 'none' || state.event !== null;
 }
 
 export function currentNode(state: GameState): MapNode {
@@ -101,7 +109,7 @@ function afterAction(state: GameState): void {
 }
 
 export function travelTo(state: GameState, id: number): boolean {
-  if (state.over !== 'none') return false;
+  if (busy(state)) return false;
   const from = currentNode(state);
   const to = state.nodes[id];
   if (!to || !neighbors(state).includes(to)) return false;
@@ -134,11 +142,28 @@ export function travelTo(state: GameState, id: number): boolean {
     return true;
   }
   afterAction(state);
+  const rng2 = takeRng(state);
+  maybeArrive(state, rng2, to, first);
+  giveRng(state, rng2);
   return true;
 }
 
+// 이벤트 선택지 고르기. 결과가 나오면 확인(dismissEvent)으로 닫는다
+export function pickChoice(state: GameState, idx: number): boolean {
+  if (state.over !== 'none' || !state.event) return false;
+  const rng = takeRng(state);
+  const ok = choose(state, rng, currentNode(state), idx, packCap(state));
+  giveRng(state, rng);
+  if (ok) afterAction(state);
+  return ok;
+}
+
+export function dismissEvent(state: GameState): boolean {
+  return closeEvent(state);
+}
+
 export function rest(state: GameState): boolean {
-  if (state.over !== 'none') return false;
+  if (busy(state)) return false;
   const node = currentNode(state);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 2, 'rest');
@@ -149,7 +174,7 @@ export function rest(state: GameState): boolean {
 }
 
 export function sleep(state: GameState): boolean {
-  if (state.over !== 'none') return false;
+  if (busy(state)) return false;
   const node = currentNode(state);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 8, 'sleep');
@@ -159,6 +184,11 @@ export function sleep(state: GameState): boolean {
     addLog(state, `${where} 여덟 시간을 잤다.`);
   }
   afterAction(state);
+  if (!res.died) {
+    const rng2 = takeRng(state);
+    maybeNight(state, rng2, node);
+    giveRng(state, rng2);
+  }
   return true;
 }
 
@@ -171,7 +201,7 @@ export function waterKind(state: GameState): WaterKind {
   const n = currentNode(state);
   if (n.kind === 'spring' || n.kind === 'temple') return 'spring';
   if (n.kind === 'valley') return 'stream';
-  if (n.kind === 'village') return 'well';
+  if (n.kind === 'village' && n.waterLeft !== 0) return 'well';
   if (n.waterLeft > 0) return 'stored';
   if (state.weather === 'rain') return 'rain';
   return 'none';
@@ -197,7 +227,7 @@ function applyDirty(state: GameState, rng: Rng, kind: WaterKind | 'pack'): numbe
 
 // 마시기. 자리에 물이 있으면 거기서, 없으면 배낭에서
 export function drink(state: GameState): boolean {
-  if (state.over !== 'none') return false;
+  if (busy(state)) return false;
   const kind = waterKind(state);
   const node = currentNode(state);
   const rng = takeRng(state);
@@ -246,7 +276,7 @@ export function canFill(state: GameState): boolean {
 
 // 물 담기. 배낭이 찰 때까지. 저장된 물은 남은 횟수만큼만
 export function fill(state: GameState): boolean {
-  if (state.over !== 'none' || !canFill(state)) return false;
+  if (busy(state) || !canFill(state)) return false;
   const kind = waterKind(state);
   const node = currentNode(state);
   let n = 0;
@@ -273,7 +303,7 @@ export function canEat(state: GameState): boolean {
 }
 
 export function eat(state: GameState): boolean {
-  if (state.over !== 'none' || !canEat(state)) return false;
+  if (busy(state) || !canEat(state)) return false;
   state.pack.food -= 1;
   state.stats.hunger = Math.min(100, state.stats.hunger + FOOD_UNIT);
   addLog(state, '배낭의 먹을 것을 하나 꺼내 먹었다.');
@@ -290,7 +320,7 @@ const FORAGE_CHANCE: Record<string, number> = {
 };
 
 export function forage(state: GameState): boolean {
-  if (state.over !== 'none' || !canForage(state)) return false;
+  if (busy(state) || !canForage(state)) return false;
   const node = currentNode(state);
   node.forageLeft -= 1;
   node.lastForageDay = state.day;
@@ -393,7 +423,7 @@ export function canGatherWood(state: GameState): boolean {
 
 // 땔감 모으기. 한 시간. 마을과 절은 널빤지와 장작이 있어 넉넉하다
 export function gatherWood(state: GameState): boolean {
-  if (state.over !== 'none' || !canGatherWood(state)) return false;
+  if (busy(state) || !canGatherWood(state)) return false;
   const node = currentNode(state);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 1, 'work');
@@ -423,7 +453,7 @@ export function canLightFire(state: GameState): boolean {
 
 // 불 피우기. 땔감 하나로 열 시간
 export function lightFire(state: GameState): boolean {
-  if (state.over !== 'none' || !canLightFire(state)) return false;
+  if (busy(state) || !canLightFire(state)) return false;
   const node = currentNode(state);
   state.pack.wood -= 1;
   state.fire = { nodeId: node.id, hours: FIRE_HOURS };
@@ -438,7 +468,7 @@ export function canBoil(state: GameState): boolean {
 
 // 끓여서 거르기. 불 위에서 한 시간. 오염된 물 두 통까지 깨끗해진다
 export function boil(state: GameState): boolean {
-  if (state.over !== 'none' || !canBoil(state)) return false;
+  if (busy(state) || !canBoil(state)) return false;
   const node = currentNode(state);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 1, 'work');
@@ -462,7 +492,7 @@ export function canCamp(state: GameState): boolean {
 
 // 거점 세우기. 세 시간 일한다. 저장고가 생기고 여기서 자면 훨씬 낫다
 export function makeCamp(state: GameState): boolean {
-  if (state.over !== 'none' || !canCamp(state)) return false;
+  if (busy(state) || !canCamp(state)) return false;
   const node = currentNode(state);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 3, 'work');
@@ -487,7 +517,7 @@ function storeTotal(s: Store): number {
 // 맡기기. 배낭을 모두 저장고로
 export function deposit(state: GameState): boolean {
   const node = currentNode(state);
-  if (state.over !== 'none' || !node.camp || !node.store) return false;
+  if (busy(state) || !node.camp || !node.store) return false;
   if (storeTotal(state.pack) === 0) return false;
   node.store.water += state.pack.water;
   node.store.dirty += state.pack.dirty;
@@ -501,7 +531,7 @@ export function deposit(state: GameState): boolean {
 // 챙기기. 저장고에서 배낭이 찰 때까지. 깨끗한 물부터
 export function withdraw(state: GameState): boolean {
   const node = currentNode(state);
-  if (state.over !== 'none' || !node.camp || !node.store) return false;
+  if (busy(state) || !node.camp || !node.store) return false;
   const st = node.store;
   const p = state.pack;
   const cap = packCap(state);

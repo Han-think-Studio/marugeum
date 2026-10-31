@@ -11,10 +11,10 @@ const param = new URLSearchParams(location.search).get('seed');
 const seed = param ? Number(param) >>> 0 : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
 
 const state = createGame(seed);
-mountUI(app, state);
+const render = mountUI(app, state);
 console.log('마루금 seed =', seed);
 
 // 개발 중에는 콘솔에서 상태와 행동을 직접 다룰 수 있게 열어둔다
 if (import.meta.env.DEV) {
-  (window as unknown as { marugeum: unknown }).marugeum = { state, ...api };
+  (window as unknown as { marugeum: unknown }).marugeum = { state, render, ...api };
 }

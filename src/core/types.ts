@@ -126,6 +126,8 @@ export interface GameState {
   gear: Gear; // 지닌 도구
   fire: { nodeId: number; hours: number } | null; // 피워 둔 불. 자리를 뜨면 꺼진다
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
+  flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
+  event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
@@ -134,4 +136,66 @@ export interface GameState {
 
 export function edgeKey(a: number, b: number): string {
   return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
+// ---------- 이벤트 ----------
+// 이벤트는 src/data/events.ts 에 데이터로만 적는다. 코드 없이 이야기를 더할 수 있다
+
+export type Trigger = 'arrive' | 'night';
+
+export interface When {
+  kinds?: NodeKind[]; // 이런 곳에서만
+  weather?: Weather[];
+  night?: boolean; // 밤에만 (arrive)
+  outdoor?: boolean; // 지붕 없는 곳에서만 (night)
+  minDay?: number;
+  maxDay?: number;
+  flag?: string; // 이 표시가 있어야
+  noFlag?: string; // 이 표시가 없어야
+  gear?: GearKey;
+  noGear?: GearKey;
+}
+
+export interface Effect {
+  hp?: number; hunger?: number; thirst?: number; temp?: number; fatigue?: number; rad?: number; mind?: number;
+  water?: number; dirty?: number; food?: number; wood?: number; // 배낭 증감. 용량과 0에서 잘린다
+  foodAll?: boolean; // 먹을 것을 전부 잃는다
+  gear?: GearKey;
+  hours?: number; // 시간이 흐른다
+  flag?: string;
+  fireOut?: boolean;
+  poisonWell?: boolean; // 이 자리의 물을 못 쓰게 된다
+}
+
+export interface Outcome {
+  chance?: number; // 없으면 마지막 보루
+  text: string;
+  effects?: Effect;
+}
+
+export interface Req {
+  food?: number; water?: number; wood?: number; gear?: GearKey; fire?: boolean;
+}
+
+export interface Choice {
+  text: string;
+  hint?: string; // 버튼 아래 작은 글씨
+  req?: Req; // 조건이 안 되면 흐리게
+  outcomes: Outcome[];
+}
+
+export interface EventDef {
+  id: string;
+  trigger: Trigger;
+  title: string;
+  text: string;
+  weight?: number; // 기본 1
+  once?: boolean;
+  when?: When;
+  choices: Choice[];
+}
+
+export interface ActiveEvent {
+  id: string;
+  result: string | null; // 선택 뒤 결과 문장. 확인을 누르면 닫힌다
 }

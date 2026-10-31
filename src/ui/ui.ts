@@ -2,9 +2,10 @@ import { INDOOR, KIND_LABEL, SIDE_LABEL, WOOD_NODES, type GameState, type MapNod
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
   WATER_LABEL, atCamp, boil, canBoil, canCamp, canDrink, canEat, canFill, canForage, canGatherWood, canLightFire,
-  currentNode, deposit, drink, eat, fill, forage, gatherWood, gearList, hasFire, isKnown, lightFire, makeCamp,
-  neighbors, packCap, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
+  currentNode, deposit, dismissEvent, drink, eat, fill, forage, gatherWood, gearList, hasFire, isKnown, lightFire, makeCamp,
+  neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
 } from '../game/state';
+import { eventById, meetsReq } from '../game/events';
 import { radPerHour } from '../game/survival';
 import { envTemp, weatherText } from '../game/weather';
 
@@ -30,7 +31,8 @@ const STAT_LABEL: Record<string, string> = {
   mind: '정신',
 };
 
-export function mountUI(root: HTMLElement, state: GameState): void {
+// 화면을 붙이고, 다시 그리는 함수를 돌려준다
+export function mountUI(root: HTMLElement, state: GameState): () => void {
   root.innerHTML = `
     <div class="game">
       <header class="hud"></header>
@@ -91,6 +93,12 @@ export function mountUI(root: HTMLElement, state: GameState): void {
   window.addEventListener('keydown', (e) => {
     if (state.over !== 'none') return;
     const k = Number(e.key);
+    if (state.event) {
+      if (state.event.result !== null) {
+        if (e.key === 'Enter' || e.key === ' ' || k === 1) { if (dismissEvent(state)) render(); }
+      } else if (k >= 1 && k <= 4 && pickChoice(state, k - 1)) render();
+      return;
+    }
     if (k >= 1 && k <= 6) {
       const target = neighbors(state)[k - 1];
       if (target && travelTo(state, target.id)) render();
@@ -108,6 +116,7 @@ export function mountUI(root: HTMLElement, state: GameState): void {
 
   resize();
   render();
+  return render;
 }
 
 function renderHud(refs: Refs, state: GameState): void {
@@ -146,6 +155,11 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
 
   refs.actions.innerHTML = '';
   refs.choices.innerHTML = '';
+
+  if (state.event) {
+    renderEvent(refs, state, rerender);
+    return;
+  }
 
   if (state.over !== 'none') {
     const won = state.over === 'won';
@@ -202,4 +216,38 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     });
     refs.choices.appendChild(btn);
   });
+}
+
+// 이벤트 화면. 본문과 선택지, 선택 뒤에는 결과와 확인 버튼
+function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
+  const ev = state.event && eventById(state.event.id);
+  if (!ev || !state.event) return;
+  const box = document.createElement('div');
+  box.className = 'event';
+  if (state.event.result === null) {
+    box.innerHTML = `<h3>${ev.title}</h3><p>${ev.text}</p>`;
+    const list = document.createElement('div');
+    list.className = 'event-choices';
+    ev.choices.forEach((c, i) => {
+      const b = document.createElement('button');
+      const ok = meetsReq(state, c.req, currentNode(state));
+      b.disabled = !ok;
+      b.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${c.text}</span>${c.hint ? `<span class="meta">${c.hint}</span>` : ''}`;
+      b.addEventListener('click', () => {
+        if (pickChoice(state, i)) rerender();
+      });
+      list.appendChild(b);
+    });
+    box.appendChild(list);
+  } else {
+    box.innerHTML = `<h3>${ev.title}</h3><p class="result">${state.event.result}</p>`;
+    const b = document.createElement('button');
+    b.className = 'ok';
+    b.innerHTML = `<span class="num">1</span> 계속`;
+    b.addEventListener('click', () => {
+      if (dismissEvent(state)) rerender();
+    });
+    box.appendChild(b);
+  }
+  refs.choices.appendChild(box);
 }

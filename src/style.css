@@ -106,3 +106,16 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .end.dead { border-color: var(--warn); color: var(--warn); }
 .end .restart { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit; }
 .end .restart:hover { border-color: var(--accent); }
+
+.event { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--panel-2); }
+.event h3 { margin: 0 0 6px; font-size: 14px; color: var(--accent); letter-spacing: 0.1em; }
+.event p { margin: 0 0 10px; font-size: 14px; line-height: 1.65; }
+.event p.result { color: var(--ink); }
+.event-choices { display: flex; gap: 8px; flex-wrap: wrap; }
+.event-choices button, .event .ok {
+  flex: 1 1 180px; text-align: left; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; font: inherit; font-size: 13px;
+}
+.event-choices button:hover:not(:disabled), .event .ok:hover { border-color: var(--accent); }
+.event-choices button:disabled { opacity: 0.4; cursor: default; }
+.event .ok { flex: 0 0 auto; }
