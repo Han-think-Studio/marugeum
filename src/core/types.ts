@@ -30,34 +30,87 @@ export interface MapNode {
   waterLeft: number; // 물. -1 무제한, 0 없음, n 남은 횟수
   camp: boolean; // 거점을 세운 곳
   store: Store | null; // 거점 저장고
+  equip: Equip[]; // 거점에 둔 장비
 }
 
-// 배낭과 저장고에 들어가는 것. 단위 수량
-export interface Store {
+// 보급품. 수량으로 센다
+export interface Supplies {
   water: number; // 깨끗한 물
   dirty: number; // 오염된 물
-  food: number;
+  food: number; // 보존식. 통조림, 전투식량, 라면
+  fresh: number; // 신선식. 물고기, 고기, 나물. 냉장 없이는 이틀이면 상한다
   wood: number; // 땔감
+  gasoline: number; // 휘발유. 승용차에서
+  diesel: number; // 경유. 트럭·버스·군용·트랙터에서
+  parts: number; // 부품
+}
+export type Store = Supplies;
+export type SupplyKey = keyof Supplies;
+
+export const SUPPLY_LABEL: Record<SupplyKey, string> = {
+  water: '물', dirty: '오염수', food: '보존식', fresh: '신선식', wood: '땔감', gasoline: '휘발유', diesel: '경유', parts: '부품',
+};
+export const SUPPLY_KEYS: SupplyKey[] = ['water', 'dirty', 'food', 'fresh', 'wood', 'gasoline', 'diesel', 'parts'];
+
+export function emptySupplies(): Supplies {
+  return { water: 0, dirty: 0, food: 0, fresh: 0, wood: 0, gasoline: 0, diesel: 0, parts: 0 };
 }
 
+// 배낭 용량. 물은 깨끗한 물과 오염수를 합쳐서, 먹을 것은 보존식과 신선식을 합쳐서 센다
 export interface PackCap {
   water: number;
   food: number;
   wood: number;
+  fuel: number; // 휘발유와 경유를 합쳐서
+  parts: number;
 }
-export const PACK_SMALL: PackCap = { water: 3, food: 4, wood: 3 };
-export const PACK_BIG: PackCap = { water: 5, food: 6, wood: 5 };
+export const PACK_SMALL: PackCap = { water: 3, food: 4, wood: 3, fuel: 2, parts: 4 };
+export const PACK_BIG: PackCap = { water: 5, food: 6, wood: 5, fuel: 3, parts: 6 };
+export const HEAVY_LIMIT = 2; // 무거운 장비는 이만큼만 지고 다닌다
 export const WATER_UNIT = 40; // 물 한 단위가 채우는 갈증
 export const FOOD_UNIT = 30; // 음식 한 단위가 채우는 허기
 export const FIRE_HOURS = 10; // 땔감 하나로 불이 타는 시간
 
-// 주워서 몸에 지니는 생존 도구. 생산 시설은 없다
-export type GearKey = 'blanket' | 'bigPack' | 'geiger';
-export type Gear = Record<GearKey, boolean>;
-export const GEAR_LABEL: Record<GearKey, string> = { blanket: '담요', bigPack: '큰 배낭', geiger: '가이거 계수기' };
+// 장비. 하나하나가 개체이고 정상이거나 고장이다
+export type EquipKind =
+  | 'generator' | 'dieselGenerator' | 'fridge' | 'lamp' | 'radio' | 'heater'
+  | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent';
+export type GearKey = EquipKind;
+
+export interface Equip {
+  kind: EquipKind;
+  broken: boolean;
+}
+
+export interface EquipInfo {
+  label: string;
+  heavy: boolean; // 무거운 장비
+  desc: string;
+}
+
+export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
+  generator: { label: '휘발유 발전기', heavy: true, desc: '휘발유로 돈다. 냉장고와 전등과 라디오에 전기를 준다' },
+  dieselGenerator: { label: '경유 발전기', heavy: true, desc: '군용. 경유로 돈다. 더 튼튼하다' },
+  fridge: { label: '캠핑 냉장고', heavy: true, desc: '전기가 있으면 신선식이 상하지 않는다' },
+  lamp: { label: '전등', heavy: false, desc: '전기가 있으면 밤이 덜 위험하다' },
+  radio: { label: '라디오', heavy: false, desc: '전기가 있으면 바깥 소식이 들린다' },
+  heater: { label: '경유 난로', heavy: true, desc: '경유로 돈다. 거점이 따뜻해진다' },
+  tools: { label: '공구', heavy: false, desc: '수리 성공률이 오른다' },
+  geiger: { label: '가이거 계수기', heavy: false, desc: '시간당 피폭을 보여 준다' },
+  blanket: { label: '담요', heavy: false, desc: '잘 때 추위가 절반이 된다' },
+  bigPack: { label: '큰 배낭', heavy: false, desc: '더 많이 진다' },
+  tent: { label: '텐트', heavy: true, desc: '지붕 없는 곳에서도 비와 바람을 막는다' },
+};
+export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
+  (Object.keys(EQUIP_INFO) as EquipKind[]).map((k) => [k, EQUIP_INFO[k].label]),
+) as Record<EquipKind, string>;
 
 // 땔감을 모을 수 있는 곳. 군 시설과 출발·도착지는 제외
 export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
+
+export const REPAIR_HOURS = 2;
+export const REPAIR_BASE = 0.55;
+export const REPAIR_WITH_TOOLS = 0.8;
 
 // 자연에서 다시 나는 자원이 있는 곳
 export const REGROWS: ReadonlySet<NodeKind> = new Set(['valley', 'spring', 'peak', 'pass']);
@@ -122,8 +175,8 @@ export interface GameState {
   weather: Weather;
   wind: Wind;
   weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
-  pack: Store; // 배낭
-  gear: Gear; // 지닌 도구
+  pack: Supplies; // 배낭
+  equip: Equip[]; // 지닌 장비
   fire: { nodeId: number; hours: number } | null; // 피워 둔 불. 자리를 뜨면 꺼진다
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
   flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
@@ -164,9 +217,11 @@ export interface When {
 
 export interface Effect {
   hp?: number; hunger?: number; thirst?: number; temp?: number; fatigue?: number; rad?: number; mind?: number;
-  water?: number; dirty?: number; food?: number; wood?: number; // 배낭 증감. 용량과 0에서 잘린다
+  water?: number; dirty?: number; food?: number; fresh?: number; wood?: number; // 배낭 증감. 용량과 0에서 잘린다
+  gasoline?: number; diesel?: number; parts?: number;
   foodAll?: boolean; // 먹을 것을 전부 잃는다
-  gear?: GearKey;
+  gear?: GearKey; // 장비를 얻는다
+  brokenGear?: GearKey; // 고장 난 장비를 얻는다
   hours?: number; // 시간이 흐른다
   flag?: string;
   fireOut?: boolean;
@@ -218,7 +273,7 @@ export interface RunRecord {
   rad: number;
   farthest: number; // 가장 멀리 간 단계
   events: string[]; // 만난 이벤트 id
-  gear: GearKey[];
+  gear: EquipKind[];
   endedAt: number;
 }
 

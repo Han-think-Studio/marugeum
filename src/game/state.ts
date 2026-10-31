@@ -1,14 +1,17 @@
 import { Rng } from '../core/rng';
 import {
-  FIRE_HOURS, FOOD_UNIT, GEAR_LABEL, INDOOR, PACK_BIG, PACK_SMALL, WATER_UNIT, WOOD_NODES, edgeKey,
-  type GameState, type GearKey, type MapNode, type PackCap, type Stats, type Store,
+  EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
+  SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
+  type Equip, type EquipKind, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
 import { passHours, warnings } from './survival';
 import { choose, closeEvent, maybeArrive, maybeNight } from './events';
+import { canCarry, equipLabel, hasEquip, heavyCount } from './equip';
 import { isNight, rollWeather } from './weather';
 
+export { hasEquip, canCarry, equipLabel } from './equip';
 export { addLog } from './log';
 
 export function createGame(seed: number, opts: { knownStages?: number[]; runNo?: number } = {}): GameState {
@@ -25,8 +28,8 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     weather: 'clear',
     wind: 'calm',
     weatherLeft: 6,
-    pack: { water: 1, dirty: 0, food: 1, wood: 0 },
-    gear: { blanket: false, bigPack: false, geiger: false },
+    pack: { ...emptySupplies(), water: 1, food: 1 },
+    equip: [],
     fire: null,
     known: {},
     flags: {},
@@ -59,7 +62,11 @@ function giveRng(state: GameState, rng: Rng): void {
 }
 
 export function packCap(state: GameState): PackCap {
-  return state.gear.bigPack ? PACK_BIG : PACK_SMALL;
+  return hasEquip(state, 'bigPack') ? PACK_BIG : PACK_SMALL;
+}
+
+export function foodTotal(s: Supplies): number {
+  return s.food + s.fresh;
 }
 
 // 이벤트 선택을 기다리는 동안에는 다른 행동을 못 한다
@@ -304,24 +311,123 @@ export function fill(state: GameState): boolean {
 // ---------- 음식 ----------
 
 export function canEat(state: GameState): boolean {
-  return state.pack.food > 0;
+  return foodTotal(state.pack) > 0;
 }
 
+// 먹기. 상하기 쉬운 신선식부터
 export function eat(state: GameState): boolean {
   if (busy(state) || !canEat(state)) return false;
-  state.pack.food -= 1;
+  if (state.pack.fresh > 0) {
+    state.pack.fresh -= 1;
+    addLog(state, '신선한 것부터 먹었다. 오래 두면 상한다.');
+  } else {
+    state.pack.food -= 1;
+    addLog(state, '배낭의 먹을 것을 하나 꺼내 먹었다.');
+  }
   state.stats.hunger = Math.min(100, state.stats.hunger + FOOD_UNIT);
-  addLog(state, '배낭의 먹을 것을 하나 꺼내 먹었다.');
   afterAction(state);
   return true;
 }
 
 export function canForage(state: GameState): boolean {
-  return currentNode(state).forageLeft > 0 && state.pack.food < packCap(state).food;
+  return currentNode(state).forageLeft > 0;
 }
 
 const FORAGE_CHANCE: Record<string, number> = {
-  peak: 0.35, pass: 0.4, shelter: 0.6, spring: 0.5, temple: 0.65, military: 0.7, valley: 0.6, village: 0.75,
+  peak: 0.4, pass: 0.5, shelter: 0.65, spring: 0.55, temple: 0.7, military: 0.75, valley: 0.65, village: 0.8,
+};
+
+// 뒤져서 나오는 것. 보급품이나 장비. 장비는 brokenChance 확률로 고장 난 채 나온다
+interface Find {
+  text: string;
+  add?: Partial<Supplies>;
+  rad?: number;
+  equip?: EquipKind;
+  brokenChance?: number;
+}
+
+const FINDS: Record<string, Find[]> = {
+  peak: [
+    { text: '바위 틈에서 마른 산딸기를 찾았다.', add: { fresh: 1 } },
+    { text: '등산객이 두고 간 에너지바.', add: { food: 1 } },
+  ],
+  pass: [
+    { text: '고갯마루 매점 잔해에서 캔을 찾았다.', add: { food: 1 } },
+    { text: '도토리를 한 줌 주웠다. 떫지만 먹을 수 있다.', add: { fresh: 1 } },
+    { text: '버려진 승용차 연료통에 호스를 꽂았다. 휘발유가 올라온다.', add: { gasoline: 2 }, rad: 1 },
+    { text: '트렁크에서 공구 가방을 찾았다.', equip: 'tools', brokenChance: 0 },
+    { text: '관광버스 밑에서 경유를 뽑았다. 손에 기름 냄새가 뱄다.', add: { diesel: 2 }, rad: 1 },
+  ],
+  shelter: [
+    { text: '대피소 선반에 라면이 남아 있었다.', add: { food: 2 } },
+    { text: '찬장 구석의 통조림. 유통기한은 보지 않기로 했다.', add: { food: 2 } },
+    { text: '창고에 캠핑용 전등이 있었다.', equip: 'lamp', brokenChance: 0.5 },
+    { text: '구석에 접힌 텐트. 폴대 하나가 부러져 있다.', equip: 'tent', brokenChance: 0.6 },
+    { text: '대피소 침상의 담요를 챙겼다.', equip: 'blanket', brokenChance: 0 },
+    { text: '누군가 두고 간 큰 배낭. 주인은 돌아오지 않을 것이다.', equip: 'bigPack', brokenChance: 0 },
+  ],
+  spring: [
+    { text: '약수터 옆 밭에서 무를 뽑았다.', add: { fresh: 1 }, rad: 1 },
+    { text: '물가에 자란 미나리를 뜯었다.', add: { fresh: 1 } },
+  ],
+  temple: [
+    { text: '공양간에 쌀 한 포대가 남아 있다. 조금 덜어 담았다.', add: { food: 2 } },
+    { text: '장독대의 된장. 손가락으로 찍어 먹어도 힘이 난다.', add: { food: 1 } },
+    { text: '요사채에 승려가 덮던 이불이 남아 있었다. 담요로 쓴다.', equip: 'blanket', brokenChance: 0 },
+    { text: '종무소 서랍에 건전지 라디오가 있었다.', equip: 'radio', brokenChance: 0.5 },
+  ],
+  military: [
+    { text: '전투식량 한 상자. 오래 버틸 수 있다.', add: { food: 2 } },
+    { text: '건빵과 별사탕. 웃음이 났다.', add: { food: 1 } },
+    { text: '벙커 선반에서 가이거 계수기를 찾았다. 켜자마자 딸깍거린다.', equip: 'geiger', brokenChance: 0.3 },
+    { text: '군용 발전기가 구석에 있었다. 무겁다.', equip: 'dieselGenerator', brokenChance: 0.7 },
+    { text: '드럼통에서 경유를 뽑았다.', add: { diesel: 2 } },
+    { text: '정비 창고에 부품 상자가 있었다. 쓸 만한 것만 골랐다.', add: { parts: 2 } },
+    { text: '군용 배낭 하나. 크고 튼튼하다.', equip: 'bigPack', brokenChance: 0 },
+  ],
+  valley: [
+    { text: '계곡에서 물고기를 잡았다.', add: { fresh: 2 }, rad: 3 },
+    { text: '물가 바위에서 다슬기를 주웠다.', add: { fresh: 1 }, rad: 2 },
+  ],
+  village: [
+    { text: '빈집 부엌에서 쌀과 김을 찾았다.', add: { food: 2 }, rad: 2 },
+    { text: '마당의 감나무. 떨어진 감이 익어 있다.', add: { fresh: 1 }, rad: 2 },
+    { text: '지하 저장고의 김치. 시큼하지만 먹을 만하다.', add: { food: 1 }, rad: 1 },
+    { text: '안방 장롱에서 두꺼운 담요를 꺼냈다.', equip: 'blanket', brokenChance: 0 },
+    { text: '창고에 등산용 큰 배낭이 걸려 있었다.', equip: 'bigPack', brokenChance: 0 },
+    { text: '헛간의 트랙터에서 경유를 뽑았다.', add: { diesel: 2 }, rad: 1 },
+    { text: '농기구 창고에서 부품과 나사를 챙겼다.', add: { parts: 1 } },
+    { text: '마당 창고에 캠핑용 냉장고가 있었다. 문이 안 닫힌다.', equip: 'fridge', brokenChance: 0.7 },
+    { text: '창고 구석의 휴대용 발전기. 당겨도 시동이 안 걸린다.', equip: 'generator', brokenChance: 0.8 },
+    { text: '마루 밑에서 경유 난로를 찾았다.', equip: 'heater', brokenChance: 0.5 },
+  ],
+};
+
+// 배낭 용량 안에서 보급품을 더한다. 넘치는 만큼은 버린다
+function addSupplies(state: GameState, add: Partial<Supplies>): string {
+  const cap = packCap(state);
+  const p = state.pack;
+  const got: string[] = [];
+  for (const k of SUPPLY_KEYS) {
+    const n = add[k] ?? 0;
+    if (n <= 0) continue;
+    let room = 0;
+    if (k === 'water' || k === 'dirty') room = cap.water - p.water - p.dirty;
+    else if (k === 'food' || k === 'fresh') room = cap.food - p.food - p.fresh;
+    else if (k === 'wood') room = cap.wood - p.wood;
+    else if (k === 'gasoline' || k === 'diesel') room = cap.fuel - p.gasoline - p.diesel;
+    else room = cap.parts - p.parts;
+    const take = Math.max(0, Math.min(n, room));
+    if (take > 0) {
+      p[k] += take;
+      got.push(`${LABEL[k]} ${take}`);
+    } else if (room <= 0) got.push(`${LABEL[k]}은 배낭이 가득해 두고 왔다`);
+  }
+  return got.join(', ');
+}
+
+const LABEL: Record<SupplyKey, string> = {
+  water: '물', dirty: '오염수', food: '보존식', fresh: '신선식', wood: '땔감', gasoline: '휘발유', diesel: '경유', parts: '부품',
 };
 
 export function forage(state: GameState): boolean {
@@ -332,19 +438,23 @@ export function forage(state: GameState): boolean {
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 2, 'forage');
   if (!res.died) {
-    const gearHere = (GEAR_FINDS[node.kind] ?? []).filter((g) => !state.gear[g.gear]);
-    if (gearHere.length > 0 && rng.chance(0.3)) {
-      const g = rng.pick(gearHere);
-      state.gear[g.gear] = true;
-      addLog(state, g.text);
-    } else if (rng.chance(FORAGE_CHANCE[node.kind] ?? 0.4)) {
-      const found = rng.pick(FINDS[node.kind] ?? FINDS.peak);
-      const units = Math.min(found.units, packCap(state).food - state.pack.food);
-      state.pack.food += units;
+    if (rng.chance(FORAGE_CHANCE[node.kind] ?? 0.4)) {
+      const list = (FINDS[node.kind] ?? FINDS.peak).filter((f) => !f.equip || !state.equip.some((e) => e.kind === f.equip) || f.equip === 'tools');
+      const found = rng.pick(list.length ? list : FINDS.peak);
       if (found.rad) state.stats.rad = Math.min(100, state.stats.rad + found.rad);
-      addLog(state, `${found.text} 먹을 것 ${units}개를 배낭에 넣었다.`);
+      if (found.equip) {
+        const broken = rng.chance(found.brokenChance ?? 0.5);
+        if (canCarry(state, found.equip)) {
+          state.equip.push({ kind: found.equip, broken });
+          addLog(state, `${found.text} ${EQUIP_INFO[found.equip].label}${broken ? '. 고장 나 있다. 수리하면 쓸 수 있을지도' : ''}.`);
+        } else {
+          addLog(state, `${found.text} 하지만 무거운 장비를 더 질 수 없어 두고 왔다.`);
+        }
+      } else if (found.add) {
+        addLog(state, `${found.text} ${addSupplies(state, found.add)}.`);
+      }
     } else {
-      addLog(state, rng.pick(['두 시간을 뒤졌지만 먹을 만한 게 없다.', '빈손이다. 누군가 먼저 다녀갔다.', '버섯이 있었지만 독버섯 같아 두고 왔다.']));
+      addLog(state, rng.pick(['두 시간을 뒤졌지만 쓸 만한 게 없다.', '빈손이다. 누군가 먼저 다녀갔다.', '버섯이 있었지만 독버섯 같아 두고 왔다.']));
     }
   }
   giveRng(state, rng);
@@ -352,72 +462,54 @@ export function forage(state: GameState): boolean {
   return true;
 }
 
-interface Find {
-  text: string;
-  units: number;
-  rad?: number;
-}
-
-const FINDS: Record<string, Find[]> = {
-  peak: [
-    { text: '바위 틈에서 마른 산딸기를 찾았다.', units: 1 },
-    { text: '등산객이 두고 간 에너지바.', units: 1 },
-  ],
-  pass: [
-    { text: '고갯마루 매점 잔해에서 캔을 찾았다.', units: 1 },
-    { text: '도토리를 한 줌 주웠다. 떫지만 먹을 수 있다.', units: 1 },
-  ],
-  shelter: [
-    { text: '대피소 선반에 라면이 남아 있었다.', units: 2 },
-    { text: '찬장 구석의 통조림. 유통기한은 보지 않기로 했다.', units: 2 },
-  ],
-  spring: [
-    { text: '약수터 옆 밭에서 무를 뽑았다.', units: 1, rad: 1 },
-    { text: '물가에 자란 미나리를 뜯었다.', units: 1 },
-  ],
-  temple: [
-    { text: '공양간에 쌀 한 포대가 남아 있다. 조금 덜어 담았다.', units: 2 },
-    { text: '장독대의 된장. 손가락으로 찍어 먹어도 힘이 난다.', units: 1 },
-  ],
-  military: [
-    { text: '전투식량 한 상자. 오래 버틸 수 있다.', units: 2 },
-    { text: '건빵과 별사탕. 웃음이 났다.', units: 1 },
-  ],
-  valley: [
-    { text: '계곡에서 물고기를 잡았다.', units: 2, rad: 3 },
-    { text: '물가 바위에서 다슬기를 주웠다.', units: 1, rad: 2 },
-  ],
-  village: [
-    { text: '빈집 부엌에서 쌀과 김을 찾았다.', units: 2, rad: 2 },
-    { text: '마당의 감나무. 떨어진 감이 익어 있다.', units: 1, rad: 2 },
-    { text: '지하 저장고의 김치. 시큼하지만 먹을 만하다.', units: 1, rad: 1 },
-  ],
-};
-
-interface GearFind {
-  gear: GearKey;
-  text: string;
-}
-
-// 주워 쓰는 도구. 한 번 찾으면 끝까지 지닌다
-const GEAR_FINDS: Record<string, GearFind[]> = {
-  village: [
-    { gear: 'blanket', text: '안방 장롱에서 두꺼운 담요를 꺼냈다. 밤이 덜 무서워졌다.' },
-    { gear: 'bigPack', text: '창고에 등산용 큰 배낭이 걸려 있었다. 짐을 옮겨 담았다.' },
-  ],
-  shelter: [
-    { gear: 'blanket', text: '대피소 침상의 담요를 챙겼다. 밤이 덜 무서워졌다.' },
-    { gear: 'bigPack', text: '누군가 두고 간 큰 배낭. 주인은 돌아오지 않을 것이다.' },
-  ],
-  military: [
-    { gear: 'geiger', text: '벙커 선반에서 가이거 계수기를 찾았다. 켜자마자 딸깍거린다.' },
-    { gear: 'bigPack', text: '군용 배낭 하나. 크고 튼튼하다.' },
-  ],
-  temple: [{ gear: 'blanket', text: '요사채에 승려가 덮던 이불이 남아 있었다. 담요로 쓴다.' }],
-};
-
 export function gearList(state: GameState): string[] {
-  return (Object.keys(state.gear) as GearKey[]).filter((k) => state.gear[k]).map((k) => GEAR_LABEL[k]);
+  return state.equip.map((e) => equipLabel(e));
+}
+
+// ---------- 수리 ----------
+
+export function repairChance(state: GameState): number {
+  return hasEquip(state, 'tools') ? REPAIR_WITH_TOOLS : REPAIR_BASE;
+}
+
+// 수리할 부품이 어디 있는가. 배낭 먼저, 거점 저장고 다음
+function partsSource(state: GameState): Supplies | null {
+  if (state.pack.parts > 0) return state.pack;
+  const node = currentNode(state);
+  if (node.camp && node.store && node.store.parts > 0) return node.store;
+  return null;
+}
+
+export function canRepair(state: GameState): boolean {
+  if (busy(state) || partsSource(state) === null) return false;
+  const node = currentNode(state);
+  return state.equip.some((e) => e.broken) || (node.camp && node.equip.some((e) => e.broken));
+}
+
+// 수리. 두 시간과 부품 하나. where 가 'pack' 이면 지닌 장비, 'base' 면 거점 장비
+export function repair(state: GameState, where: 'pack' | 'base', idx: number): boolean {
+  if (busy(state)) return false;
+  const node = currentNode(state);
+  const list = where === 'pack' ? state.equip : node.camp ? node.equip : [];
+  const item = list[idx];
+  if (!item || !item.broken) return false;
+  const src = partsSource(state);
+  if (!src) return false;
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, REPAIR_HOURS, 'work');
+  if (!res.died) {
+    src.parts -= 1;
+    const chance = repairChance(state);
+    if (rng.chance(chance)) {
+      item.broken = false;
+      addLog(state, `${EQUIP_INFO[item.kind].label}를 고쳤다. 두 시간 만에 돌아가는 소리가 났다.`);
+    } else {
+      addLog(state, `${EQUIP_INFO[item.kind].label} 수리에 실패했다. 부품만 날렸다.`);
+    }
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
 }
 
 // ---------- 땔감과 불 ----------
@@ -504,7 +596,8 @@ export function makeCamp(state: GameState): boolean {
   giveRng(state, rng);
   if (!res.died) {
     node.camp = true;
-    node.store = { water: 0, dirty: 0, food: 0, wood: 0 };
+    node.store = emptySupplies();
+    node.equip = [];
     addLog(state, `${node.name}에 거점을 세웠다. 창을 막고 잠자리를 만들고 저장고를 비웠다.`);
   }
   afterAction(state);
@@ -515,37 +608,79 @@ export function atCamp(state: GameState): boolean {
   return currentNode(state).camp;
 }
 
-function storeTotal(s: Store): number {
-  return s.water + s.dirty + s.food + s.wood;
+function supplyTotal(s: Supplies): number {
+  return SUPPLY_KEYS.reduce((a, k) => a + s[k], 0);
 }
 
-// 맡기기. 배낭을 모두 저장고로
+// 보급품 한 종류를 배낭과 저장고 사이로 옮긴다. n 은 양수. 0 이면 가능한 만큼 전부
+export function moveSupply(state: GameState, key: SupplyKey, dir: 'toBase' | 'toPack', n = 0): boolean {
+  const node = currentNode(state);
+  if (busy(state) || !node.camp || !node.store) return false;
+  const p = state.pack;
+  const st = node.store;
+  const cap = packCap(state);
+  let room = Infinity;
+  if (dir === 'toPack') {
+    if (key === 'water' || key === 'dirty') room = cap.water - p.water - p.dirty;
+    else if (key === 'food' || key === 'fresh') room = cap.food - p.food - p.fresh;
+    else if (key === 'wood') room = cap.wood - p.wood;
+    else if (key === 'gasoline' || key === 'diesel') room = cap.fuel - p.gasoline - p.diesel;
+    else room = cap.parts - p.parts;
+  }
+  const from = dir === 'toBase' ? p : st;
+  const to = dir === 'toBase' ? st : p;
+  const amount = Math.max(0, Math.min(n > 0 ? n : from[key], from[key], room));
+  if (amount <= 0) return false;
+  from[key] -= amount;
+  to[key] += amount;
+  return true;
+}
+
+// 장비 하나를 배낭과 거점 사이로 옮긴다
+export function moveEquip(state: GameState, dir: 'toBase' | 'toPack', idx: number): boolean {
+  const node = currentNode(state);
+  if (busy(state) || !node.camp) return false;
+  const from = dir === 'toBase' ? state.equip : node.equip;
+  const item = from[idx];
+  if (!item) return false;
+  if (dir === 'toPack' && !canCarry(state, item.kind)) return false;
+  from.splice(idx, 1);
+  (dir === 'toBase' ? node.equip : state.equip).push(item);
+  return true;
+}
+
+// 맡기기. 배낭의 보급품을 모두 저장고로
 export function deposit(state: GameState): boolean {
   const node = currentNode(state);
   if (busy(state) || !node.camp || !node.store) return false;
-  if (storeTotal(state.pack) === 0) return false;
-  node.store.water += state.pack.water;
-  node.store.dirty += state.pack.dirty;
-  node.store.food += state.pack.food;
-  node.store.wood += state.pack.wood;
-  state.pack = { water: 0, dirty: 0, food: 0, wood: 0 };
-  addLog(state, `저장고에 맡겼다. 물 ${node.store.water}, 오염수 ${node.store.dirty}, 먹을 것 ${node.store.food}, 땔감 ${node.store.wood}.`);
+  if (supplyTotal(state.pack) === 0) return false;
+  for (const k of SUPPLY_KEYS) {
+    node.store[k] += state.pack[k];
+    state.pack[k] = 0;
+  }
+  addLog(state, `저장고에 맡겼다. ${storeText(node.store)}.`);
   return true;
 }
 
-// 챙기기. 저장고에서 배낭이 찰 때까지. 깨끗한 물부터
+// 챙기기. 저장고에서 배낭이 찰 때까지. 깨끗한 물과 신선식부터
 export function withdraw(state: GameState): boolean {
   const node = currentNode(state);
   if (busy(state) || !node.camp || !node.store) return false;
-  const st = node.store;
-  const p = state.pack;
-  const cap = packCap(state);
-  let moved = 0;
-  while (p.water + p.dirty < cap.water && st.water > 0) { st.water--; p.water++; moved++; }
-  while (p.water + p.dirty < cap.water && st.dirty > 0) { st.dirty--; p.dirty++; moved++; }
-  while (p.food < cap.food && st.food > 0) { st.food--; p.food++; moved++; }
-  while (p.wood < cap.wood && st.wood > 0) { st.wood--; p.wood++; moved++; }
-  if (moved === 0) return false;
-  addLog(state, `저장고에서 챙겼다. 배낭: 물 ${p.water}, 오염수 ${p.dirty}, 먹을 것 ${p.food}, 땔감 ${p.wood}.`);
+  let moved = false;
+  for (const k of ['water', 'dirty', 'fresh', 'food', 'wood', 'gasoline', 'diesel', 'parts'] as SupplyKey[]) {
+    if (moveSupply(state, k, 'toPack')) moved = true;
+  }
+  if (!moved) return false;
+  addLog(state, `저장고에서 챙겼다. 배낭: ${storeText(state.pack)}.`);
   return true;
 }
+
+export function storeText(s: Supplies): string {
+  return SUPPLY_KEYS.filter((k) => s[k] > 0).map((k) => `${LABEL[k]} ${s[k]}`).join(', ') || '비었다';
+}
+
+export function heavyCarried(state: GameState): number {
+  return heavyCount(state.equip);
+}
+
+export type { Equip };

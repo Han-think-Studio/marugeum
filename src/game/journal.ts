@@ -1,4 +1,4 @@
-import type { GameState, GearKey, Journal, RunRecord } from '../core/types';
+import type { GameState, Journal, RunRecord } from '../core/types';
 import { REGIONS } from '../map/generate';
 import { eventById } from './events';
 
@@ -47,7 +47,7 @@ export function recordRun(state: GameState): Journal {
     rad: Math.round(state.stats.rad),
     farthest,
     events: [...state.seen],
-    gear: (Object.keys(state.gear) as GearKey[]).filter((k) => state.gear[k]),
+    gear: state.equip.filter((e) => !e.broken).map((e) => e.kind),
     endedAt: Date.now(),
   };
   j.runs.push(rec);

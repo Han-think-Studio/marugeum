@@ -1,7 +1,8 @@
 import { Rng } from '../core/rng';
 import {
-  INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type Req, type Trigger, type When,
+  INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type PackCap, type Req, type Trigger, type When,
 } from '../core/types';
+import { canCarry, hasEquip } from './equip';
 import { EVENTS } from '../data/events';
 import { addLog } from './log';
 import { passHours } from './survival';
@@ -28,8 +29,8 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.maxDay !== undefined && state.day > when.maxDay) return false;
   if (when.flag && !state.flags[when.flag]) return false;
   if (when.noFlag && state.flags[when.noFlag]) return false;
-  if (when.gear && !state.gear[when.gear]) return false;
-  if (when.noGear && state.gear[when.noGear]) return false;
+  if (when.gear && !hasEquip(state, when.gear)) return false;
+  if (when.noGear && hasEquip(state, when.noGear)) return false;
   return true;
 }
 
@@ -80,7 +81,7 @@ export function meetsReq(state: GameState, req: Req | undefined, node: MapNode):
   if (req.food !== undefined && state.pack.food < req.food) return false;
   if (req.water !== undefined && state.pack.water < req.water) return false;
   if (req.wood !== undefined && state.pack.wood < req.wood) return false;
-  if (req.gear && !state.gear[req.gear]) return false;
+  if (req.gear && !hasEquip(state, req.gear)) return false;
   if (req.fire && !(state.fire && state.fire.nodeId === node.id)) return false;
   return true;
 }
@@ -89,7 +90,7 @@ function clamp(v: number): number {
   return Math.max(0, Math.min(100, v));
 }
 
-function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: { water: number; food: number; wood: number }): void {
+function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: PackCap): void {
   const s = state.stats;
   if (e.hp) s.hp = clamp(s.hp + e.hp);
   if (e.hunger) s.hunger = clamp(s.hunger + e.hunger);
@@ -101,10 +102,15 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   const p = state.pack;
   if (e.water) p.water = Math.max(0, Math.min(cap.water - p.dirty, p.water + e.water));
   if (e.dirty) p.dirty = Math.max(0, Math.min(cap.water - p.water, p.dirty + e.dirty));
-  if (e.food) p.food = Math.max(0, Math.min(cap.food, p.food + e.food));
+  if (e.food) p.food = Math.max(0, Math.min(cap.food - p.fresh, p.food + e.food));
+  if (e.fresh) p.fresh = Math.max(0, Math.min(cap.food - p.food, p.fresh + e.fresh));
   if (e.wood) p.wood = Math.max(0, Math.min(cap.wood, p.wood + e.wood));
-  if (e.foodAll) p.food = 0;
-  if (e.gear) state.gear[e.gear] = true;
+  if (e.gasoline) p.gasoline = Math.max(0, Math.min(cap.fuel - p.diesel, p.gasoline + e.gasoline));
+  if (e.diesel) p.diesel = Math.max(0, Math.min(cap.fuel - p.gasoline, p.diesel + e.diesel));
+  if (e.parts) p.parts = Math.max(0, Math.min(cap.parts, p.parts + e.parts));
+  if (e.foodAll) { p.food = 0; p.fresh = 0; }
+  if (e.gear && canCarry(state, e.gear)) state.equip.push({ kind: e.gear, broken: false });
+  if (e.brokenGear && canCarry(state, e.brokenGear)) state.equip.push({ kind: e.brokenGear, broken: true });
   if (e.flag) state.flags[e.flag] = true;
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
@@ -117,7 +123,7 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
 }
 
 // 선택. 결과 문장을 이벤트에 남기고, 확인을 누르면 닫힌다
-export function choose(state: GameState, rng: Rng, node: MapNode, idx: number, cap: { water: number; food: number; wood: number }): boolean {
+export function choose(state: GameState, rng: Rng, node: MapNode, idx: number, cap: PackCap): boolean {
   if (!state.event || state.event.result !== null) return false;
   const ev = eventById(state.event.id);
   if (!ev) {

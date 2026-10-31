@@ -94,6 +94,7 @@ export function generateMap(rng: Rng): MapNode[] {
       waterLeft: WATER[kind],
       camp: false,
       store: null,
+      equip: [],
     };
     nodes.push(node);
     return node;

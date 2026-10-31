@@ -1,6 +1,7 @@
 import { Rng } from '../core/rng';
 import { INDOOR, REGROWS, REGROW_DAYS, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
+import { hasEquip } from './equip';
 import { addLog } from './log';
 
 export type Activity = 'travel' | 'rest' | 'sleep' | 'forage' | 'work';
@@ -59,7 +60,7 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickO
   const env = envTemp(state, node);
   const chill = Math.max(0, 6 - env);
   let coldMul = camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35;
-  if (act === 'sleep' && state.gear.blanket) coldMul *= 0.5;
+  if (act === 'sleep' && hasEquip(state, 'blanket')) coldMul *= 0.5;
   if (fire) coldMul *= 0.2;
   const cold = chill * coldMul;
   if (cold > 0) add(state, 'temp', -cold);
