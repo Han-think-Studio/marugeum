@@ -37,11 +37,27 @@ export interface Store {
   water: number; // 깨끗한 물
   dirty: number; // 오염된 물
   food: number;
+  wood: number; // 땔감
 }
 
-export const PACK_CAP = { water: 3, food: 4 } as const;
+export interface PackCap {
+  water: number;
+  food: number;
+  wood: number;
+}
+export const PACK_SMALL: PackCap = { water: 3, food: 4, wood: 3 };
+export const PACK_BIG: PackCap = { water: 5, food: 6, wood: 5 };
 export const WATER_UNIT = 40; // 물 한 단위가 채우는 갈증
 export const FOOD_UNIT = 30; // 음식 한 단위가 채우는 허기
+export const FIRE_HOURS = 10; // 땔감 하나로 불이 타는 시간
+
+// 주워서 몸에 지니는 생존 도구. 생산 시설은 없다
+export type GearKey = 'blanket' | 'bigPack' | 'geiger';
+export type Gear = Record<GearKey, boolean>;
+export const GEAR_LABEL: Record<GearKey, string> = { blanket: '담요', bigPack: '큰 배낭', geiger: '가이거 계수기' };
+
+// 땔감을 모을 수 있는 곳. 군 시설과 출발·도착지는 제외
+export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
 
 // 자연에서 다시 나는 자원이 있는 곳
 export const REGROWS: ReadonlySet<NodeKind> = new Set(['valley', 'spring', 'peak', 'pass']);
@@ -107,6 +123,8 @@ export interface GameState {
   wind: Wind;
   weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
   pack: Store; // 배낭
+  gear: Gear; // 지닌 도구
+  fire: { nodeId: number; hours: number } | null; // 피워 둔 불. 자리를 뜨면 꺼진다
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
   log: string[];
   over: 'none' | 'dead' | 'won';

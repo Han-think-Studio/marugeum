@@ -1,6 +1,7 @@
 import { Rng } from '../core/rng';
 import {
-  FOOD_UNIT, INDOOR, PACK_CAP, WATER_UNIT, edgeKey, type GameState, type MapNode, type Stats, type Store,
+  FIRE_HOURS, FOOD_UNIT, GEAR_LABEL, INDOOR, PACK_BIG, PACK_SMALL, WATER_UNIT, WOOD_NODES, edgeKey,
+  type GameState, type GearKey, type MapNode, type PackCap, type Stats, type Store,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
@@ -23,7 +24,9 @@ export function createGame(seed: number): GameState {
     weather: 'clear',
     wind: 'calm',
     weatherLeft: 6,
-    pack: { water: 1, dirty: 0, food: 1 },
+    pack: { water: 1, dirty: 0, food: 1, wood: 0 },
+    gear: { blanket: false, bigPack: false, geiger: false },
+    fire: null,
     known: {},
     log: [],
     over: 'none',
@@ -45,6 +48,10 @@ function takeRng(state: GameState): Rng {
 }
 function giveRng(state: GameState, rng: Rng): void {
   state.rngState = rng.state;
+}
+
+export function packCap(state: GameState): PackCap {
+  return state.gear.bigPack ? PACK_BIG : PACK_SMALL;
 }
 
 export function currentNode(state: GameState): MapNode {
@@ -110,6 +117,10 @@ export function travelTo(state: GameState, id: number): boolean {
     return true;
   }
   state.known[edgeKey(from.id, to.id)] = true;
+  if (state.fire) {
+    state.fire = null;
+    addLog(state, '불을 밟아 끄고 떠났다.');
+  }
   state.nodeId = id;
   const first = !to.visited;
   to.visited = true;
@@ -230,7 +241,7 @@ export function drink(state: GameState): boolean {
 export function canFill(state: GameState): boolean {
   const kind = waterKind(state);
   if (kind === 'none') return false;
-  return state.pack.water + state.pack.dirty < PACK_CAP.water;
+  return state.pack.water + state.pack.dirty < packCap(state).water;
 }
 
 // 물 담기. 배낭이 찰 때까지. 저장된 물은 남은 횟수만큼만
@@ -239,7 +250,8 @@ export function fill(state: GameState): boolean {
   const kind = waterKind(state);
   const node = currentNode(state);
   let n = 0;
-  while (state.pack.water + state.pack.dirty < PACK_CAP.water) {
+  const cap = packCap(state);
+  while (state.pack.water + state.pack.dirty < cap.water) {
     if (kind === 'stored') {
       if (node.waterLeft <= 0) break;
       node.waterLeft -= 1;
@@ -270,7 +282,7 @@ export function eat(state: GameState): boolean {
 }
 
 export function canForage(state: GameState): boolean {
-  return currentNode(state).forageLeft > 0 && state.pack.food < PACK_CAP.food;
+  return currentNode(state).forageLeft > 0 && state.pack.food < packCap(state).food;
 }
 
 const FORAGE_CHANCE: Record<string, number> = {
@@ -285,9 +297,14 @@ export function forage(state: GameState): boolean {
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 2, 'forage');
   if (!res.died) {
-    if (rng.chance(FORAGE_CHANCE[node.kind] ?? 0.4)) {
+    const gearHere = (GEAR_FINDS[node.kind] ?? []).filter((g) => !state.gear[g.gear]);
+    if (gearHere.length > 0 && rng.chance(0.3)) {
+      const g = rng.pick(gearHere);
+      state.gear[g.gear] = true;
+      addLog(state, g.text);
+    } else if (rng.chance(FORAGE_CHANCE[node.kind] ?? 0.4)) {
       const found = rng.pick(FINDS[node.kind] ?? FINDS.peak);
-      const units = Math.min(found.units, PACK_CAP.food - state.pack.food);
+      const units = Math.min(found.units, packCap(state).food - state.pack.food);
       state.pack.food += units;
       if (found.rad) state.stats.rad = Math.min(100, state.stats.rad + found.rad);
       addLog(state, `${found.text} 먹을 것 ${units}개를 배낭에 넣었다.`);
@@ -342,6 +359,100 @@ const FINDS: Record<string, Find[]> = {
   ],
 };
 
+interface GearFind {
+  gear: GearKey;
+  text: string;
+}
+
+// 주워 쓰는 도구. 한 번 찾으면 끝까지 지닌다
+const GEAR_FINDS: Record<string, GearFind[]> = {
+  village: [
+    { gear: 'blanket', text: '안방 장롱에서 두꺼운 담요를 꺼냈다. 밤이 덜 무서워졌다.' },
+    { gear: 'bigPack', text: '창고에 등산용 큰 배낭이 걸려 있었다. 짐을 옮겨 담았다.' },
+  ],
+  shelter: [
+    { gear: 'blanket', text: '대피소 침상의 담요를 챙겼다. 밤이 덜 무서워졌다.' },
+    { gear: 'bigPack', text: '누군가 두고 간 큰 배낭. 주인은 돌아오지 않을 것이다.' },
+  ],
+  military: [
+    { gear: 'geiger', text: '벙커 선반에서 가이거 계수기를 찾았다. 켜자마자 딸깍거린다.' },
+    { gear: 'bigPack', text: '군용 배낭 하나. 크고 튼튼하다.' },
+  ],
+  temple: [{ gear: 'blanket', text: '요사채에 승려가 덮던 이불이 남아 있었다. 담요로 쓴다.' }],
+};
+
+export function gearList(state: GameState): string[] {
+  return (Object.keys(state.gear) as GearKey[]).filter((k) => state.gear[k]).map((k) => GEAR_LABEL[k]);
+}
+
+// ---------- 땔감과 불 ----------
+
+export function canGatherWood(state: GameState): boolean {
+  return WOOD_NODES.has(currentNode(state).kind) && state.pack.wood < packCap(state).wood;
+}
+
+// 땔감 모으기. 한 시간. 마을과 절은 널빤지와 장작이 있어 넉넉하다
+export function gatherWood(state: GameState): boolean {
+  if (state.over !== 'none' || !canGatherWood(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  if (!res.died) {
+    const rich = node.kind === 'village' || node.kind === 'temple' || node.kind === 'shelter';
+    const got = Math.min(rich ? rng.int(2, 3) : node.kind === 'peak' ? 1 : rng.int(1, 2), packCap(state).wood - state.pack.wood);
+    state.pack.wood += got;
+    addLog(state, rich ? `부서진 문짝과 장작을 쪼개 땔감 ${got}개를 챙겼다.` : `마른 가지를 주워 땔감 ${got}개를 챙겼다.`);
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+export function hasFire(state: GameState): boolean {
+  return state.fire !== null && state.fire.nodeId === state.nodeId;
+}
+
+// 비 오는 바깥에서는 불이 붙지 않는다
+export function rainBlocksFire(state: GameState): boolean {
+  return state.weather === 'rain' && !INDOOR.has(currentNode(state).kind);
+}
+
+export function canLightFire(state: GameState): boolean {
+  return !hasFire(state) && state.pack.wood > 0 && !rainBlocksFire(state);
+}
+
+// 불 피우기. 땔감 하나로 열 시간
+export function lightFire(state: GameState): boolean {
+  if (state.over !== 'none' || !canLightFire(state)) return false;
+  const node = currentNode(state);
+  state.pack.wood -= 1;
+  state.fire = { nodeId: node.id, hours: FIRE_HOURS };
+  addLog(state, '불을 피웠다. 손끝이 녹고 어둠이 조금 물러난다.');
+  afterAction(state);
+  return true;
+}
+
+export function canBoil(state: GameState): boolean {
+  return hasFire(state) && state.pack.dirty > 0;
+}
+
+// 끓여서 거르기. 불 위에서 한 시간. 오염된 물 두 통까지 깨끗해진다
+export function boil(state: GameState): boolean {
+  if (state.over !== 'none' || !canBoil(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  if (!res.died) {
+    const n = Math.min(2, state.pack.dirty);
+    state.pack.dirty -= n;
+    state.pack.water += n;
+    addLog(state, `물을 끓이고 천에 걸렀다. 깨끗한 물 ${n}통이 됐다.`);
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
 // ---------- 거점 ----------
 
 export function canCamp(state: GameState): boolean {
@@ -358,7 +469,7 @@ export function makeCamp(state: GameState): boolean {
   giveRng(state, rng);
   if (!res.died) {
     node.camp = true;
-    node.store = { water: 0, dirty: 0, food: 0 };
+    node.store = { water: 0, dirty: 0, food: 0, wood: 0 };
     addLog(state, `${node.name}에 거점을 세웠다. 창을 막고 잠자리를 만들고 저장고를 비웠다.`);
   }
   afterAction(state);
@@ -370,7 +481,7 @@ export function atCamp(state: GameState): boolean {
 }
 
 function storeTotal(s: Store): number {
-  return s.water + s.dirty + s.food;
+  return s.water + s.dirty + s.food + s.wood;
 }
 
 // 맡기기. 배낭을 모두 저장고로
@@ -381,8 +492,9 @@ export function deposit(state: GameState): boolean {
   node.store.water += state.pack.water;
   node.store.dirty += state.pack.dirty;
   node.store.food += state.pack.food;
-  state.pack = { water: 0, dirty: 0, food: 0 };
-  addLog(state, `저장고에 맡겼다. 물 ${node.store.water}, 오염수 ${node.store.dirty}, 먹을 것 ${node.store.food}.`);
+  node.store.wood += state.pack.wood;
+  state.pack = { water: 0, dirty: 0, food: 0, wood: 0 };
+  addLog(state, `저장고에 맡겼다. 물 ${node.store.water}, 오염수 ${node.store.dirty}, 먹을 것 ${node.store.food}, 땔감 ${node.store.wood}.`);
   return true;
 }
 
@@ -392,11 +504,13 @@ export function withdraw(state: GameState): boolean {
   if (state.over !== 'none' || !node.camp || !node.store) return false;
   const st = node.store;
   const p = state.pack;
+  const cap = packCap(state);
   let moved = 0;
-  while (p.water + p.dirty < PACK_CAP.water && st.water > 0) { st.water--; p.water++; moved++; }
-  while (p.water + p.dirty < PACK_CAP.water && st.dirty > 0) { st.dirty--; p.dirty++; moved++; }
-  while (p.food < PACK_CAP.food && st.food > 0) { st.food--; p.food++; moved++; }
+  while (p.water + p.dirty < cap.water && st.water > 0) { st.water--; p.water++; moved++; }
+  while (p.water + p.dirty < cap.water && st.dirty > 0) { st.dirty--; p.dirty++; moved++; }
+  while (p.food < cap.food && st.food > 0) { st.food--; p.food++; moved++; }
+  while (p.wood < cap.wood && st.wood > 0) { st.wood--; p.wood++; moved++; }
   if (moved === 0) return false;
-  addLog(state, `저장고에서 챙겼다. 배낭: 물 ${p.water}, 오염수 ${p.dirty}, 먹을 것 ${p.food}.`);
+  addLog(state, `저장고에서 챙겼다. 배낭: 물 ${p.water}, 오염수 ${p.dirty}, 먹을 것 ${p.food}, 땔감 ${p.wood}.`);
   return true;
 }

@@ -39,6 +39,8 @@ html, body, #app { margin: 0; height: 100%; overflow: hidden; }
 .hud .weather { color: var(--muted); padding-left: 10px; border-left: 1px solid var(--line); }
 .hud .pack { color: var(--ink); margin-right: auto; padding-left: 10px; border-left: 1px solid var(--line); }
 .hud .dirty { color: var(--warn); font-size: 11px; }
+.hud .fire { color: #f0a050; }
+.hud .geiger { color: #c9e06a; }
 .chip { padding: 3px 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
 .chip b { font-weight: 500; color: var(--muted); margin-right: 4px; }
 .chip.warn { border-color: var(--warn); color: var(--warn); }

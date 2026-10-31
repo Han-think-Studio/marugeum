@@ -160,6 +160,14 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     ctx.font = `${isCur ? 13 : 11}px "Noto Sans KR", "Malgun Gothic", sans-serif`;
     ctx.fillText(KIND_GLYPH[n.kind], x, y + 1);
 
+    // 불 표시
+    if (state.fire && state.fire.nodeId === n.id) {
+      ctx.beginPath();
+      ctx.arc(x - r - 6, y - r - 4, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#f0a050';
+      ctx.fill();
+    }
+
     // 거점 표시
     if (n.camp) {
       ctx.beginPath();

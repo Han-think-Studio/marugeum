@@ -54,18 +54,31 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickO
   else add(state, 'fatigue', -1.5);
 
   // 체온. 체감 6도 아래부터 식는다. 지붕 아래면 훨씬 덜하고, 웅크리고 자면 조금 덜하다
+  // 불 옆이면 거의 식지 않고 오히려 덥혀지고, 담요는 잘 때 추위를 절반으로 줄인다
+  const fire = act !== 'travel' && state.fire !== null && state.fire.nodeId === node.id;
   const env = envTemp(state, node);
   const chill = Math.max(0, 6 - env);
-  const cold = chill * (camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35);
+  let coldMul = camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35;
+  if (act === 'sleep' && state.gear.blanket) coldMul *= 0.5;
+  if (fire) coldMul *= 0.2;
+  const cold = chill * coldMul;
   if (cold > 0) add(state, 'temp', -cold);
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
   if (camp && act === 'sleep') add(state, 'temp', 2);
+  if (fire) add(state, 'temp', 3);
+  if (fire && state.fire) {
+    state.fire.hours -= 1;
+    if (state.fire.hours <= 0) {
+      state.fire = null;
+      addLog(state, '불이 꺼졌다.');
+    }
+  }
 
   // 피폭
   add(state, 'rad', radPerHour(state, node, indoor));
 
   // 정신
-  if (act === 'sleep') add(state, 'mind', camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5);
+  if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0));
   else if (act === 'rest') add(state, 'mind', 1);
   else if (night) add(state, 'mind', -1);
   const s = state.stats;
