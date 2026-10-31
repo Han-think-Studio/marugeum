@@ -6,6 +6,7 @@ import {
   isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
+import { drawScene } from './scene';
 import { storeText } from '../game/state';
 import { eventById, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
@@ -19,6 +20,8 @@ import { envTemp, weatherText } from '../game/weather';
 interface Refs {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
+  scene: HTMLCanvasElement;
+  sctx: CanvasRenderingContext2D;
   hud: HTMLElement;
   place: HTMLElement;
   log: HTMLElement;
@@ -45,6 +48,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       <header class="hud"></header>
       <canvas class="map"></canvas>
       <section class="panel">
+        <canvas class="scene"></canvas>
         <div class="place"></div>
         <div class="log"></div>
         <div class="actions"></div>
@@ -53,9 +57,12 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     </div>`;
 
   const canvas = root.querySelector<HTMLCanvasElement>('.map')!;
+  const scene = root.querySelector<HTMLCanvasElement>('.scene')!;
   const refs: Refs = {
     canvas,
     ctx: canvas.getContext('2d')!,
+    scene,
+    sctx: scene.getContext('2d')!,
     hud: root.querySelector('.hud')!,
     place: root.querySelector('.place')!,
     log: root.querySelector('.log')!,
@@ -66,6 +73,29 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   let view: View = makeView(1, 1);
   let hover: MapNode | null = null;
 
+  // 장면 그림판. 비·불·별이 있을 때만 느리게 움직인다
+  let sceneSize = { w: 1, h: 1 };
+  let animating = false;
+  const paintScene = () => {
+    drawScene(refs.sctx, state, sceneSize.w, sceneSize.h, performance.now(), paintScene);
+  };
+  const animate = () => {
+    const live = state.weather === 'rain' || state.fire !== null || state.hour >= 20 || state.hour < 5;
+    if (!live || state.over !== 'none') {
+      animating = false;
+      return;
+    }
+    paintScene();
+    window.setTimeout(() => requestAnimationFrame(animate), 110);
+  };
+  const kickScene = () => {
+    paintScene();
+    if (!animating) {
+      animating = true;
+      animate();
+    }
+  };
+
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -74,6 +104,12 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     refs.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     view = makeView(rect.width, rect.height);
     drawMap(refs.ctx, state, view, hover);
+    const sr = scene.getBoundingClientRect();
+    scene.width = Math.floor(sr.width * dpr);
+    scene.height = Math.floor(sr.height * dpr);
+    refs.sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sceneSize = { w: sr.width, h: sr.height };
+    paintScene();
   };
 
   // 행동 전후를 비교해 효과음을 고른다
@@ -104,6 +140,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     else cue();
     audio.apply(sceneTargets(state, state.over !== 'none'));
     drawMap(refs.ctx, state, view, hover);
+    kickScene();
     renderHud(refs, state);
     renderPanel(refs, state, () => render());
   };
@@ -187,7 +224,8 @@ function renderHud(refs: Refs, state: GameState): void {
     .map(([k, v]) => {
       const warn = k === 'rad' ? v >= 40 : v <= 35;
       const bad = k === 'rad' ? v >= 60 : v <= 15;
-      return `<span class="chip${bad ? ' bad' : warn ? ' warn' : ''}"><b>${STAT_LABEL[k]}</b> ${Math.round(v)}</span>`;
+      const fill = k === 'rad' ? v : v;
+      return `<span class="stat${bad ? ' bad' : warn ? ' warn' : ''}${k === 'rad' ? ' rad' : ''}" title="${STAT_LABEL[k]} ${Math.round(v)}"><b>${STAT_LABEL[k]}</b><i><i style="width:${Math.round(fill)}%"></i></i><small>${Math.round(v)}</small></span>`;
     })
     .join('');
   const cur = currentNode(state);
@@ -200,10 +238,18 @@ function renderHud(refs: Refs, state: GameState): void {
   refs.hud.innerHTML =
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
-    `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
-    `<span class="pack">물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted">(신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
+    `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>${chips}`;
+  // 배낭은 장소 줄 아래에
+  const packLine = refs.place.parentElement!.querySelector<HTMLElement>('.packline') ?? (() => {
+    const el = document.createElement('div');
+    el.className = 'packline';
+    refs.place.after(el);
+    return el;
+  })();
+  packLine.innerHTML =
+    `<span>배낭</span> 물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted"> (신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
     `${p.gasoline ? ` · 휘발유 ${p.gasoline}` : ''}${p.diesel ? ` · 경유 ${p.diesel}` : ''}${p.parts ? ` · 부품 ${p.parts}` : ''}` +
-    `${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}</span>${chips}`;
+    `${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}`;
 }
 
 function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
@@ -293,7 +339,7 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   const ev = state.event && eventById(state.event.id);
   if (!ev || !state.event) return;
   const box = document.createElement('div');
-  box.className = 'event';
+  box.className = 'event appear';
   if (state.event.result === null) {
     box.innerHTML = `<h3>${ev.title}</h3><p>${ev.text}</p>`;
     const list = document.createElement('div');

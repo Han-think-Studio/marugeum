@@ -1,4 +1,5 @@
-import { KIND_GLYPH, edgeKey, type GameState, type MapNode } from '../core/types';
+import { edgeKey, type GameState, type MapNode } from '../core/types';
+import { drawIcon } from './icons';
 import { neighbors } from '../game/state';
 import { isNight } from '../game/weather';
 import { STAGES } from './generate';
@@ -156,9 +157,7 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     ctx.strokeStyle = isCur || isNext ? '#111' : 'rgba(255,255,255,0.25)';
     ctx.stroke();
 
-    ctx.fillStyle = isCur || isNext ? '#111' : '#cfd3d9';
-    ctx.font = `${isCur ? 13 : 11}px "Noto Sans KR", "Malgun Gothic", sans-serif`;
-    ctx.fillText(KIND_GLYPH[n.kind], x, y + 1);
+    drawIcon(ctx, n.kind, x, y, r * 0.55, isCur || isNext ? '#111' : '#cfd3d9');
 
     // 불 표시
     if (state.fire && state.fire.nodeId === n.id) {
@@ -229,7 +228,7 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
 }
 
 // 0 낮 .. 1 깊은 밤
-function darkness(hour: number): number {
+export function darkness(hour: number): number {
   if (isNight(hour)) return hour >= 22 || hour < 4 ? 1 : 0.8;
   if (hour < 7) return 0.55;
   if (hour < 9) return 0.25;
@@ -238,7 +237,7 @@ function darkness(hour: number): number {
   return 0.6;
 }
 
-function mix(a: string, b: string, t: number): string {
+export function mix(a: string, b: string, t: number): string {
   const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
   const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
   const c = pa.map((v, i) => Math.round(v + (pb[i] - v) * t));
