@@ -265,3 +265,5 @@ html[data-hints="off"] .actions .meta { display: none; }
 .settings-overlay .keys { border-collapse: collapse; font-size: 13px; }
 .settings-overlay .keys td { padding: 4px 8px 4px 0; vertical-align: top; }
 .settings-overlay .keys .num { min-width: 36px; font-size: 11px; white-space: nowrap; }
+html[data-text="large"] .hud { gap: 6px; padding: 0 10px; }
+html[data-text="large"] .stat > i { width: 34px; }

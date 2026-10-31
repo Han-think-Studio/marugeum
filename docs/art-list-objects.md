@@ -52,6 +52,27 @@ Single object icon, centered, filling most of the frame, monochrome linocut wood
 | equip-bigPack.png | 큰 배낭 | A large expedition backpack with straps and a rolled mat |
 | equip-tent.png | 텐트 | A small pitched dome tent |
 
+## 2-2. 장비 아이콘 추가 (18단계, 10장) — `equip-<종류>.png`
+
+| 파일 | 장비 | 프롬프트 |
+|---|---|---|
+| equip-carrier.png | 지게 | A traditional Korean wooden A-frame carrier (jige) with a rope harness, standing upright, empty |
+| equip-rope.png | 밧줄 | A coil of thick climbing rope with a carabiner |
+| equip-flashlight.png | 손전등 | A rugged hand flashlight, switched on, with a short cone of light |
+| equip-mask.png | 방독면 | A military gas mask with round eyepieces and a filter canister |
+| equip-raincoat.png | 우비 | A hooded rain poncho hanging on a nail, dripping |
+| equip-knife.png | 칼 | A fixed blade field knife in a worn sheath, blade partly drawn |
+| equip-iodine.png | 요오드 | A small brown medicine bottle with a few white tablets beside it |
+| equip-medkit.png | 구급낭 | A canvas first aid pouch with a cross symbol, open, bandages inside |
+| equip-purifier.png | 정수 알약 | A blister strip of water purification tablets next to a canteen cup |
+| equip-matches.png | 방수 성냥 | A small sealed tin of waterproof matches, one match struck |
+
+## 1-2. 사물 아이콘 추가 (18단계, 1장) — `obj-<종류>.png`
+
+| 파일 | 사물 | 프롬프트 |
+|---|---|---|
+| obj-toolshed.png | 농기구 창고 | A small rural tool shed with a half open corrugated door, a hoe and a wooden carrier visible inside |
+
 ## 3. 보급품 아이콘 (8장) — `supply-<종류>.png`
 
 | 파일 | 보급품 | 프롬프트 |
@@ -76,6 +97,16 @@ Single object icon, centered, filling most of the frame, monochrome linocut wood
 | upgrade-roof.png | 지붕 수리 | A patched hut roof with a tarp tied down over the hole, wide 3:2 composition |
 | upgrade-hearth.png | 화덕 | A stone hearth built inside a hut with a pipe to the roof and a small fire, wide 3:2 composition |
 | upgrade-windbreak.png | 바람막이 | A low wall of stacked stones and branches sheltering a sleeping spot on a ridge, wide 3:2 composition |
+
+## 4-2. 거점 단계 (19단계, 3장) — `camp-<단계>.png`
+
+장면 왼쪽 위 '지은 것' 칸의 첫 자리에 거점 단계 그림이 들어간다. 크기 768×512 (3:2), 보강 카드와 같은 톤.
+
+| 파일 | 거점 | 프롬프트 |
+|---|---|---|
+| camp-tent.png | 텐트 거점 | A small dome tent pitched on a rocky ridge, corners weighed down with stones, a plastic sheet tucked between boulders beside it, wide 3:2 composition |
+| camp-cave.png | 바위굴 거점 | The mouth of a shallow rock cave with a bed of dry branches inside, a few supplies stacked in a hollow by the entrance, faint firelight, wide 3:2 composition |
+| camp-house.png | 집 거점 | The inside of an abandoned mountain hut turned into a shelter, boarded window, sleeping mat, a lantern and stacked cans on a shelf, wide 3:2 composition |
 
 ## 5. 이야기 그림 (16단계용, 나중에) — 지금은 뽑지 않아도 된다
 
