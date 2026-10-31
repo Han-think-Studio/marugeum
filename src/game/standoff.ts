@@ -2,6 +2,14 @@ import { Rng } from '../core/rng';
 import { STANDOFF_INFO, type GameState, type StandoffAction, type StandoffKind } from '../core/types';
 import { addLog } from './log';
 
+// 받침에 따라 조사를 고른다. 멧돼지가, 탈영병이
+function josa(word: string, pair: '이/가' | '은/는' | '을/를'): string {
+  const code = word.charCodeAt(word.length - 1);
+  const hasFinal = code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : false;
+  const [a, b] = pair.split('/');
+  return word + (hasFinal ? a : b);
+}
+
 // 대치 시작
 export function startStandoff(state: GameState, kind: StandoffKind): void {
   const info = STANDOFF_INFO[kind];
@@ -68,6 +76,8 @@ export function standoffAct(state: GameState, rng: Rng, action: StandoffAction):
   if (!s || s.done) return false;
   const info = STANDOFF_INFO[s.kind];
   const name = info.name;
+  const nameGa = josa(name, '이/가');
+  const nameEun = josa(name, '은/는');
   const p = standoffOdds(state, action);
   const ok = rng.chance(p);
   const say = (text: string) => s.log.push(text);
@@ -79,7 +89,7 @@ export function standoffAct(state: GameState, rng: Rng, action: StandoffAction):
     } else {
       s.threat += 10;
       s.distance = Math.max(0, s.distance - 1) as 0 | 1 | 2;
-      say(s.kind === 'deserter' ? '"닥쳐." 총구가 이마로 올라왔다.' : `${name}은 물러서지 않았다. 오히려 다가온다.`);
+      say(s.kind === 'deserter' ? '"닥쳐." 총구가 이마로 올라왔다.' : `${nameEun} 물러서지 않았다. 오히려 다가온다.`);
     }
   } else if (action === 'retreat') {
     if (ok) {
@@ -88,11 +98,11 @@ export function standoffAct(state: GameState, rng: Rng, action: StandoffAction):
       say('눈을 떼지 않고 천천히 뒤로 물러섰다.');
       if (s.distance === 2 && s.threat < 45) {
         s.done = 'escaped';
-        say(`거리가 벌어졌다. ${name}은 쫓아오지 않았다.`);
+        say(`거리가 벌어졌다. ${nameEun} 쫓아오지 않았다.`);
       }
     } else {
       s.threat += 5;
-      say(s.kind === 'deserter' ? '"움직이지 마." 발을 떼자 그가 따라왔다.' : `등을 보이자 ${name}이 따라붙었다.`);
+      say(s.kind === 'deserter' ? '"움직이지 마." 발을 떼자 그가 따라왔다.' : `등을 보이자 ${nameGa} 따라붙었다.`);
       s.distance = Math.max(0, s.distance - 1) as 0 | 1 | 2;
     }
   } else if (action === 'throw') {
@@ -137,7 +147,7 @@ export function standoffAct(state: GameState, rng: Rng, action: StandoffAction):
   if (!s.done) {
     if (s.threat <= 0) {
       s.done = s.hits >= 2 && s.kind === 'boar' ? 'killed' : 'driven';
-      say(s.done === 'killed' ? '멧돼지가 쓰러졌다. 한참 뒤에야 다가갔다. 오늘은 먹는다.' : s.kind === 'deserter' ? '그는 총을 주워 들고 뒷걸음질로 어둠 속에 사라졌다.' : `${name}이 돌아서 사라졌다.`);
+      say(s.done === 'killed' ? '멧돼지가 쓰러졌다. 한참 뒤에야 다가갔다. 오늘은 먹는다.' : s.kind === 'deserter' ? '그는 총을 주워 들고 뒷걸음질로 어둠 속에 사라졌다.' : `${nameGa} 돌아서 사라졌다.`);
     } else if (s.round >= 5) {
       if (s.kind === 'dogs') {
         s.done = 'fled';
@@ -155,13 +165,13 @@ export function standoffAct(state: GameState, rng: Rng, action: StandoffAction):
       state.stats.hp = Math.max(0, state.stats.hp - info.charge);
       s.distance = 0;
       s.cool = 2;
-      say(s.kind === 'deserter' ? '그가 다가와 총구로 가슴을 밀었다.' : `${name}이 달려들었다. 넘어지며 겨우 피했지만 다쳤다.`);
+      say(s.kind === 'deserter' ? '그가 다가와 총구로 가슴을 밀었다.' : `${nameGa} 달려들었다. 넘어지며 겨우 피했지만 다쳤다.`);
     } else if (s.threat >= 40) {
       s.distance = Math.max(0, s.distance - 1) as 0 | 1 | 2;
-      say(s.kind === 'deserter' ? '그가 한 걸음 다가왔다.' : `${name}이 한 걸음 다가온다.`);
+      say(s.kind === 'deserter' ? '그가 한 걸음 다가왔다.' : `${nameGa} 한 걸음 다가온다.`);
     } else {
       s.distance = Math.min(2, s.distance + 1) as 0 | 1 | 2;
-      say(s.kind === 'deserter' ? '그가 한 걸음 물러섰다.' : `${name}이 한 걸음 물러난다.`);
+      say(s.kind === 'deserter' ? '그가 한 걸음 물러섰다.' : `${nameGa} 한 걸음 물러난다.`);
     }
   }
   if (state.stats.hp <= 0 && !s.done) {
