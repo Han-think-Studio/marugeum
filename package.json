@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "check:events": "node tools/check-events.cjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.12.4",

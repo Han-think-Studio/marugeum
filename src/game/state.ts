@@ -6,7 +6,7 @@ import {
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
-import { passHours, warnings } from './survival';
+import { passHours, radPerHour, warnings } from './survival';
 import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
 
 export { clueCount } from './events';
@@ -35,6 +35,8 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     weather: 'clear',
     wind: 'calm',
     weatherLeft: 6,
+    nextWeather: 'clear',
+    nextWind: 'calm',
     pack: { ...emptySupplies(), water: 1, food: 1 },
     freshDay: 0,
     equip: [],
@@ -563,6 +565,28 @@ export function standoffClose(state: GameState): boolean {
 }
 
 export { standoffOdds, canThrow } from './standoff';
+
+// ---------- 경로 위험 ----------
+
+export type Risk = 'low' | 'mid' | 'high';
+
+// 이 길로 가면 얼마나 위험한가. 피폭과 추위와 밤을 합쳐 본다
+export function routeRisk(state: GameState, to: MapNode): { level: Risk; why: string[] } {
+  const why: string[] = [];
+  let score = 0;
+  const hours = travelHours(state, currentNode(state), to);
+  const midway: MapNode = { ...to, alt: (currentNode(state).alt + to.alt) / 2 };
+  const rad = radPerHour(state, midway, false) * hours;
+  if (rad >= 12) { score += 2; why.push('피폭 큼'); } else if (rad >= 5) { score += 1; why.push('피폭'); }
+  if (state.weather === 'rain') { score += 1; why.push('비'); }
+  if (state.wind !== 'calm' && to.side === state.wind) { score += 1; why.push('바람받이'); }
+  const endHour = (state.hour + hours) % 24;
+  if (isNight(state.hour) || endHour >= 20 || endHour < 5) { score += 1; why.push('밤에 닿음'); }
+  if (state.stats.fatigue < 30 || state.stats.thirst < 25) { score += 1; why.push('몸이 안 됨'); }
+  if (to.alt < 0.35) { score += 1; why.push('낮은 땅'); }
+  const level: Risk = score >= 3 ? 'high' : score >= 1 ? 'mid' : 'low';
+  return { level, why };
+}
 
 // ---------- 사진 ----------
 

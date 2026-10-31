@@ -4,7 +4,7 @@ import {
   WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
-  canThrow, standoffClose, standoffMove, standoffOdds, weightPenalty,
+  canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
@@ -13,11 +13,11 @@ import { storeText } from '../game/state';
 import { eventById, fillName, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
-import { showJournal, showMenu } from './screens';
+import { showJournal, showLog, showMenu } from './screens';
 import { audio } from '../audio/engine';
 import { sceneTargets } from '../audio/scene';
 import { radPerHour } from '../game/survival';
-import { envTemp, weatherText } from '../game/weather';
+import { daylightLeft, envTemp, forecastText, weatherText } from '../game/weather';
 
 interface Refs {
   canvas: HTMLCanvasElement;
@@ -197,6 +197,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (root.querySelector('.overlay')) return;
     if (e.key === 'Escape') { openMenu(); return; }
     if (e.key.toLowerCase() === 'j') { showJournal(root, loadJournal(), () => undefined); return; }
+    if (e.key.toLowerCase() === 'l') { showLog(root, state.log, () => undefined); return; }
     if (state.over !== 'none') {
       if (e.key === '1' || e.key === 'Enter') location.href = location.pathname + '?new=1';
       return;
@@ -269,7 +270,8 @@ function renderHud(refs: Refs, state: GameState): void {
   refs.hud.innerHTML =
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><button class="view-btn" title="장면/지도 (V)">${state.view === 'map' ? '장면' : '지도'}</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
-    `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>${chips}`;
+    `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
+    `<span class="forecast" title="하늘을 읽은 예보">${daylightLeft(state.hour) > 0 ? `해 ${daylightLeft(state.hour)}시간` : '밤'} · ${forecastText(state)}</span>${chips}`;
   // 배낭은 장소 줄 아래에
   const packLine = refs.place.parentElement!.querySelector<HTMLElement>('.packline') ?? (() => {
     const el = document.createElement('div');
@@ -297,6 +299,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     .map((t, i, arr) => `<p class="${i === arr.length - 1 ? 'latest' : ''}">${t}</p>`)
     .join('');
   refs.log.scrollTop = refs.log.scrollHeight;
+  refs.log.title = '클릭하거나 L 키로 전체 기록';
+  refs.log.onclick = () => showLog(refs.hud.closest('#app') as HTMLElement, state.log, () => undefined);
 
   refs.actions.innerHTML = '';
   refs.choices.innerHTML = '';
@@ -371,11 +375,13 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const dir = n.stage < cur.stage ? '남쪽으로' : n.alt > cur.alt + 0.1 ? '오르막' : n.alt < cur.alt - 0.1 ? '내리막' : '능선길';
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
     const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
+    const rk = routeRisk(state, n);
+    const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>`;
     const info = n.visited
       ? ` · 사물 ${visibleObjects(n).filter((o) => !o.used).length}${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}${n.cave ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
     btn.className = n.stage < cur.stage ? 'back' : '';
-    btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span>`;
+    btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span><span class="meta">${riskTxt}</span>`;
     btn.addEventListener('click', () => {
       if (travelTo(state, n.id)) rerender();
     });

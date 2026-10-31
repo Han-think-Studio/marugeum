@@ -18,7 +18,7 @@ function add(state: GameState, key: StatKey, delta: number): void {
 
 // 날이 갈수록 바다에서 오는 비가 더러워진다. 오래 머물 수 없게 만드는 시계
 export function falloutFactor(state: GameState): number {
-  return 1 + (state.day - 1) * 0.03;
+  return 1 + (state.day - 1) * 0.035;
 }
 
 // 시간당 피폭량. 낮은 땅, 비, 바다 쪽 바람이 겹치면 급격히 오른다
@@ -172,10 +172,10 @@ export function passHours(state: GameState, rng: Rng, node: MapNode, hours: numb
 
 function deathCause(state: GameState): string {
   const s = state.stats;
-  if (s.thirst <= 0) return `${state.day}일째, 물을 찾지 못한 채 쓰러졌다.`;
-  if (s.temp < 20) return `${state.day}일째, 능선의 추위 속에서 잠들었다.`;
-  if (s.rad >= 60) return `${state.day}일째, 피폭이 몸을 무너뜨렸다.`;
-  if (s.hunger <= 0) return `${state.day}일째, 굶주림 끝에 걸음을 멈췄다.`;
+  if (s.thirst <= 0) return `${state.day}일째, 물을 찾지 못한 채 쓰러졌다. 사진은 주머니에 있었다.`;
+  if (s.temp < 20) return `${state.day}일째, 능선의 추위 속에서 잠들었다. 사진은 가슴에 있었다.`;
+  if (s.rad >= 60) return `${state.day}일째, 피폭이 몸을 무너뜨렸다. 사진은 끝까지 쥐고 있었다.`;
+  if (s.hunger <= 0) return `${state.day}일째, 굶주림 끝에 걸음을 멈췄다. 사진은 배낭 맨 위에 있었다.`;
   return `${state.day}일째, 산에서 죽었다.`;
 }
 

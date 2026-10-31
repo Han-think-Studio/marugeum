@@ -428,6 +428,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'minjuji_samdobong',
     trigger: 'arrive',
+    priority: true,
     title: '삼도봉',
     text: '세 도가 만나는 봉우리. 기념탑 아래 돌무더기에 쪽지들이 눌려 있다. 수십 장. 이름과 날짜, 어디로 간다는 말. 누군가를 찾는다는 말.',
     once: true,
@@ -456,6 +457,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'songni_buddha',
     trigger: 'arrive',
+    priority: true,
     title: '미륵대불',
     text: '속리산 법주사. 서른 미터 금동 미륵불이 흐린 하늘 아래 서 있다. 발치에 타다 남은 모닥불 자리와 비닐 천막들. 사람들이 여기 모였다가 흩어졌다.',
     once: true,
@@ -491,6 +493,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'taebaek_mine',
     trigger: 'arrive',
+    priority: true,
     title: '폐광',
     text: '태백. 산비탈에 막장 입구가 입을 벌리고 있다. 안쪽에서 희미한 불빛과 사람 소리. 피난민들이 갱도에 들어가 있다. 바위 수십 미터 아래라면 비는 닿지 않는다.',
     once: true,
@@ -508,6 +511,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'taebaek_stay',
     trigger: 'arrive',
+    priority: true,
     title: '남을 것인가',
     text: '폐광 사람들이 다시 자리를 내준다. 할머니가 말한다. "북쪽은 멀어. 여기는 비도 안 들어오고 사람도 있어. 남아도 돼." 갱도 안은 따뜻하고 조용하다. 사진 속 두 사람은 사흘 먼저 북쪽으로 갔다.',
     once: true,
@@ -521,6 +525,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'hambaek_manhangjae',
     trigger: 'arrive',
+    priority: true,
     title: '만항재',
     text: '함백산 만항재. 포장도로가 넘는 가장 높은 고개. 군용 트럭 다섯 대가 길을 막은 채 서 있다. 짐칸의 천막이 바람에 펄럭이고, 운전석에는 아무도 없다.',
     once: true,
@@ -566,6 +571,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'seorak_checkpoint',
     trigger: 'arrive',
+    priority: true,
     title: '살아 있는 검문소',
     text: '설악산 아래 고개. 처음으로 사람이 지키는 검문소를 만났다. 방독면을 쓴 군인 둘이 계수기를 들고 다가온다. "향로봉 가십니까? 측정하겠습니다."',
     once: true,
@@ -585,6 +591,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'survivor_return',
     trigger: 'arrive',
+    priority: true,
     title: '정우',
     text: '지붕 아래 누군가 먼저 불을 피워 두었다. 돌아보는 얼굴이 낯익다. 대피소에서 먹을 것을 나눴던 남자, 정우다. "또 만나네요. 살아 계셨군요."',
     once: true,
@@ -768,6 +775,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'clue_jiri',
     trigger: 'arrive',
+    priority: true,
     title: '임시 정류장',
     text: '고갯마루에 임시 정류장 표지가 서 있다. 종이에 손으로 쓴 시간표. "향로봉행 1차 07:00, 2차 09:30." 2차 옆에 "만석"이라고 적혀 있고 그 아래 사람들의 이름이 빼곡하다.',
     once: true,
@@ -781,6 +789,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'clue_deogyu',
     trigger: 'arrive',
+    priority: true,
     title: '휴게소 벽',
     text: '덕유산 고개 휴게소. 버스 행렬이 쉬어 간 자리다. 바닥에 빈 도시락과 기저귀. 벽에는 아이들이 크레파스로 그린 그림이 붙어 있다. 어른들이 아이들을 달래려고 그리게 한 것이다.',
     once: true,
@@ -794,6 +803,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'clue_sobaek',
     trigger: 'arrive',
+    priority: true,
     title: '멈춘 버스',
     text: '죽령 옛길 중턱에 버스 한 대가 비스듬히 서 있다. "향로봉 2차"라고 유리창에 적혀 있다. 바퀴 하나가 빠졌다. 사람들은 여기서부터 걸었다.',
     once: true,
@@ -810,6 +820,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'monk_letter',
     trigger: 'arrive',
+    priority: true,
     title: '편지',
     text: '월정사 요사채에 젊은 승려가 남아 있다. 남쪽에서 왔다고 하자 그는 봉투를 꺼냈다. "지리산 노스님께서 능선으로 오는 사람 편에 보내셨습니다. 남쪽에서 오는 이에게 읽어 주라고."',
     once: true,
@@ -817,13 +828,14 @@ export const EVENTS: EventDef[] = [
     when: { stages: [9, 10], kinds: ['temple'] },
     choices: [
       { text: '편지를 듣는다', outcomes: [
-        { chance: 1, text: '"오는 사람은 다 이 길로 온다. 그러니 먼저 간 사람도 이 길로 갔다. 열 있는 아이와 어머니를 사흘 재웠다. 헬기가 와서 둘을 먼저 태웠다. 향로봉으로." 승려는 편지를 접어 내게 주었다. 노스님 글씨 아래 다른 글씨로 "고맙습니다. 수연"이라고 적혀 있었다.', effects: { mind: 14, clue: 'odae', flag: 'monk_letter' } },
+        { text: '"오는 사람은 다 이 길로 온다. 그러니 먼저 간 사람도 이 길로 갔다. 열 있는 아이와 어머니를 사흘 재웠다. 헬기가 와서 둘을 먼저 태웠다. 향로봉으로." 승려는 편지를 접어 내게 주었다. 노스님 글씨 아래 다른 글씨로 "고맙습니다. 수연"이라고 적혀 있었다.', effects: { mind: 14, clue: 'odae', flag: 'monk_letter' } },
       ] },
     ],
   },
   {
     id: 'family_again',
     trigger: 'arrive',
+    priority: true,
     title: '그 가족',
     text: '지붕 아래 세 사람. 헛간에서 만났던 피난민 가족이다. 아이가 먼저 나를 알아봤다. 남자가 일어서며 말했다. "그때 그 봉지 덕에 여기까지 왔어요."',
     once: true,
@@ -837,6 +849,7 @@ export const EVENTS: EventDef[] = [
   {
     id: 'deserter_again',
     trigger: 'arrive',
+    priority: true,
     title: '아는 얼굴',
     text: '검문소 옆 천막에서 군인 하나가 삽질을 하고 있다. 총은 없다. 고개를 든 얼굴이 낯익다. 벙커에서 총을 겨눴던 탈영병이다. 그가 먼저 눈을 피했다.',
     once: true,
@@ -871,7 +884,7 @@ export const EVENTS: EventDef[] = [
     when: { kinds: ['goal'], minRad: 60 },
     choices: [
       { text: '격리동으로 간다', outcomes: [
-        { chance: 1, text: '침대에 눕자 간호병이 이름을 물었다. 사흘 뒤 유리창 밖에 두 사람이 서 있었다. 수연이 하율을 안아 올렸다. 하율이 유리에 손바닥을 댔다. 나도 댔다. 유리는 차가웠지만 그 너머는 따뜻할 것이다. 시간이 걸릴 뿐이다.', effects: { ending: 'quarantine' } },
+        { text: '침대에 눕자 간호병이 이름을 물었다. 사흘 뒤 유리창 밖에 두 사람이 서 있었다. 수연이 하율을 안아 올렸다. 하율이 유리에 손바닥을 댔다. 나도 댔다. 유리는 차가웠지만 그 너머는 따뜻할 것이다. 시간이 걸릴 뿐이다.', effects: { ending: 'quarantine' } },
       ] },
     ],
   },

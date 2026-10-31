@@ -93,6 +93,8 @@ export function lessons(j: Journal): string[] {
   if ((d['추위'] ?? 0) >= 1) out.push('능선에서 노숙하지 않는다. 지붕이 없으면 불이라도 피운다. 담요는 밤을 반으로 줄인다.');
   if ((d['피폭'] ?? 0) >= 1) out.push('비 오는 날은 걷지 않는다. 바람이 오는 쪽 사면은 피하고, 낮은 땅에 오래 있지 않는다.');
   if ((d['굶주림'] ?? 0) >= 1) out.push('마을과 절과 군 시설에 먹을 것이 많다. 계곡의 물고기는 사흘마다 돌아온다.');
+  if (j.runs.some((r) => r.ending === 'names')) out.push('두 사람의 흔적은 능선 길에 있다. 정류장, 휴게소, 삼도봉, 법주사, 죽령의 버스, 폐광, 만항재, 월정사, 검문소. 다섯은 찾아야 한다.');
+  if (j.runs.some((r) => r.ending === 'quarantine')) out.push('피폭 60을 넘기면 유리창 너머다. 비를 피하고 바람받이를 돌아가라.');
   if (j.runs.some((r) => r.over === 'won')) out.push('향로봉까지 갈 수 있다. 한 번 갔으니 또 갈 수 있다.');
   if (out.length === 0) out.push('아직 배운 것이 없다. 산이 가르칠 것이다.');
   return out;

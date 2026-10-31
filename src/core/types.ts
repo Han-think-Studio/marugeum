@@ -196,6 +196,8 @@ export interface GameState {
   weather: Weather;
   wind: Wind;
   weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
+  nextWeather: Weather; // 다음 날씨. 미리 정해 두어 예보가 가능하다
+  nextWind: Wind;
   pack: Supplies; // 배낭
   freshDay: number; // 배낭 신선식 중 가장 오래된 것을 넣은 날
   equip: Equip[]; // 지닌 장비
@@ -244,6 +246,8 @@ export interface When {
   gear?: GearKey;
   noGear?: GearKey;
   facility?: EquipKind; // 지금 자리 거점에서 이 시설이 돌아가고 있어야 (전기 포함)
+  noFacility?: EquipKind; // 이 시설이 돌아가고 있지 않아야
+  noUpgrade?: UpgradeId; // 이 보강이 없어야
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
   minClues?: number; // 가족 단서를 이만큼 모았어야
@@ -296,6 +300,7 @@ export interface EventDef {
   text: string;
   weight?: number; // 기본 1
   once?: boolean;
+  priority?: boolean; // 처음 온 곳에서 조건이 맞으면 확률 없이 반드시 나온다. 가족의 흔적처럼 놓치면 안 되는 것
   when?: When;
   choices: Choice[];
 }

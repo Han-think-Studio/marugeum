@@ -21,8 +21,11 @@ function pickWeighted<T>(rng: Rng, table: [T, number][]): T {
 export function rollWeather(state: GameState, rng: Rng, silent = false): void {
   const before = state.weather;
   const windBefore = state.wind;
-  state.weather = pickWeighted(rng, NEXT[state.weather]);
-  state.wind = pickWeighted<Wind>(rng, [['calm', 0.3], ['E', 0.35], ['W', 0.35]]);
+  // 미리 정해 둔 다음 날씨가 지금이 되고, 그다음을 새로 정한다. 그래서 예보가 가능하다
+  state.weather = state.nextWeather ?? pickWeighted(rng, NEXT[state.weather]);
+  state.wind = state.nextWind ?? pickWeighted<Wind>(rng, [['calm', 0.3], ['E', 0.35], ['W', 0.35]]);
+  state.nextWeather = pickWeighted(rng, NEXT[state.weather]);
+  state.nextWind = pickWeighted<Wind>(rng, [['calm', 0.3], ['E', 0.35], ['W', 0.35]]);
   state.weatherLeft = rng.int(4, 10);
   if (silent) return;
   if (state.weather !== before) {
@@ -72,4 +75,21 @@ export function envTemp(state: GameState, node: { alt: number; stage: number }):
 
 export function weatherText(state: GameState): string {
   return `${WEATHER_LABEL[state.weather]} · ${WIND_LABEL[state.wind]}`;
+}
+
+// 예보 문장. 하늘을 읽는 것이라 대략적이다
+export function forecastText(state: GameState): string {
+  const h = state.weatherLeft;
+  const when = h <= 2 ? '곧' : `${h}시간쯤 뒤`;
+  if (state.nextWeather === state.weather && state.nextWind === state.wind) return `${when}까지 그대로`;
+  const w = state.nextWeather !== state.weather ? WEATHER_LABEL[state.nextWeather] : '';
+  const wd = state.nextWind !== state.wind ? WIND_LABEL[state.nextWind] : '';
+  return `${when} ${[w, wd].filter(Boolean).join(' · ')}`;
+}
+
+// 해가 떠 있는 시간. 6시부터 19시까지
+export function daylightLeft(hour: number): number {
+  if (hour < 6) return 0;
+  if (hour >= 19) return 0;
+  return 19 - hour;
 }

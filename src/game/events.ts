@@ -5,8 +5,11 @@ import {
 import { canCarry, hasEquip } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
 import { startStandoff } from './standoff';
-import { EVENTS } from '../data/events';
+import { EVENTS as EVENTS1 } from '../data/events';
+import { MORE_EVENTS } from '../data/events-more';
 import { OBJECT_EVENTS } from '../data/objects';
+
+const EVENTS: EventDef[] = [...EVENTS1, ...MORE_EVENTS];
 import { addLog } from './log';
 import { passHours } from './survival';
 import { isNight } from './weather';
@@ -40,6 +43,8 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.gear && !hasEquip(state, when.gear)) return false;
   if (when.noGear && hasEquip(state, when.noGear)) return false;
   if (when.facility && !facilityRunning(node, when.facility)) return false;
+  if (when.noFacility && facilityRunning(node, when.noFacility)) return false;
+  if (when.noUpgrade && node.upgrades.includes(when.noUpgrade)) return false;
   if (when.phase && state.phase !== when.phase) return false;
   const clues = clueCount(state);
   if (when.minClues !== undefined && clues < when.minClues) return false;
@@ -94,8 +99,17 @@ export function fillName(text: string, state: GameState, node: MapNode): string 
 // 도착 이벤트. 처음 온 곳이면 자주, 다시 온 곳이면 가끔
 export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: boolean): boolean {
   if (state.over !== 'none' || state.event) return false;
+  const list = pool(state, node, 'arrive');
+  // 놓치면 안 되는 이야기는 처음 온 곳이면 반드시
+  if (first) {
+    const must = list.filter((e) => e.priority);
+    if (must.length > 0) {
+      open(state, must[0]);
+      return true;
+    }
+  }
   if (!rng.chance(first ? ARRIVE_FIRST : ARRIVE_AGAIN)) return false;
-  const ev = pickWeighted(rng, pool(state, node, 'arrive'));
+  const ev = pickWeighted(rng, list);
   if (!ev) return false;
   open(state, ev);
   return true;
@@ -125,6 +139,7 @@ export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   const lit = facilityRunning(node, 'lamp');
   const radio = facilityRunning(node, 'radio');
   let chance = INDOOR.has(node.kind) ? NIGHT_INDOOR : NIGHT_OUTDOOR;
+  if (node.kind === 'start' && state.phase === 'base') chance = 0.4; // 거점기의 밤은 일이 많다
   if (lit) chance *= 0.3;
   if (radio) chance = Math.max(chance, 0.5);
   if (!rng.chance(chance)) return false;

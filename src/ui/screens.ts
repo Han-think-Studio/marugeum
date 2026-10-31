@@ -152,3 +152,31 @@ export function showMenu(root: HTMLElement, o: MenuOpts): HTMLElement {
   root.appendChild(el);
   return el;
 }
+
+// 전체 로그. 아래 패널에는 몇 줄만 보이니 따로 연다
+export function showLog(root: HTMLElement, lines: string[], onClose: () => void): HTMLElement {
+  const el = document.createElement('div');
+  el.className = 'overlay book';
+  el.innerHTML = `
+    <div class="card wide">
+      <div class="head"><h2>지나온 기록</h2><button class="close"><span class="num">Esc</span> 닫기</button></div>
+      <div class="loglist">${lines.map((l) => `<p>${l}</p>`).join('')}</div>
+    </div>`;
+  const close = () => {
+    el.remove();
+    window.removeEventListener('keydown', key, true);
+    onClose();
+  };
+  const key = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'l') {
+      e.stopPropagation();
+      close();
+    }
+  };
+  el.querySelector('.close')!.addEventListener('click', close);
+  window.addEventListener('keydown', key, true);
+  root.appendChild(el);
+  const list = el.querySelector('.loglist') as HTMLElement;
+  list.scrollTop = list.scrollHeight;
+  return el;
+}
