@@ -133,22 +133,20 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
       const dh = ih * s;
       ctx.drawImage(art.img, (w - dw) / 2, (h - dh) / 2, dw, dh);
     } else {
-      // 정사각형 그림은 가운데 두고 양옆은 코드가 그린 배경으로 잇는다
-      foreground(ctx, node.kind, w, h, rnd, dark);
+      // 정사각형 그림은 같은 그림을 흐리게 늘려 바닥에 깔고, 가운데에 선명하게 둔다
+      const iw = art.img.naturalWidth;
+      const ih = art.img.naturalHeight;
+      const s = Math.max(w / iw, h / ih) * 1.08;
+      ctx.save();
+      ctx.filter = 'blur(14px) brightness(0.55)';
+      ctx.drawImage(art.img, (w - iw * s) / 2, (h - ih * s) / 2, iw * s, ih * s);
+      ctx.restore();
       const dw = h;
       const x0 = (w - dw) / 2;
       ctx.drawImage(art.img, x0, 0, dw, h);
-      const fadeW = Math.min(80, dw * 0.12);
-      const bgL = ctx.createLinearGradient(x0, 0, x0 + fadeW, 0);
-      bgL.addColorStop(0, 'rgba(12, 19, 32, 0.9)');
-      bgL.addColorStop(1, 'rgba(12, 19, 32, 0)');
-      ctx.fillStyle = bgL;
-      ctx.fillRect(x0, 0, fadeW, h);
-      const bgR = ctx.createLinearGradient(x0 + dw - fadeW, 0, x0 + dw, 0);
-      bgR.addColorStop(0, 'rgba(12, 19, 32, 0)');
-      bgR.addColorStop(1, 'rgba(12, 19, 32, 0.9)');
-      ctx.fillStyle = bgR;
-      ctx.fillRect(x0 + dw - fadeW, 0, fadeW, h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x0 + 1, 1, dw - 2, h - 2);
     }
     // 그림은 낮 기준이라 시간과 날씨만큼 어둡게 물들인다
     const tint = dark * 0.62 + (state.weather === 'rain' ? 0.18 : state.weather === 'cloud' ? 0.1 : 0);
@@ -351,6 +349,24 @@ function foreground(ctx: CanvasRenderingContext2D, kind: NodeKind, w: number, h:
 
 // ---------- 사물 표식 ----------
 
+// public/art/obj-<종류>.webp 가 있으면 표식 안에 그 아이콘이 들어간다
+const objIcons: Record<string, HTMLImageElement | null> = {};
+function objIcon(kind: string, onload: () => void): HTMLImageElement | null {
+  if (kind in objIcons) return objIcons[kind];
+  objIcons[kind] = null;
+  const tryLoad = (ext: 'webp' | 'png') => {
+    const img = new Image();
+    img.onload = () => {
+      objIcons[kind] = img;
+      onload();
+    };
+    img.onerror = () => { if (ext === 'webp') tryLoad('png'); };
+    img.src = `./art/obj-${kind}.${ext}`;
+  };
+  tryLoad('webp');
+  return null;
+}
+
 function objectPos(o: SceneObject, w: number, h: number): [number, number] {
   return [o.x * w, o.y * h];
 }
@@ -370,13 +386,14 @@ export function hitObject(node: MapNode, w: number, h: number, px: number, py: n
 }
 
 // 사물 표식. 안 쓴 것은 숨 쉬듯 커졌다 작아지고, 다 쓴 것은 흐리다
-export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: number, h: number, t: number, hover: SceneObject | null): void {
+export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: number, h: number, t: number, hover: SceneObject | null, onIcon: () => void = () => undefined): void {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const o of visibleObjects(node)) {
     const [x, y] = objectPos(o, w, h);
     const pulse = o.used ? 0 : 0.5 + 0.5 * Math.sin(t * 0.004 + o.id);
-    const r = o.used ? 6 : 8 + pulse * 2;
+    const icon = objIcon(o.kind, onIcon);
+    const r = icon ? (o.used ? 16 : 22 + pulse * 2) : o.used ? 6 : 8 + pulse * 2;
     const isHover = hover !== null && hover.id === o.id;
     if (!o.used) {
       ctx.beginPath();
@@ -385,13 +402,33 @@ export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: num
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = o.used ? 'rgba(160, 160, 160, 0.45)' : isHover ? '#ffe3a3' : '#f2c76a';
-    ctx.fill();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-    ctx.stroke();
+    if (icon) {
+      // 아이콘을 동그랗게 잘라 넣는다
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(icon, x - r, y - r, r * 2, r * 2);
+      if (o.used) {
+        ctx.fillStyle = 'rgba(20, 24, 30, 0.6)';
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.lineWidth = isHover ? 3 : 2;
+      ctx.strokeStyle = isHover ? '#ffe3a3' : o.used ? 'rgba(160,160,160,0.6)' : '#f2c76a';
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = o.used ? 'rgba(160, 160, 160, 0.45)' : isHover ? '#ffe3a3' : '#f2c76a';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.stroke();
+    }
     if (isHover || !o.used) {
       const label = objectLabel(o) + (o.used ? ' · 다 봤다' : '');
       ctx.font = `${isHover ? 13 : 12}px "Noto Sans KR", "Malgun Gothic", sans-serif`;

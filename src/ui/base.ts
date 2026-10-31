@@ -28,7 +28,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     };
     const rows = SUPPLY_KEYS.map((k) => `
       <tr>
-        <td class="k">${SUPPLY_LABEL[k]}</td>
+        <td class="k"><img class="sicon" src="./art/supply-${k}.webp" alt="" onerror="this.remove()">${SUPPLY_LABEL[k]}</td>
         <td class="n">${st[k]}</td>
         <td class="btns"><button data-mv="toPack" data-k="${k}" ${st[k] <= 0 ? 'disabled' : ''}>◀ 챙기기</button><button data-mv="toBase" data-k="${k}" ${p[k] <= 0 ? 'disabled' : ''}>맡기기 ▶</button></td>
         <td class="n">${p[k]} <span class="muted">${capOf(k)}</span></td>
@@ -61,6 +61,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
       const info = EQUIP_INFO[e.kind as keyof typeof EQUIP_INFO];
       const canTake = where === 'base' ? canCarry(state, e.kind as never) : true;
       return `<li class="${e.broken ? 'broken' : ''}">
+        <span class="icon"><img src="./art/equip-${e.kind}.webp" alt="" onerror="this.parentElement.remove()">${e.broken ? '<b class="badge">고장</b>' : ''}</span>
         <span class="name">${equipLabel(e as never)}${info.heavy ? ' <span class="muted">무거움</span>' : ''}</span>
         <span class="desc muted">${info.desc}</span>
         <span class="ops">

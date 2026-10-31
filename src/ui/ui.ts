@@ -76,7 +76,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       drawMap(refs.ctx, state, view, hover);
     } else {
       drawScene(refs.ctx, state, view.w, view.h, performance.now(), paintTop);
-      drawObjects(refs.ctx, currentNode(state), view.w, view.h, performance.now(), hoverObj);
+      drawObjects(refs.ctx, currentNode(state), view.w, view.h, performance.now(), hoverObj, paintTop);
     }
   };
   const animate = () => {
