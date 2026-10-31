@@ -145,7 +145,7 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .end .num { display: inline-block; min-width: 18px; height: 18px; border-radius: 4px; text-align: center; line-height: 18px; background: var(--accent); color: #111; font-weight: 700; font-size: 11px; margin-right: 4px; padding: 0 3px; }
 
 .overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(6, 9, 13, 0.82); z-index: 10; }
-.overlay .card { width: min(560px, 92vw); padding: 28px 30px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.overlay .card { width: min(560px, 92vw); padding: 28px 30px; border-radius: 12px; background: rgba(21, 27, 35, 0.92); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 .overlay .card.wide { width: min(960px, 94vw); max-height: 88vh; overflow-y: auto; }
 .overlay h1 { margin: 0; font-size: 44px; letter-spacing: 0.5em; color: var(--accent); font-weight: 700; }
 .overlay h2 { margin: 0; font-size: 20px; letter-spacing: 0.3em; color: var(--accent); }
@@ -199,4 +199,7 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .event.appear { animation: appear 0.35s ease-out; }
 .log p.latest { animation: appear 0.3s ease-out; }
 
-.event-art { display: block; width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--line); }
+.event-art { display: block; width: 100%; aspect-ratio: 3 / 1; height: auto; max-height: 300px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--line); }
+.game.has-event { grid-template-rows: 44px minmax(0, 1fr) min(560px, 72vh); }
+.game.has-event .panel { overflow-y: auto; }
+.game.has-event .panel .scene { align-self: start; height: 300px; }

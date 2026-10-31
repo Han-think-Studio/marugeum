@@ -268,6 +268,9 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   refs.actions.innerHTML = '';
   refs.choices.innerHTML = '';
 
+  // 이벤트 중에는 아래 패널을 키워 삽화가 다 보이게 한다
+  refs.hud.parentElement!.classList.toggle('has-event', state.event !== null);
+
   if (state.event) {
     renderEvent(refs, state, rerender);
     return;
@@ -341,7 +344,7 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   const box = document.createElement('div');
   box.className = 'event appear';
   // public/art/event-<id>.png 가 있으면 본문 위에 삽화가 뜬다. 없으면 조용히 사라진다
-  const art = `<img class="event-art" src="./art/event-${ev.id}.png" alt="" onerror="this.remove()">`;
+  const art = `<img class="event-art" src="./art/event-${ev.id}.webp" alt="" data-fallback="./art/event-${ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
   if (state.event.result === null) {
     box.innerHTML = `${art}<h3>${ev.title}</h3><p>${ev.text}</p>`;
     const list = document.createElement('div');

@@ -18,13 +18,17 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
   const el = document.createElement('div');
   el.className = 'overlay title';
   // public/art/title.png 가 있으면 제목 화면 배경이 된다
-  const bg = new Image();
-  bg.onload = () => {
-    el.style.backgroundImage = `linear-gradient(rgba(6,9,13,0.55), rgba(6,9,13,0.85)), url(./art/title.png)`;
-    el.style.backgroundSize = 'cover';
-    el.style.backgroundPosition = 'center';
+  const tryBg = (ext: 'webp' | 'png') => {
+    const bg = new Image();
+    bg.onload = () => {
+      el.style.backgroundImage = `linear-gradient(rgba(6,9,13,0.45), rgba(6,9,13,0.8)), url(./art/title.${ext})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+    };
+    bg.onerror = () => { if (ext === 'webp') tryBg('png'); };
+    bg.src = `./art/title.${ext}`;
   };
-  bg.src = './art/title.png';
+  tryBg('webp');
   el.innerHTML = `
     <div class="card">
       <h1>마루금</h1>

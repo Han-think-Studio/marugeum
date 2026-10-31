@@ -10,18 +10,22 @@ import { darkness, mix } from '../map/render';
 
 const images: Partial<Record<NodeKind, HTMLImageElement | null>> = {};
 
+// webp 를 먼저 찾고 없으면 png. 둘 다 없으면 코드가 그린다
 function artFor(kind: NodeKind, onload: () => void): HTMLImageElement | null {
   if (images[kind] !== undefined) return images[kind] ?? null;
-  const img = new Image();
   images[kind] = null;
-  img.onload = () => {
-    images[kind] = img;
-    onload();
+  const tryLoad = (ext: 'webp' | 'png') => {
+    const img = new Image();
+    img.onload = () => {
+      images[kind] = img;
+      onload();
+    };
+    img.onerror = () => {
+      if (ext === 'webp') tryLoad('png');
+    };
+    img.src = `./art/scene-${kind}.${ext}`;
   };
-  img.onerror = () => {
-    images[kind] = null;
-  };
-  img.src = `./art/scene-${kind}.png`;
+  tryLoad('webp');
   return null;
 }
 
@@ -110,8 +114,15 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
 
   // 그림 파일이 있으면 그것을 깐다
   const art = artFor(node.kind, onArt);
-  if (art) ctx.drawImage(art, 0, 0, w, h);
-  else foreground(ctx, node.kind, w, h, rnd, dark);
+  if (art) {
+    ctx.drawImage(art, 0, 0, w, h);
+    // 그림은 낮 기준이라 시간과 날씨만큼 어둡게 물들인다
+    const tint = dark * 0.62 + (state.weather === 'rain' ? 0.18 : state.weather === 'cloud' ? 0.1 : 0);
+    if (tint > 0) {
+      ctx.fillStyle = `rgba(8, 12, 24, ${Math.min(0.85, tint)})`;
+      ctx.fillRect(0, 0, w, h);
+    }
+  } else foreground(ctx, node.kind, w, h, rnd, dark);
 
   // 텐트 (지붕 없는 곳에서 텐트를 지녔을 때)
   if (!INDOOR.has(node.kind) && hasEquip(state, 'tent')) {
