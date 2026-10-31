@@ -1,13 +1,13 @@
-import { INDOOR, KIND_LABEL, SIDE_LABEL, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
+import { INDOOR, KIND_LABEL, SIDE_LABEL, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
-  WATER_LABEL, atCamp, boil, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook,
+  WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canWindbreak,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
-import { drawObjects, drawScene, hitObject } from './scene';
+import { drawBuilt, drawObjects, drawScene, hitObject } from './scene';
 import { storeText } from '../game/state';
 import { eventById, fillName, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
@@ -77,6 +77,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     } else {
       drawScene(refs.ctx, state, view.w, view.h, performance.now(), paintTop);
       drawObjects(refs.ctx, currentNode(state), view.w, view.h, performance.now(), hoverObj, paintTop);
+      drawBuilt(refs.ctx, currentNode(state), paintTop);
     }
   };
   const animate = () => {
@@ -216,6 +217,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       e: () => eat(state), f: () => lookAround(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
       n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
       c: () => { showBase(root, state, render); return false; },
+      k: () => buildWindbreak(state),
     };
     const fn = map[e.key.toLowerCase()];
     if (fn && fn()) render();
@@ -275,7 +277,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
   refs.place.innerHTML =
     `<span class="kind">${KIND_LABEL[cur.kind]}</span> <span class="name">${cur.name}</span>` +
-    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
+    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.windbreak ? ' · 바람막이' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.upgrades.length ? ' · ' + cur.upgrades.map((u) => UPGRADES[u].label).join(', ') : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
 
   refs.log.innerHTML = state.log
     .slice(-8)
@@ -332,6 +334,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act(hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1개 · 10시간', () => lightFire(state), canLightFire(state));
   act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
   if (canCamp(state)) act('거점 세우기', 'B', '3시간', () => makeCamp(state));
+  if (!INDOOR.has(cur.kind) && !cur.windbreak) act('바람막이 쌓기', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
   act(atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 장비 · 수리' : `장비 두고 가져가기 · 수리${cur.equip.length ? ` · 여기 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
   if (atCamp(state)) {
     act('맡기기', 'G', '배낭을 저장고에', () => deposit(state), Object.values(p).some((v) => v > 0));

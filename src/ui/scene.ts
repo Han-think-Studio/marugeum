@@ -1,4 +1,4 @@
-import { INDOOR, type GameState, type MapNode, type NodeKind, type SceneObject } from '../core/types';
+import { INDOOR, UPGRADES, type GameState, type MapNode, type NodeKind, type SceneObject } from '../core/types';
 import { objectLabel, visibleObjects, hiddenCount } from '../game/objects';
 import { hasEquip } from '../game/equip';
 import { isPowered } from '../game/facilities';
@@ -445,5 +445,44 @@ export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: num
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(232, 228, 218, 0.7)';
     ctx.fillText('둘러보면 더 보일지도 모른다', w - 14, h - 14);
+  }
+}
+
+// ---------- 지은 것 표시 ----------
+// 보강과 바람막이는 장면 왼쪽 위에 작은 카드로 보인다. "내가 만든 곳"
+
+const upImgs: Record<string, HTMLImageElement | null> = {};
+function upImg(id: string, onload: () => void): HTMLImageElement | null {
+  if (id in upImgs) return upImgs[id];
+  upImgs[id] = null;
+  const img = new Image();
+  img.onload = () => { upImgs[id] = img; onload(); };
+  img.src = `./art/upgrade-${id}.webp`;
+  return null;
+}
+
+export function drawBuilt(ctx: CanvasRenderingContext2D, node: MapNode, onload: () => void): void {
+  const items: [string, string][] = [];
+  if (node.windbreak) items.push(['windbreak', '바람막이']);
+  for (const u of node.upgrades) items.push([u, UPGRADES[u].label]);
+  if (items.length === 0) return;
+  let x = 14;
+  const y = 14;
+  for (const [id, label] of items) {
+    const img = upImg(id, onload);
+    const cw = 96;
+    const ch = 64;
+    ctx.fillStyle = 'rgba(8, 12, 20, 0.7)';
+    ctx.fillRect(x, y, cw, ch + 20);
+    if (img) ctx.drawImage(img, x + 2, y + 2, cw - 4, ch - 4);
+    ctx.strokeStyle = '#f2c76a';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x + 0.5, y + 0.5, cw - 1, ch + 19);
+    ctx.font = '11px "Noto Sans KR", "Malgun Gothic", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffe3a3';
+    ctx.fillText(label, x + cw / 2, y + ch + 9);
+    x += cw + 8;
   }
 }

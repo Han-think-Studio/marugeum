@@ -34,6 +34,8 @@ export interface MapNode {
   objects: SceneObject[]; // 이 자리에 놓인 사물
   looked: boolean; // 둘러보기를 했나. 숨은 사물이 드러난다
   cave: boolean; // 바위굴을 찾았다. 지붕 없는 곳에서도 바람과 비를 피한다
+  windbreak: boolean; // 바람막이를 쌓았다. 지붕 없는 곳의 추위를 줄인다
+  upgrades: UpgradeId[]; // 거점 보강
   genOn: boolean; // 발전기를 켜 두었나
   heaterOn: boolean; // 난로를 켜 두었나
   fuelClock: number; // 발전기가 돈 시간. 8시간마다 연료 1
@@ -343,3 +345,26 @@ export const OBJECT_LABEL: Record<ObjectKind, string> = {
   cave: '바위굴', note: '쪽지', photo: '사진', clothesline: '빨랫줄', radio: '라디오', closet: '벽장', fishing: '물가',
   herbs: '풀밭', shrine: '서낭당', grave: '무덤', garden: '텃밭',
 };
+
+// ---------- 안식처 ----------
+// 거점 보강. 생산 시설이 아니라 몸을 지키는 손질이다. 재료는 땔감과 부품과 시간뿐
+
+export type UpgradeId = 'window' | 'earth' | 'roof' | 'hearth';
+
+export interface UpgradeInfo {
+  label: string;
+  desc: string; // 효과
+  story: string; // 짓는 장면
+  hours: number;
+  wood: number;
+  parts: number;
+}
+
+export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
+  window: { label: '창 막기', desc: '추위가 절반이 된다', story: '널빤지를 뜯어 창을 안쪽에서 못질했다. 바람 소리가 멀어졌다.', hours: 1, wood: 2, parts: 0 },
+  earth: { label: '흙 덮기', desc: '피폭이 절반이 된다', story: '세 시간 동안 흙을 퍼 날라 벽 바깥에 쌓았다. 흙은 낙진을 막는다. 옛날 교본에 그렇게 적혀 있었다.', hours: 3, wood: 0, parts: 0 },
+  roof: { label: '지붕 수리', desc: '비가 새지 않는다. 비 오는 날의 추위와 피폭이 줄어든다', story: '구멍 난 지붕에 천막을 대고 철사로 묶었다. 빗물이 더는 안으로 들어오지 않는다.', hours: 2, wood: 0, parts: 1 },
+  hearth: { label: '화덕', desc: '불이 두 배 오래 타고 안이 더 따뜻하다', story: '돌을 쌓아 화덕을 만들고 연통을 냈다. 연기가 밖으로 빠지니 불을 밤새 둘 수 있다.', hours: 2, wood: 1, parts: 0 },
+};
+export const UPGRADE_IDS: UpgradeId[] = ['window', 'earth', 'roof', 'hearth'];
+export const WINDBREAK = { label: '바람막이', desc: '이 자리의 추위가 줄어든다', story: '돌과 가지를 허리 높이로 쌓아 바람을 막았다. 등 뒤가 조용해졌다.', hours: 1, wood: 1 };

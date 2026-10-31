@@ -99,6 +99,8 @@ export function generateMap(rng: Rng): MapNode[] {
       objects: [],
       looked: false,
       cave: false,
+      windbreak: false,
+      upgrades: [],
       genOn: false,
       heaterOn: false,
       fuelClock: 0,

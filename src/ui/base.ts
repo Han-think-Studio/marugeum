@@ -1,5 +1,6 @@
-import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, type GameState } from '../core/types';
+import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, UPGRADES, UPGRADE_IDS, WINDBREAK, type GameState } from '../core/types';
 import {
+  build, buildWindbreak, canBuild, canWindbreak,
   canCarry, canDepart, currentNode, dailyUse, depart, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator,
   heaterHoursLeft, heavyCarried, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
   toggleGenerator, toggleHeater,
@@ -34,6 +35,21 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
         <td class="n">${p[k]} <span class="muted">${capOf(k)}</span></td>
       </tr>`).join('');
     const chance = Math.round(repairChance(state) * 100);
+    const card = (img: string, label: string, desc: string, cost: string, built: boolean, btn: string) => `
+      <div class="ucard ${built ? 'built' : ''}">
+        <img src="./art/upgrade-${img}.webp" alt="" onerror="this.remove()">
+        <div class="ubody"><b>${label}</b><span class="muted">${desc}</span><span class="cost">${built ? '지었다' : cost}</span>${btn}</div>
+      </div>`;
+    const upgrades = (): string => `<div class="ucards">${UPGRADE_IDS.map((id) => {
+      const u = UPGRADES[id];
+      const built = node.upgrades.includes(id);
+      const cost = [u.wood ? `땔감 ${u.wood}` : '', u.parts ? `부품 ${u.parts}` : '', `${u.hours}시간`].filter(Boolean).join(' · ');
+      return card(id, u.label, u.desc, cost, built, built ? '' : `<button data-build="${id}" ${canBuild(state, id) ? '' : 'disabled'}>짓기</button>`);
+    }).join('')}</div>`;
+    const windbreakCard = (): string => {
+      if (node.kind === 'start' || ['temple', 'shelter', 'village', 'military'].includes(node.kind)) return '<p class="muted">지붕이 있는 곳이라 바람막이는 필요 없다.</p>';
+      return `<div class="ucards">${card('windbreak', WINDBREAK.label, WINDBREAK.desc, `땔감 ${WINDBREAK.wood} · ${WINDBREAK.hours}시간`, node.windbreak, node.windbreak ? '' : `<button data-windbreak="1" ${canWindbreak(state) ? '' : 'disabled'}>쌓기</button>`)}</div>`;
+    };
     const facilities = (): string => {
       const powered = isPowered(node);
       const lines: string[] = [];
@@ -77,7 +93,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
             ${camp ? `<h3>저장고 ↔ 배낭</h3>
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
             <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
-            ${camp ? `<h3>시설</h3>${facilities()}` : '<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p>'}
+            ${camp ? `<h3>시설</h3>${facilities()}<h3>보강</h3>${upgrades()}` : `<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p><h3>안식처</h3>${windbreakCard()}`}
             ${canDepart(state) ? `<h3>떠나기</h3>
             <p class="muted">배낭에 든 것만 가져간다: ${storeText(p)}. 무거운 장비 ${heavyCarried(state)}/2. 발전기와 냉장고는 두고 간다. 돌아올 수는 있다.</p>
             <button class="depart ${armed ? 'armed' : ''}" data-depart="1">${armed ? '정말 떠난다. 능선을 따라 북쪽으로' : '북쪽으로 떠난다'}</button>` : ''}
@@ -110,6 +126,8 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     if (b.dataset.mv) changed = moveSupply(state, b.dataset.k as never, b.dataset.mv as 'toBase' | 'toPack', e.shiftKey ? 0 : 1);
     else if (b.dataset.eq) changed = moveEquip(state, b.dataset.eq as 'toBase' | 'toPack', Number(b.dataset.i));
     else if (b.dataset.rep) changed = repair(state, b.dataset.rep as 'pack' | 'base', Number(b.dataset.i));
+    else if (b.dataset.build) changed = build(state, b.dataset.build as never);
+    else if (b.dataset.windbreak) changed = buildWindbreak(state);
     else if (b.dataset.fac === 'gen') changed = toggleGenerator(state, node);
     else if (b.dataset.fac === 'heater') changed = toggleHeater(state, node);
     else if (b.dataset.depart) {

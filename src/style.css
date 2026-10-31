@@ -209,3 +209,15 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .equip li .icon .badge { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(224, 122, 95, 0.9); color: #111; font-size: 10px; text-align: center; padding: 1px 0; }
 .equip li.broken .icon img { filter: grayscale(0.7) brightness(0.7); }
 .store .sicon { width: 22px; height: 22px; border-radius: 4px; vertical-align: middle; margin-right: 6px; object-fit: cover; }
+
+.ucards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ucard { display: grid; grid-template-columns: 96px 1fr; gap: 8px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+.ucard img { width: 96px; height: 100%; object-fit: cover; display: block; min-height: 64px; }
+.ucard .ubody { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px 6px 0; font-size: 12px; }
+.ucard .ubody b { font-size: 13px; }
+.ucard .cost { color: var(--accent); font-size: 11px; }
+.ucard.built { border-color: var(--accent); }
+.ucard.built img { filter: none; }
+.ucard button { align-self: flex-start; margin-top: 2px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+.ucard button:hover:not(:disabled) { border-color: var(--accent); }
+.ucard button:disabled { opacity: 0.35; cursor: default; }

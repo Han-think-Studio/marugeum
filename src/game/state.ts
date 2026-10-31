@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  SUPPLY_LABEL, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey,
+  SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
@@ -481,8 +481,9 @@ export function lightFire(state: GameState): boolean {
   if (busy(state) || !canLightFire(state)) return false;
   const node = currentNode(state);
   state.pack.wood -= 1;
-  state.fire = { nodeId: node.id, hours: FIRE_HOURS };
-  addLog(state, '불을 피웠다. 손끝이 녹고 어둠이 조금 물러난다.');
+  const hearth = node.camp && node.upgrades.includes('hearth');
+  state.fire = { nodeId: node.id, hours: FIRE_HOURS * (hearth ? 2 : 1) };
+  addLog(state, hearth ? '화덕에 불을 넣었다. 연통으로 연기가 빠지고 돌이 천천히 달아오른다.' : '불을 피웠다. 손끝이 녹고 어둠이 조금 물러난다.');
   afterAction(state);
   return true;
 }
@@ -504,6 +505,68 @@ export function boil(state: GameState): boolean {
     addLog(state, `물을 끓이고 천에 걸렀다. 깨끗한 물 ${n}통이 됐다.`);
   }
   giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+// ---------- 안식처 ----------
+
+// 바람막이. 지붕 없는 곳에서 땔감 하나와 한 시간
+export function canWindbreak(state: GameState): boolean {
+  const n = currentNode(state);
+  return !busy(state) && !INDOOR.has(n.kind) && !n.windbreak && state.pack.wood >= WINDBREAK.wood;
+}
+
+export function buildWindbreak(state: GameState): boolean {
+  if (!canWindbreak(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, WINDBREAK.hours, 'work');
+  giveRng(state, rng);
+  if (!res.died) {
+    state.pack.wood -= WINDBREAK.wood;
+    node.windbreak = true;
+    addLog(state, WINDBREAK.story);
+  }
+  afterAction(state);
+  return true;
+}
+
+// 거점 보강. 재료는 배낭이나 저장고에서
+function takeMaterial(state: GameState, node: MapNode, key: 'wood' | 'parts', n: number): boolean {
+  if (n <= 0) return true;
+  const fromPack = Math.min(n, state.pack[key]);
+  const fromStore = node.store ? Math.min(n - fromPack, node.store[key]) : 0;
+  if (fromPack + fromStore < n) return false;
+  state.pack[key] -= fromPack;
+  if (node.store) node.store[key] -= fromStore;
+  return true;
+}
+
+function hasMaterial(state: GameState, node: MapNode, key: 'wood' | 'parts', n: number): boolean {
+  return state.pack[key] + (node.store ? node.store[key] : 0) >= n;
+}
+
+export function canBuild(state: GameState, id: UpgradeId): boolean {
+  const n = currentNode(state);
+  if (busy(state) || !n.camp || n.upgrades.includes(id)) return false;
+  const u = UPGRADES[id];
+  return hasMaterial(state, n, 'wood', u.wood) && hasMaterial(state, n, 'parts', u.parts);
+}
+
+export function build(state: GameState, id: UpgradeId): boolean {
+  if (!canBuild(state, id)) return false;
+  const node = currentNode(state);
+  const u = UPGRADES[id];
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, u.hours, 'work');
+  giveRng(state, rng);
+  if (!res.died) {
+    takeMaterial(state, node, 'wood', u.wood);
+    takeMaterial(state, node, 'parts', u.parts);
+    node.upgrades.push(id);
+    addLog(state, u.story);
+  }
   afterAction(state);
   return true;
 }

@@ -26,9 +26,11 @@ export function radPerHour(state: GameState, node: MapNode, indoor: boolean): nu
   let r = node.alt < 0.35 ? 1.0 : node.alt < 0.6 ? 0.5 : 0.1;
   r *= 1 + node.stage * 0.08; // 북쪽으로 갈수록 짙어진다
   r *= falloutFactor(state);
-  if (state.weather === 'rain') r *= 3;
+  const roof = indoor && node.camp && node.upgrades.includes('roof');
+  if (state.weather === 'rain') r *= roof ? 1.5 : 3;
   if (state.wind !== 'calm' && state.wind === node.side) r *= 1.8;
   if (indoor) r *= node.camp ? 0.15 : 0.35;
+  if (indoor && node.camp && node.upgrades.includes('earth')) r *= 0.5;
   return r;
 }
 
@@ -63,9 +65,12 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 체온. 체감 6도 아래부터 식는다. 지붕 아래면 훨씬 덜하고, 웅크리고 자면 조금 덜하다
   // 불 옆이면 거의 식지 않고 오히려 덥혀지고, 담요는 잘 때 추위를 절반으로 줄인다
   const fire = act !== 'travel' && state.fire !== null && state.fire.nodeId === node.id;
-  const env = envTemp(state, node);
+  let env = envTemp(state, node);
+  if (camp && node.upgrades.includes('roof') && state.weather === 'rain') env += 5; // 비가 새지 않는다
   const chill = Math.max(0, 6 - env);
   let coldMul = camp ? 0.05 : indoor ? 0.1 : act === 'sleep' ? 0.2 : 0.35;
+  if (!indoor && node.windbreak) coldMul *= 0.5;
+  if (camp && node.upgrades.includes('window')) coldMul *= 0.5;
   if (act === 'sleep' && hasEquip(state, 'blanket')) coldMul *= 0.5;
   if (fire) coldMul *= 0.2;
   const cold = chill * coldMul;
@@ -73,6 +78,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
   if (camp && act === 'sleep') add(state, 'temp', 2);
   if (fire) add(state, 'temp', 3);
+  if (fire && camp && node.upgrades.includes('hearth')) add(state, 'temp', 2);
   if (heater) add(state, 'temp', 3);
   if (fire && state.fire) {
     state.fire.hours -= 1;
