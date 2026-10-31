@@ -3,6 +3,7 @@ import { EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, type GameState, 
 import { envTemp, isNight, tickWeather } from './weather';
 import { hasEquip } from './equip';
 import { facilityRunning, spoilFresh, tickFacilities } from './facilities';
+import { refreshObjects } from './objects';
 import { addLog } from './log';
 
 export type Activity = 'travel' | 'rest' | 'sleep' | 'forage' | 'work';
@@ -40,7 +41,7 @@ export interface TickOpts {
 function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, opts: TickOpts): void {
   const night = isNight(state.hour);
   // 텐트가 있으면 지붕 없는 곳에서도 비와 바람을 반쯤 막는다
-  const tent = act !== 'travel' && !INDOOR.has(node.kind) && hasEquip(state, 'tent');
+  const tent = act !== 'travel' && !INDOOR.has(node.kind) && (hasEquip(state, 'tent') || node.cave);
   const indoor = act !== 'travel' && (INDOOR.has(node.kind) || tent);
   const camp = indoor && node.camp;
   const heater = camp && facilityRunning(node, 'heater');
@@ -140,6 +141,7 @@ function onNewDay(state: GameState, rng: Rng): void {
   };
   if (notes[state.day]) addLog(state, notes[state.day]);
   spoilFresh(state);
+  refreshObjects(state);
 }
 
 export interface TickResult {

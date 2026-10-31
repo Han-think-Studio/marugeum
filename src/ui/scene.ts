@@ -1,4 +1,5 @@
-import { INDOOR, type GameState, type NodeKind } from '../core/types';
+import { INDOOR, type GameState, type MapNode, type NodeKind, type SceneObject } from '../core/types';
+import { objectLabel, visibleObjects, hiddenCount } from '../game/objects';
 import { hasEquip } from '../game/equip';
 import { isPowered } from '../game/facilities';
 import { hasFire } from '../game/state';
@@ -8,24 +9,32 @@ import { darkness, mix } from '../map/render';
 // 장면 그림판. 지금 선 자리를 선과 면으로 그린다. 시간·날씨·불·전등이 반영된다.
 // public/art/scene-<kind>.png 가 있으면 그 그림을 바탕으로 쓰고 위에 날씨와 빛만 얹는다
 
-const images: Partial<Record<NodeKind, HTMLImageElement | null>> = {};
+interface Art {
+  img: HTMLImageElement;
+  wide: boolean;
+}
+const images: Partial<Record<NodeKind, Art | null>> = {};
 
-// webp 를 먼저 찾고 없으면 png. 둘 다 없으면 코드가 그린다
-function artFor(kind: NodeKind, onload: () => void): HTMLImageElement | null {
+// 16:9 그림을 먼저 찾고, 없으면 정사각형, 그것도 없으면 코드가 그린다
+function artFor(kind: NodeKind, onload: () => void): Art | null {
   if (images[kind] !== undefined) return images[kind] ?? null;
   images[kind] = null;
-  const tryLoad = (ext: 'webp' | 'png') => {
+  const candidates: [string, boolean][] = [
+    [`./art/scene-${kind}-wide.webp`, true], [`./art/scene-${kind}-wide.png`, true],
+    [`./art/scene-${kind}.webp`, false], [`./art/scene-${kind}.png`, false],
+  ];
+  const tryLoad = (i: number) => {
+    if (i >= candidates.length) return;
+    const [src, wide] = candidates[i];
     const img = new Image();
     img.onload = () => {
-      images[kind] = img;
+      images[kind] = { img, wide };
       onload();
     };
-    img.onerror = () => {
-      if (ext === 'webp') tryLoad('png');
-    };
-    img.src = `./art/scene-${kind}.${ext}`;
+    img.onerror = () => tryLoad(i + 1);
+    img.src = src;
   };
-  tryLoad('webp');
+  tryLoad(0);
   return null;
 }
 
@@ -115,7 +124,32 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
   // 그림 파일이 있으면 그것을 깐다
   const art = artFor(node.kind, onArt);
   if (art) {
-    ctx.drawImage(art, 0, 0, w, h);
+    if (art.wide || w / h < 1.3) {
+      // 화면을 덮도록 가운데를 잘라 그린다
+      const iw = art.img.naturalWidth;
+      const ih = art.img.naturalHeight;
+      const s = Math.max(w / iw, h / ih);
+      const dw = iw * s;
+      const dh = ih * s;
+      ctx.drawImage(art.img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    } else {
+      // 정사각형 그림은 가운데 두고 양옆은 코드가 그린 배경으로 잇는다
+      foreground(ctx, node.kind, w, h, rnd, dark);
+      const dw = h;
+      const x0 = (w - dw) / 2;
+      ctx.drawImage(art.img, x0, 0, dw, h);
+      const fadeW = Math.min(80, dw * 0.12);
+      const bgL = ctx.createLinearGradient(x0, 0, x0 + fadeW, 0);
+      bgL.addColorStop(0, 'rgba(12, 19, 32, 0.9)');
+      bgL.addColorStop(1, 'rgba(12, 19, 32, 0)');
+      ctx.fillStyle = bgL;
+      ctx.fillRect(x0, 0, fadeW, h);
+      const bgR = ctx.createLinearGradient(x0 + dw - fadeW, 0, x0 + dw, 0);
+      bgR.addColorStop(0, 'rgba(12, 19, 32, 0)');
+      bgR.addColorStop(1, 'rgba(12, 19, 32, 0.9)');
+      ctx.fillStyle = bgR;
+      ctx.fillRect(x0 + dw - fadeW, 0, fadeW, h);
+    }
     // 그림은 낮 기준이라 시간과 날씨만큼 어둡게 물들인다
     const tint = dark * 0.62 + (state.weather === 'rain' ? 0.18 : state.weather === 'cloud' ? 0.1 : 0);
     if (tint > 0) {
@@ -312,5 +346,67 @@ function foreground(ctx: CanvasRenderingContext2D, kind: NodeKind, w: number, h:
       for (let i = 0; i < 12; i++) ctx.fillRect(20 + i * (w - 40) / 11, gy - 40 - (i % 3) * 6, 3, 3);
       break;
     }
+  }
+}
+
+// ---------- 사물 표식 ----------
+
+function objectPos(o: SceneObject, w: number, h: number): [number, number] {
+  return [o.x * w, o.y * h];
+}
+
+export function hitObject(node: MapNode, w: number, h: number, px: number, py: number): SceneObject | null {
+  let best: SceneObject | null = null;
+  let bestD = 22 * 22;
+  for (const o of visibleObjects(node)) {
+    const [x, y] = objectPos(o, w, h);
+    const d = (x - px) ** 2 + (y - py) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = o;
+    }
+  }
+  return best;
+}
+
+// 사물 표식. 안 쓴 것은 숨 쉬듯 커졌다 작아지고, 다 쓴 것은 흐리다
+export function drawObjects(ctx: CanvasRenderingContext2D, node: MapNode, w: number, h: number, t: number, hover: SceneObject | null): void {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const o of visibleObjects(node)) {
+    const [x, y] = objectPos(o, w, h);
+    const pulse = o.used ? 0 : 0.5 + 0.5 * Math.sin(t * 0.004 + o.id);
+    const r = o.used ? 6 : 8 + pulse * 2;
+    const isHover = hover !== null && hover.id === o.id;
+    if (!o.used) {
+      ctx.beginPath();
+      ctx.arc(x, y, r + 8 + pulse * 4, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(242, 199, 106, ${0.25 + pulse * 0.25})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = o.used ? 'rgba(160, 160, 160, 0.45)' : isHover ? '#ffe3a3' : '#f2c76a';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.stroke();
+    if (isHover || !o.used) {
+      const label = objectLabel(o) + (o.used ? ' · 다 봤다' : '');
+      ctx.font = `${isHover ? 13 : 12}px "Noto Sans KR", "Malgun Gothic", sans-serif`;
+      const tw = ctx.measureText(label).width + 12;
+      ctx.fillStyle = 'rgba(8, 12, 20, 0.75)';
+      ctx.fillRect(x - tw / 2, y - r - 26, tw, 20);
+      ctx.fillStyle = isHover ? '#ffe3a3' : '#e8e4da';
+      ctx.fillText(label, x, y - r - 16);
+    }
+  }
+  const hidden = hiddenCount(node);
+  if (hidden > 0) {
+    ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(232, 228, 218, 0.7)';
+    ctx.fillText('둘러보면 더 보일지도 모른다', w - 14, h - 14);
   }
 }

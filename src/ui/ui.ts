@@ -1,14 +1,15 @@
-import { INDOOR, KIND_LABEL, SIDE_LABEL, WOOD_NODES, type GameState, type MapNode } from '../core/types';
+import { INDOOR, KIND_LABEL, SIDE_LABEL, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
-  WATER_LABEL, atCamp, boil, canBoil, canCamp, canDrink, canEat, canFill, canForage, canGatherWood, canLightFire,
-  currentNode, deposit, dismissEvent, drink, eat, fill, forage, gatherWood, gearList, hasEquip, hasFire, isKnown, lightFire, makeCamp,
-  isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
+  WATER_LABEL, atCamp, boil, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook,
+  currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
+  isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
+  travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
-import { drawScene } from './scene';
+import { drawObjects, drawScene, hitObject } from './scene';
 import { storeText } from '../game/state';
-import { eventById, meetsReq } from '../game/events';
+import { eventById, fillName, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
 import { showJournal, showMenu } from './screens';
@@ -20,8 +21,6 @@ import { envTemp, weatherText } from '../game/weather';
 interface Refs {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  scene: HTMLCanvasElement;
-  sctx: CanvasRenderingContext2D;
   hud: HTMLElement;
   place: HTMLElement;
   log: HTMLElement;
@@ -48,7 +47,6 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       <header class="hud"></header>
       <canvas class="map"></canvas>
       <section class="panel">
-        <canvas class="scene"></canvas>
         <div class="place"></div>
         <div class="log"></div>
         <div class="actions"></div>
@@ -57,12 +55,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     </div>`;
 
   const canvas = root.querySelector<HTMLCanvasElement>('.map')!;
-  const scene = root.querySelector<HTMLCanvasElement>('.scene')!;
   const refs: Refs = {
     canvas,
     ctx: canvas.getContext('2d')!,
-    scene,
-    sctx: scene.getContext('2d')!,
     hud: root.querySelector('.hud')!,
     place: root.querySelector('.place')!,
     log: root.querySelector('.log')!,
@@ -72,28 +67,39 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
 
   let view: View = makeView(1, 1);
   let hover: MapNode | null = null;
+  let hoverObj: SceneObject | null = null;
 
-  // 장면 그림판. 비·불·별이 있을 때만 느리게 움직인다
-  let sceneSize = { w: 1, h: 1 };
+  // 위쪽 큰 화면. 장면이 기본이고 지도는 전환해서 본다. 비·불·별·사물 표식이 있을 때는 느리게 움직인다
   let animating = false;
-  const paintScene = () => {
-    drawScene(refs.sctx, state, sceneSize.w, sceneSize.h, performance.now(), paintScene);
+  const paintTop = () => {
+    if (state.view === 'map') {
+      drawMap(refs.ctx, state, view, hover);
+    } else {
+      drawScene(refs.ctx, state, view.w, view.h, performance.now(), paintTop);
+      drawObjects(refs.ctx, currentNode(state), view.w, view.h, performance.now(), hoverObj);
+    }
   };
   const animate = () => {
-    const live = state.weather === 'rain' || state.fire !== null || state.hour >= 20 || state.hour < 5;
-    if (!live || state.over !== 'none') {
+    const live = state.view === 'scene' && state.over === 'none';
+    if (!live) {
       animating = false;
       return;
     }
-    paintScene();
-    window.setTimeout(() => requestAnimationFrame(animate), 110);
+    paintTop();
+    window.setTimeout(() => requestAnimationFrame(animate), 120);
   };
   const kickScene = () => {
-    paintScene();
+    paintTop();
     if (!animating) {
       animating = true;
       animate();
     }
+  };
+  const toggleView = () => {
+    state.view = state.view === 'map' ? 'scene' : 'map';
+    hover = null;
+    hoverObj = null;
+    render();
   };
 
   const resize = () => {
@@ -103,13 +109,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     canvas.height = Math.floor(rect.height * dpr);
     refs.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     view = makeView(rect.width, rect.height);
-    drawMap(refs.ctx, state, view, hover);
-    const sr = scene.getBoundingClientRect();
-    scene.width = Math.floor(sr.width * dpr);
-    scene.height = Math.floor(sr.height * dpr);
-    refs.sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    sceneSize = { w: sr.width, h: sr.height };
-    paintScene();
+    paintTop();
   };
 
   // 행동 전후를 비교해 효과음을 고른다
@@ -139,7 +139,6 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (firstRender) firstRender = false;
     else cue();
     audio.apply(sceneTargets(state, state.over !== 'none'));
-    drawMap(refs.ctx, state, view, hover);
     kickScene();
     renderHud(refs, state);
     renderPanel(refs, state, () => render());
@@ -158,23 +157,41 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
 
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const n = hitTest(state, view, e.clientX - rect.left, e.clientY - rect.top);
-    const next = n && neighbors(state).includes(n) ? n : null;
-    if (next !== hover) {
-      hover = next;
-      canvas.style.cursor = hover ? 'pointer' : 'default';
-      drawMap(refs.ctx, state, view, hover);
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    if (state.view === 'map') {
+      const n = hitTest(state, view, px, py);
+      const next = n && neighbors(state).includes(n) ? n : null;
+      if (next !== hover) {
+        hover = next;
+        canvas.style.cursor = hover ? 'pointer' : 'default';
+        paintTop();
+      }
+    } else {
+      const o = state.event ? null : hitObject(currentNode(state), view.w, view.h, px, py);
+      if (o !== hoverObj) {
+        hoverObj = o;
+        canvas.style.cursor = o && !o.used ? 'pointer' : 'default';
+      }
     }
   });
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const n = hitTest(state, view, e.clientX - rect.left, e.clientY - rect.top);
-    if (n && travelTo(state, n.id)) render();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    if (state.view === 'map') {
+      const n = hitTest(state, view, px, py);
+      if (n && travelTo(state, n.id)) render();
+    } else {
+      const o = hitObject(currentNode(state), view.w, view.h, px, py);
+      if (o && !o.used && inspectObject(state, o.id)) render();
+    }
   });
   window.addEventListener('keydown', (e) => {
     audio.unlock();
     if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); return; }
     if (e.key.toLowerCase() === 'm') { audio.toggleMuted(); renderHud(refs, state); return; }
+    if (e.key.toLowerCase() === 'v' && !root.querySelector('.overlay')) { toggleView(); return; }
     if (root.querySelector('.overlay')) return;
     if (e.key === 'Escape') { openMenu(); return; }
     if (e.key.toLowerCase() === 'j') { showJournal(root, loadJournal(), () => undefined); return; }
@@ -196,7 +213,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     }
     const map: Record<string, () => boolean> = {
       r: () => rest(state), s: () => sleep(state), w: () => drink(state), q: () => fill(state),
-      e: () => eat(state), f: () => forage(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
+      e: () => eat(state), f: () => lookAround(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
       n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
       c: () => { showBase(root, state, render); return false; },
     };
@@ -208,6 +225,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     const el = e.target as HTMLElement;
     if (el.classList.contains('menu-btn')) openMenu();
     if (el.classList.contains('sound-btn')) { audio.toggleMuted(); renderHud(refs, state); }
+    if (el.classList.contains('view-btn')) toggleView();
   });
   root.addEventListener('pointerdown', () => audio.unlock(), { capture: true });
 
@@ -236,7 +254,7 @@ function renderHud(refs: Refs, state: GameState): void {
   const gear = gearList(state);
   const geiger = hasEquip(state, 'geiger') ? ` · <span class="geiger">☢ ${radPerHour(state, cur, INDOOR.has(cur.kind)).toFixed(1)}/시</span>` : '';
   refs.hud.innerHTML =
-    `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
+    `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><button class="view-btn" title="장면/지도 (V)">${state.view === 'map' ? '장면' : '지도'}</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>${chips}`;
   // 배낭은 장소 줄 아래에
@@ -257,7 +275,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
   refs.place.innerHTML =
     `<span class="kind">${KIND_LABEL[cur.kind]}</span> <span class="name">${cur.name}</span>` +
-    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
+    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
 
   refs.log.innerHTML = state.log
     .slice(-8)
@@ -308,7 +326,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act('마시기', 'W', wk !== 'none' ? WATER_LABEL[wk] + (wk === 'stored' ? ` ${cur.waterLeft}회` : '') : p.water + p.dirty > 0 ? '배낭에서' : '물이 없다', () => drink(state), canDrink(state));
   act('물 담기', 'Q', wk === 'none' ? '물이 없다' : p.water + p.dirty >= cap.water ? '배낭이 가득' : WATER_LABEL[wk], () => fill(state), canFill(state));
   act('먹기', 'E', p.food + p.fresh > 0 ? `${p.food + p.fresh}개 있음` : '먹을 것 없음', () => eat(state), canEat(state));
-  act('뒤지기', 'F', cur.forageLeft > 0 ? `2시간 · ${cur.forageLeft}회 남음` : '더 찾을 곳이 없다', () => forage(state), canForage(state));
+  const hid = hiddenCount(cur);
+  act('둘러보기', 'F', cur.looked ? `다 봤다 · 사물 ${visibleObjects(cur).filter((o) => !o.used).length}` : `1시간${hid ? ' · 뭔가 더 있을지도' : ''}`, () => lookAround(state), canLook(state));
   act('땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
   act(hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1개 · 10시간', () => lightFire(state), canLightFire(state));
   act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
@@ -326,7 +345,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
     const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
     const info = n.visited
-      ? ` · 뒤질 곳 ${n.forageLeft}회${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
+      ? ` · 사물 ${visibleObjects(n).filter((o) => !o.used).length}${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}${n.cave ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
     btn.className = n.stage < cur.stage ? 'back' : '';
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span>`;
@@ -346,7 +365,7 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   // public/art/event-<id>.png 가 있으면 본문 위에 삽화가 뜬다. 없으면 조용히 사라진다
   const art = `<img class="event-art" src="./art/event-${ev.id}.webp" alt="" data-fallback="./art/event-${ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
   if (state.event.result === null) {
-    box.innerHTML = `${art}<h3>${ev.title}</h3><p>${ev.text}</p>`;
+    box.innerHTML = `${art}<h3>${ev.title}</h3><p>${fillName(ev.text, state, currentNode(state))}</p>`;
     const list = document.createElement('div');
     list.className = 'event-choices';
     ev.choices.forEach((c, i) => {

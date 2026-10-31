@@ -5,6 +5,7 @@ import {
 import { canCarry, hasEquip } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
 import { EVENTS } from '../data/events';
+import { OBJECT_EVENTS } from '../data/objects';
 import { addLog } from './log';
 import { passHours } from './survival';
 import { isNight } from './weather';
@@ -16,7 +17,7 @@ const NIGHT_OUTDOOR = 0.35;
 const NIGHT_INDOOR = 0.12;
 
 export function eventById(id: string): EventDef | undefined {
-  return EVENTS.find((e) => e.id === id);
+  return EVENTS.find((e) => e.id === id) ?? OBJECT_EVENTS.find((e) => e.id === id);
 }
 
 function matches(when: When | undefined, state: GameState, node: MapNode, trigger: Trigger): boolean {
@@ -53,11 +54,30 @@ function pickWeighted(rng: Rng, list: EventDef[]): EventDef | null {
   return list[list.length - 1];
 }
 
-function open(state: GameState, ev: EventDef): void {
-  state.event = { id: ev.id, result: null };
-  state.flags[`ev:${ev.id}`] = true;
-  state.seen.push(ev.id);
+function open(state: GameState, ev: EventDef, objectId?: number): void {
+  state.event = { id: ev.id, result: null, objectId };
+  if (ev.trigger !== 'object') {
+    state.flags[`ev:${ev.id}`] = true;
+    state.seen.push(ev.id);
+  }
   addLog(state, `[${ev.title}]`);
+}
+
+// 사물 이벤트 열기. 본문의 {name} 은 사물 이름으로 바뀐다
+export function openObject(state: GameState, node: MapNode, objectId: number): boolean {
+  if (state.over !== 'none' || state.event) return false;
+  const o = node.objects.find((x) => x.id === objectId);
+  if (!o || o.used || (o.hidden && !node.looked)) return false;
+  const ev = eventById(`obj_${o.kind}`);
+  if (!ev) return false;
+  open(state, ev, objectId);
+  return true;
+}
+
+export function fillName(text: string, state: GameState, node: MapNode): string {
+  const id = state.event?.objectId;
+  const o = id !== undefined ? node.objects.find((x) => x.id === id) : undefined;
+  return text.replace(/\{name\}/g, o ? o.name : '');
 }
 
 // 도착 이벤트. 처음 온 곳이면 자주, 다시 온 곳이면 가끔
@@ -132,6 +152,17 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.flag) state.flags[e.flag] = true;
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
+  if (e.cave) node.cave = true;
+  const obj = state.event?.objectId !== undefined ? node.objects.find((x) => x.id === state.event!.objectId) : undefined;
+  if (e.bury && obj) {
+    state.buried.push(obj.name);
+    passHours(state, rng, node, 2, 'work');
+  }
+  if (e.objUsed && obj) {
+    obj.used = true;
+    obj.usedDay = state.day;
+  }
+  if (e.objRemove && obj) node.objects = node.objects.filter((x) => x.id !== obj.id);
   if (e.hours) passHours(state, rng, node, e.hours, 'work');
   syncFresh(state);
   if (s.hp <= 0 && state.over === 'none') {
@@ -157,8 +188,9 @@ export function choose(state: GameState, rng: Rng, node: MapNode, idx: number, c
     if (rng.chance(o.chance)) { outcome = o; break; }
   }
   if (outcome.effects) applyEffect(state, rng, node, outcome.effects, cap);
-  state.event.result = outcome.text;
-  addLog(state, outcome.text);
+  const text = fillName(outcome.text, state, node);
+  state.event.result = text;
+  addLog(state, text);
   return true;
 }
 

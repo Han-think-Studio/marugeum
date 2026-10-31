@@ -31,6 +31,9 @@ export interface MapNode {
   camp: boolean; // 거점을 세운 곳
   store: Store | null; // 거점 저장고
   equip: Equip[]; // 거점에 둔 장비
+  objects: SceneObject[]; // 이 자리에 놓인 사물
+  looked: boolean; // 둘러보기를 했나. 숨은 사물이 드러난다
+  cave: boolean; // 바위굴을 찾았다. 지붕 없는 곳에서도 바람과 비를 피한다
   genOn: boolean; // 발전기를 켜 두었나
   heaterOn: boolean; // 난로를 켜 두었나
   fuelClock: number; // 발전기가 돈 시간. 8시간마다 연료 1
@@ -199,6 +202,8 @@ export interface GameState {
   flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
   event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
   seen: string[]; // 이번 여정에서 만난 이벤트 id
+  buried: string[]; // 묻어 준 사람들
+  view: 'scene' | 'map'; // 위쪽 큰 화면에 무엇을 보여 주나
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
   runNo: number; // 몇 번째 여정인지
   started: number; // 시작 시각(ms)
@@ -219,7 +224,7 @@ export function edgeKey(a: number, b: number): string {
 // ---------- 이벤트 ----------
 // 이벤트는 src/data/events.ts 에 데이터로만 적는다. 코드 없이 이야기를 더할 수 있다
 
-export type Trigger = 'arrive' | 'night' | 'start';
+export type Trigger = 'arrive' | 'night' | 'start' | 'object';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
@@ -249,6 +254,10 @@ export interface Effect {
   flag?: string;
   fireOut?: boolean;
   poisonWell?: boolean; // 이 자리의 물을 못 쓰게 된다
+  objUsed?: boolean; // 이 사물을 다 썼다 (object 이벤트에서)
+  objRemove?: boolean; // 이 사물이 사라진다
+  bury?: boolean; // 묻어 준다. 두 시간, 수첩에 이름
+  cave?: boolean; // 이 자리에 바위굴이 생긴다
 }
 
 export interface Outcome {
@@ -282,6 +291,7 @@ export interface EventDef {
 export interface ActiveEvent {
   id: string;
   result: string | null; // 선택 뒤 결과 문장. 확인을 누르면 닫힌다
+  objectId?: number; // 사물 이벤트면 그 사물
 }
 
 // ---------- 기록 수첩 ----------
@@ -298,6 +308,7 @@ export interface RunRecord {
   events: string[]; // 만난 이벤트 id
   gear: EquipKind[];
   departedDay?: number; // 거점을 떠난 날
+  buried?: string[]; // 묻어 준 사람들
   endedAt: number;
 }
 
@@ -308,3 +319,27 @@ export interface Journal {
   eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
   deaths: Record<string, number>; // 사망 원인별 횟수
 }
+
+// ---------- 사물 ----------
+// 장면 그림 위에 놓여 손으로 만지는 것들. 상호작용은 src/data/objects.ts 의 이벤트로 적는다
+
+export type ObjectKind =
+  | 'body' | 'pack' | 'crate' | 'car' | 'truck' | 'well' | 'woodpile' | 'cave' | 'note' | 'photo'
+  | 'clothesline' | 'radio' | 'closet' | 'fishing' | 'herbs' | 'shrine' | 'grave' | 'garden';
+
+export interface SceneObject {
+  id: number;
+  kind: ObjectKind;
+  x: number; // 0..1 장면 위 자리
+  y: number;
+  hidden: boolean; // 둘러보기 전에는 안 보인다
+  used: boolean; // 다 쓴 것
+  usedDay: number; // 다시 쓸 수 있는 것은 이 날 이후 되돌아온다
+  name: string; // 시신의 이름처럼 글에 끼워 넣는 것
+}
+
+export const OBJECT_LABEL: Record<ObjectKind, string> = {
+  body: '쓰러진 사람', pack: '배낭', crate: '상자', car: '멈춘 차', truck: '군용 트럭', well: '우물', woodpile: '장작더미',
+  cave: '바위굴', note: '쪽지', photo: '사진', clothesline: '빨랫줄', radio: '라디오', closet: '벽장', fishing: '물가',
+  herbs: '풀밭', shrine: '서낭당', grave: '무덤', garden: '텃밭',
+};

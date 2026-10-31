@@ -29,6 +29,27 @@ Monochrome linocut woodblock print, bold black ink on warm aged paper, high cont
 | scene-military.png | 군 시설 | An abandoned military bunker on a ridge, radio antenna mast, barbed wire fence, a warning sign shape without letters, square composition |
 | scene-goal.png | 향로봉 안전지대 | A row of military tents and a helipad on a mountain top at night, strings of electric lights, a helicopter silhouette on the ground, hope, square composition |
 
+## 1-2. 장면 그림 16:9 (장면 중심 화면용, 10장)
+
+파일 이름 `scene-<종류>-wide.png`, 1792×1024 또는 1920×1080. 각 프롬프트 끝에 공통 스타일 문구와 아래 한 줄을 붙인다.
+
+```
+wide 16:9 composition, key objects spread across the full width with clear empty ground in the lower third, nothing important in the far corners
+```
+
+| 파일 | 프롬프트 |
+|---|---|
+| scene-start-wide.png | Abandoned mountain campground at dawn seen from the entrance, several empty tents across the width, a small wooden ranger hut on the right, a bare flagpole, pine trees on the left, Jirisan ridge behind |
+| scene-peak-wide.png | Rocky summit ridge of a Korean mountain, a stone cairn on the left, a wooden trail signpost on the right, a dark rock overhang in the middle distance, vast ridgelines fading away, thin clouds below |
+| scene-pass-wide.png | A mountain pass road between two slopes, a line of abandoned cars with open doors stretching across, a fallen barricade, a roadside shrine stone on the left, mist |
+| scene-temple-wide.png | A small Korean Buddhist temple with curved tiled roof on the right, a stone lantern and a well in the courtyard, a bell pavilion on the left, forest behind, a single candle glow in the doorway |
+| scene-shelter-wide.png | A mountain hut shelter with a steep roof and stovepipe chimney in the center, a woodpile beside it, a water tank, pine trees, a lit window |
+| scene-village-wide.png | An empty Korean mountain village street, traditional houses with tiled roofs on both sides, a stone well in the middle, a persimmon tree with fruit, a barn door ajar, no people |
+| scene-valley-wide.png | A deep mountain valley with a wide rushing stream across the foreground, boulders, dense trees, a broken suspension bridge on the right, a dark cave mouth in the left cliff |
+| scene-spring-wide.png | A mountain spring with a stone basin and a pipe pouring water in the center, mossy rocks, a wooden ladle, a small shrine with ribbons on the left, a shaded hollow under a boulder on the right |
+| scene-military-wide.png | An abandoned military bunker on a ridge with a steel door, a radio antenna mast, barbed wire fence across the width, two camouflaged trucks on the right, a sandbag wall |
+| scene-goal-wide.png | A row of military tents and a helipad on a mountain top at night, strings of electric lights across the width, a helicopter silhouette on the ground, a checkpoint gate in front, hope |
+
 ## 2. 제목 그림 (필수 1장, 16:9)
 
 | 파일 | 프롬프트 |

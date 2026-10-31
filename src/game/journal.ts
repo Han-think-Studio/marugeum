@@ -49,6 +49,7 @@ export function recordRun(state: GameState): Journal {
     events: [...state.seen],
     gear: state.equip.filter((e) => !e.broken).map((e) => e.kind),
     departedDay: state.departedDay,
+    buried: [...state.buried],
     endedAt: Date.now(),
   };
   j.runs.push(rec);

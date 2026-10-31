@@ -1,5 +1,6 @@
 import { Rng } from '../core/rng';
 import type { MapNode, NodeKind } from '../core/types';
+import { spawnObjects } from '../game/objects';
 
 export const STAGES = 13; // 0 중산리 야영장, 12 향로봉
 
@@ -95,6 +96,9 @@ export function generateMap(rng: Rng): MapNode[] {
       camp: false,
       store: null,
       equip: [],
+      objects: [],
+      looked: false,
+      cave: false,
       genOn: false,
       heaterOn: false,
       fuelClock: 0,
@@ -140,8 +144,13 @@ export function generateMap(rng: Rng): MapNode[] {
     byStage[s] = list;
   }
   byStage[STAGES - 1] = [make(STAGES - 1, 'goal', 0, 1)];
+  // 사물 놓기
+  let objId = 1;
+  for (const n of nodes) spawnObjects(rng, n, () => objId++);
+
   const base = byStage[0][0];
   base.visited = true;
+  base.looked = true;
   base.camp = true;
   base.store = { water: 4, dirty: 0, food: 6, fresh: 0, wood: 2, gasoline: 2, diesel: 0, parts: 1 };
   base.equip = [
