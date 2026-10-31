@@ -4,7 +4,8 @@ import * as api from './game/state';
 import { loadJournal, nextRunNo } from './game/journal';
 import { clearSave, loadGame } from './game/save';
 import { mountUI } from './ui/ui';
-import { showJournal, showTitle } from './ui/screens';
+import { showJournal, showSettings, showTitle } from './ui/screens';
+import { loadSettings, settings } from './game/settings';
 import type { GameState } from './core/types';
 import { audio } from './audio/engine';
 import { TITLE_TARGETS } from './audio/scene';
@@ -14,6 +15,7 @@ if (!app) throw new Error('#app 요소가 없습니다');
 
 const params = new URLSearchParams(location.search);
 const journal = loadJournal();
+loadSettings();
 
 function newSeed(): number {
   const param = params.get('seed');
@@ -22,6 +24,7 @@ function newSeed(): number {
 
 function start(state: GameState): void {
   app!.querySelectorAll('.overlay').forEach((o) => o.remove());
+  state.view = settings.defaultView;
   const render = mountUI(app!, state);
   console.log('마루금 seed =', state.seed, 'run =', state.runNo);
   // 개발 중에는 콘솔에서 상태와 행동을 직접 다룰 수 있게 열어둔다
@@ -55,5 +58,6 @@ if (params.get('seed') || params.get('new')) {
     onResume: () => { if (saved) start(saved); },
     onNew: startNew,
     onJournal: () => { showJournal(app!, loadJournal(), () => undefined); },
+    onSettings: () => { showSettings(app!, () => undefined); },
   });
 }

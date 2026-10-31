@@ -14,7 +14,9 @@ import { storeText } from '../game/state';
 import { eventById, fillName, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
-import { showJournal, showLog, showMenu } from './screens';
+import { showJournal, showLog, showMenu, showSettings } from './screens';
+import { toggleFullscreen } from './fullscreen';
+import { settings } from '../game/settings';
 import { audio } from '../audio/engine';
 import { sceneTargets } from '../audio/scene';
 import { radPerHour } from '../game/survival';
@@ -83,7 +85,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     }
   };
   const animate = () => {
-    const live = state.view === 'scene' && state.over === 'none';
+    const live = state.view === 'scene' && state.over === 'none' && settings.animation;
     if (!live) {
       animating = false;
       return;
@@ -154,6 +156,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     showMenu(root, {
       onContinue: () => { menuOpen = false; },
       onJournal: () => { showJournal(root, loadJournal(), () => undefined); },
+      onSettings: () => { showSettings(root, () => render()); },
       onTitle: () => { saveGame(state); location.href = location.pathname; },
     });
   };
@@ -436,22 +439,6 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
     box.appendChild(b);
   }
   refs.choices.appendChild(box);
-}
-
-// 전체화면. 데스크톱 앱(Tauri)이면 창을, 브라우저면 문서를 전체화면으로
-interface TauriWindow {
-  isFullscreen(): Promise<boolean>;
-  setFullscreen(v: boolean): Promise<void>;
-}
-function toggleFullscreen(): void {
-  const tauri = (window as unknown as { __TAURI__?: { window: { getCurrentWindow(): TauriWindow } } }).__TAURI__;
-  if (tauri) {
-    const w = tauri.window.getCurrentWindow();
-    w.isFullscreen().then((f) => w.setFullscreen(!f)).catch(() => undefined);
-    return;
-  }
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
-  else document.documentElement.requestFullscreen().catch(() => undefined);
 }
 
 // 대치 화면. 상대의 기세와 거리, 수마다 확률

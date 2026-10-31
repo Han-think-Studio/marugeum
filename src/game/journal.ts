@@ -29,6 +29,15 @@ export function saveJournal(j: Journal): void {
   }
 }
 
+// 수첩을 비운다. 설정 화면의 '기록 지우기'
+export function clearJournal(): void {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // 무시
+  }
+}
+
 export function nextRunNo(j: Journal): number {
   return j.runs.length + 1;
 }

@@ -245,3 +245,23 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .loglist { font-size: 14px; line-height: 1.7; max-height: 70vh; overflow-y: auto; }
 .loglist p { margin: 0 0 6px; color: var(--ink); }
 .log { cursor: pointer; }
+
+/* 설정 */
+html[data-text="small"] #app { zoom: 0.9; }
+html[data-text="large"] #app { zoom: 1.12; }
+html[data-hints="off"] .actions .meta { display: none; }
+.settings-overlay .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.settings-overlay .row .label { color: var(--ink); }
+.settings-overlay .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.settings-overlay .seg button { background: var(--panel-2); color: var(--muted); border: 0; border-right: 1px solid var(--line); padding: 6px 12px; cursor: pointer; font: inherit; font-size: 13px; }
+.settings-overlay .seg button:last-child { border-right: 0; }
+.settings-overlay .seg button.on { background: var(--accent); color: #111; font-weight: 700; }
+.settings-overlay .vol { width: 180px; accent-color: var(--accent); }
+.settings-overlay .fs, .settings-overlay .wipe, .settings-overlay .reset { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; font-size: 13px; }
+.settings-overlay .fs:hover, .settings-overlay .reset:hover { border-color: var(--accent); }
+.settings-overlay .wipe { border-color: var(--warn); color: var(--warn); margin-right: 8px; }
+.settings-overlay .wipe.armed { background: var(--warn); color: #111; font-weight: 700; }
+.settings-overlay .wipe:disabled { opacity: 0.5; cursor: default; }
+.settings-overlay .keys { border-collapse: collapse; font-size: 13px; }
+.settings-overlay .keys td { padding: 4px 8px 4px 0; vertical-align: top; }
+.settings-overlay .keys .num { min-width: 36px; font-size: 11px; white-space: nowrap; }

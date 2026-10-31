@@ -358,6 +358,13 @@ export class AudioEngine {
     return this.muted;
   }
 
+  // 음량 0..1. 켜져 있으면 바로 들린다
+  setVolume(v: number): void {
+    this.volume = Math.max(0, Math.min(1, v));
+    if (this.ctx && this.master && !this.muted) ramp(this.master.gain, this.ctx, this.volume, 0.15);
+    this.save();
+  }
+
   private save(): void {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({ muted: this.muted, volume: this.volume }));
