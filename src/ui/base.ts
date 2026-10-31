@@ -1,6 +1,7 @@
 import { EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, type GameState } from '../core/types';
 import {
-  canCarry, currentNode, equipLabel, heavyCarried, moveEquip, moveSupply, packCap, repair, repairChance, timeLabel,
+  canCarry, currentNode, dailyUse, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator, heaterHoursLeft,
+  heavyCarried, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, timeLabel, toggleGenerator, toggleHeater,
 } from '../game/state';
 import { audio } from '../audio/engine';
 
@@ -30,6 +31,28 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
         <td class="n">${p[k]} <span class="muted">${capOf(k)}</span></td>
       </tr>`).join('');
     const chance = Math.round(repairChance(state) * 100);
+    const facilities = (): string => {
+      const powered = isPowered(node);
+      const lines: string[] = [];
+      if (hasGenerator(node)) {
+        const left = generatorHoursLeft(node);
+        lines.push(`<li><span class="name">발전기</span><span class="desc muted">${node.genOn ? (powered ? `돌아가는 중 · 연료 ${left}시간분` : '연료 없음') : (left > 0 ? `꺼짐 · 연료 ${left}시간분` : '꺼짐 · 연료 없음')}</span><span class="ops"><button data-fac="gen">${node.genOn ? '끄기' : '켜기'}</button></span></li>`);
+      } else lines.push('<li><span class="name muted">발전기 없음</span><span class="desc muted">휘발유 발전기나 경유 발전기를 거점에 두면 전기가 생긴다</span></li>');
+      const dep = (kind: 'fridge' | 'lamp' | 'radio', what: string) => {
+        if (!facilityOk(node, kind)) return '';
+        const on = facilityRunning(node, kind);
+        return `<li><span class="name">${EQUIP_INFO[kind].label}</span><span class="desc ${on ? '' : 'muted'}">${on ? what : '전기가 없다'}</span></li>`;
+      };
+      lines.push(dep('fridge', '냉장 중. 신선식이 상하지 않는다'));
+      lines.push(dep('lamp', '불이 켜져 있다. 밤이 덜 위험하다'));
+      lines.push(dep('radio', '켜져 있다. 밤에 소식이 들릴 수 있다'));
+      if (facilityOk(node, 'heater')) {
+        const left = heaterHoursLeft(node);
+        lines.push(`<li><span class="name">경유 난로</span><span class="desc muted">${node.heaterOn ? `타는 중 · 경유 ${left}시간분` : (left > 0 ? `꺼짐 · 경유 ${left}시간분` : '꺼짐 · 경유 없음')}</span><span class="ops"><button data-fac="heater">${node.heaterOn ? '끄기' : '켜기'}</button></span></li>`);
+      }
+      const use = dailyUse(node);
+      return `<ul class="equip">${lines.join('')}</ul>${use.length ? `<p class="muted">${use.join(' · ')}</p>` : ''}`;
+    };
     const partsHere = p.parts + st.parts;
     const equipRow = (e: { kind: string; broken: boolean }, i: number, where: 'pack' | 'base') => {
       const info = EQUIP_INFO[e.kind as keyof typeof EQUIP_INFO];
@@ -49,7 +72,9 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
           <section>
             <h3>저장고 ↔ 배낭</h3>
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>
-            <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음. 시설 작동(발전기, 냉장고, 난로, 라디오)은 다음 단계에서 열린다.</p>
+            <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음.</p>
+            <h3>시설</h3>
+            ${facilities()}
           </section>
           <section>
             <h3>거점 장비 <span class="muted">${node.equip.length}</span></h3>
@@ -79,6 +104,8 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     if (b.dataset.mv) changed = moveSupply(state, b.dataset.k as never, b.dataset.mv as 'toBase' | 'toPack', e.shiftKey ? 0 : 1);
     else if (b.dataset.eq) changed = moveEquip(state, b.dataset.eq as 'toBase' | 'toPack', Number(b.dataset.i));
     else if (b.dataset.rep) changed = repair(state, b.dataset.rep as 'pack' | 'base', Number(b.dataset.i));
+    else if (b.dataset.fac === 'gen') changed = toggleGenerator(state, node);
+    else if (b.dataset.fac === 'heater') changed = toggleHeater(state, node);
     if (changed) {
       audio.sfx('click');
       if (state.over !== 'none') { close(); return; }

@@ -606,4 +606,44 @@ export const EVENTS: EventDef[] = [
       { text: '가져가라고 한다', outcomes: [{ text: '"먹을 것만 가져가요." 그는 봉지 두 개를 꺼내고 배낭을 던졌다. "그때 나눠 줬으면 하나만 가져갔을 거요." 그 말이 맞았다.', effects: { food: -2, mind: -8 } }] },
     ],
   },
+
+  // ---------- 라디오. 전기가 든 거점에서 밤에 ----------
+  {
+    id: 'radio_news_camp',
+    trigger: 'night',
+    title: '라디오 소식',
+    text: '발전기 소리 사이로 라디오가 잡힌다. "...향로봉 임시 수용소는 정상 운영 중... 남쪽 능선을 따라 올라오시는 분들은 설악 검문소에서 선별을... 배급은 하루 두 끼로 늘렸습니다..." 사람 목소리다. 살아 있는 사람의.',
+    weight: 3,
+    when: { facility: 'radio' },
+    choices: [
+      { text: '끝까지 듣는다', outcomes: [{ text: '방송은 같은 말을 세 번 반복하고 애국가를 틀었다. 애국가를 듣다가 웃음이 났다. 그리고 조금 울었다.', effects: { mind: 10, flag: 'radio_heard' } }] },
+      { text: '끄고 잔다', outcomes: [{ text: '알아야 할 건 알았다. 북쪽에 사람이 있다.', effects: { mind: 5 } }] },
+    ],
+  },
+  {
+    id: 'radio_news_drop',
+    trigger: 'night',
+    title: '보급 투하 예고',
+    text: '라디오. "...능선 생존자를 위한 보급품을 봉우리와 고개 위에 투하합니다. 붉은 낙하산을 찾으십시오. 반복합니다..." 좌표를 불렀지만 받아 적을 새가 없었다. 봉우리와 고개. 그것만 기억했다.',
+    once: true,
+    weight: 2,
+    when: { facility: 'radio', minDay: 2 },
+    choices: [
+      { text: '내일 능선을 뒤져 본다', outcomes: [{ text: '잠이 오지 않았다. 붉은 낙하산을 생각했다.', effects: { mind: 6, flag: 'drop_coming' } }] },
+      { text: '믿지 않는다', outcomes: [{ text: '정부 방송은 전쟁 전에도 믿을 게 못 됐다. 그래도 봉우리를 지날 때 하늘을 볼 것이다.', effects: { mind: 2, flag: 'drop_coming' } }] },
+    ],
+  },
+  {
+    id: 'supply_drop',
+    trigger: 'arrive',
+    title: '붉은 낙하산',
+    text: '바위 사이에 붉은 천이 걸려 있다. 낙하산이다. 상자는 떨어지면서 한쪽이 찌그러졌지만 봉인은 그대로다. 라디오가 말한 그 상자다.',
+    once: true,
+    weight: 6,
+    when: { flag: 'drop_coming', kinds: ['peak', 'pass'] },
+    choices: [
+      { text: '상자를 연다', outcomes: [{ text: '생수, 전투식량, 요오드 알약, 그리고 부품 몇 개가 든 수리 키트. 상자 뚜껑 안쪽에 "살아서 오십시오"라고 쓰여 있었다.', effects: { water: 2, food: 3, parts: 2, rad: -10, mind: 12, flag: 'drop_found' } }] },
+      { text: '낙하산 천부터 챙긴다', outcomes: [{ text: '낙하산 천을 잘라 배낭에 넣었다. 비를 막고 몸을 덮을 수 있다. 상자도 열었다.', effects: { water: 2, food: 2, parts: 1, gear: 'blanket', mind: 10, flag: 'drop_found' } }] },
+    ],
+  },
 ];

@@ -3,7 +3,7 @@ import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
   WATER_LABEL, atCamp, boil, canBoil, canCamp, canDrink, canEat, canFill, canForage, canGatherWood, canLightFire,
   currentNode, deposit, dismissEvent, drink, eat, fill, forage, gatherWood, gearList, hasEquip, hasFire, isKnown, lightFire, makeCamp,
-  neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
+  isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel, travelHours, travelTo, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
 import { storeText } from '../game/state';
@@ -210,7 +210,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
   refs.place.innerHTML =
     `<span class="kind">${KIND_LABEL[cur.kind]}</span> <span class="name">${cur.name}</span>` +
-    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${store}</span>`;
+    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : ''}${cur.camp ? ' · <b>거점</b>' : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
 
   refs.log.innerHTML = state.log
     .slice(-8)

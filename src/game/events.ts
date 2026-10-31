@@ -3,6 +3,7 @@ import {
   INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type PackCap, type Req, type Trigger, type When,
 } from '../core/types';
 import { canCarry, hasEquip } from './equip';
+import { facilityRunning, syncFresh } from './facilities';
 import { EVENTS } from '../data/events';
 import { addLog } from './log';
 import { passHours } from './survival';
@@ -31,6 +32,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.noFlag && state.flags[when.noFlag]) return false;
   if (when.gear && !hasEquip(state, when.gear)) return false;
   if (when.noGear && hasEquip(state, when.noGear)) return false;
+  if (when.facility && !facilityRunning(node, when.facility)) return false;
   return true;
 }
 
@@ -69,7 +71,13 @@ export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: bo
 // 밤 이벤트. 잠에서 깬 뒤에 닥친다
 export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   if (state.over !== 'none' || state.event) return false;
-  if (!rng.chance(INDOOR.has(node.kind) ? NIGHT_INDOOR : NIGHT_OUTDOOR)) return false;
+  // 전등이 켜진 거점은 밤이 덜 위험하다. 대신 라디오 소식은 전등과 상관없이 온다
+  const lit = facilityRunning(node, 'lamp');
+  const radio = facilityRunning(node, 'radio');
+  let chance = INDOOR.has(node.kind) ? NIGHT_INDOOR : NIGHT_OUTDOOR;
+  if (lit) chance *= 0.3;
+  if (radio) chance = Math.max(chance, 0.5);
+  if (!rng.chance(chance)) return false;
   const ev = pickWeighted(rng, pool(state, node, 'night'));
   if (!ev) return false;
   open(state, ev);
@@ -115,6 +123,7 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
   if (e.hours) passHours(state, rng, node, e.hours, 'work');
+  syncFresh(state);
   if (s.hp <= 0 && state.over === 'none') {
     state.over = 'dead';
     state.overText = `${state.day}일째, 산에서 죽었다.`;

@@ -10,6 +10,7 @@ import { passHours, warnings } from './survival';
 import { choose, closeEvent, maybeArrive, maybeNight } from './events';
 import { canCarry, equipLabel, hasEquip, heavyCount } from './equip';
 import { isNight, rollWeather } from './weather';
+import { syncFresh } from './facilities';
 
 export { hasEquip, canCarry, equipLabel } from './equip';
 export { addLog } from './log';
@@ -29,6 +30,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     wind: 'calm',
     weatherLeft: 6,
     pack: { ...emptySupplies(), water: 1, food: 1 },
+    freshDay: 0,
     equip: [],
     fire: null,
     known: {},
@@ -114,6 +116,7 @@ export function timeLabel(state: GameState): string {
 }
 
 function afterAction(state: GameState): void {
+  syncFresh(state);
   if (state.over !== 'none') return;
   for (const w of warnings(state)) {
     if (state.log[state.log.length - 1] !== w) addLog(state, w);
@@ -598,6 +601,8 @@ export function makeCamp(state: GameState): boolean {
     node.camp = true;
     node.store = emptySupplies();
     node.equip = [];
+    node.genOn = false;
+    node.heaterOn = false;
     addLog(state, `${node.name}에 거점을 세웠다. 창을 막고 잠자리를 만들고 저장고를 비웠다.`);
   }
   afterAction(state);
@@ -633,6 +638,7 @@ export function moveSupply(state: GameState, key: SupplyKey, dir: 'toBase' | 'to
   if (amount <= 0) return false;
   from[key] -= amount;
   to[key] += amount;
+  syncFresh(state);
   return true;
 }
 
@@ -658,6 +664,7 @@ export function deposit(state: GameState): boolean {
     node.store[k] += state.pack[k];
     state.pack[k] = 0;
   }
+  syncFresh(state);
   addLog(state, `저장고에 맡겼다. ${storeText(node.store)}.`);
   return true;
 }
@@ -682,5 +689,7 @@ export function storeText(s: Supplies): string {
 export function heavyCarried(state: GameState): number {
   return heavyCount(state.equip);
 }
+
+export { toggleGenerator, toggleHeater, isPowered, facilityRunning, generatorHoursLeft, heaterHoursLeft, dailyUse, hasGenerator, facilityOk } from './facilities';
 
 export type { Equip };

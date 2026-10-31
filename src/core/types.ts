@@ -31,6 +31,11 @@ export interface MapNode {
   camp: boolean; // 거점을 세운 곳
   store: Store | null; // 거점 저장고
   equip: Equip[]; // 거점에 둔 장비
+  genOn: boolean; // 발전기를 켜 두었나
+  heaterOn: boolean; // 난로를 켜 두었나
+  fuelClock: number; // 발전기가 돈 시간. 8시간마다 연료 1
+  heaterClock: number; // 난로가 돈 시간. 10시간마다 경유 1
+  freshDay: number; // 저장고 신선식 중 가장 오래된 것을 넣은 날
 }
 
 // 보급품. 수량으로 센다
@@ -108,6 +113,12 @@ export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
 // 땔감을 모을 수 있는 곳. 군 시설과 출발·도착지는 제외
 export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
 
+export const GEN_HOURS_PER_UNIT = 8; // 발전기 연료 1통으로 도는 시간
+export const HEATER_HOURS_PER_UNIT = 10; // 난로 경유 1통으로 도는 시간
+export const FRESH_DAYS = 2; // 신선식이 냉장 없이 버티는 날
+export const GEN_BREAK_CHANCE = 0.01; // 발전기가 한 시간 돌 때 고장 날 확률
+export const DIESEL_GEN_BREAK_CHANCE = 0.004;
+
 export const REPAIR_HOURS = 2;
 export const REPAIR_BASE = 0.55;
 export const REPAIR_WITH_TOOLS = 0.8;
@@ -176,6 +187,7 @@ export interface GameState {
   wind: Wind;
   weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
   pack: Supplies; // 배낭
+  freshDay: number; // 배낭 신선식 중 가장 오래된 것을 넣은 날
   equip: Equip[]; // 지닌 장비
   fire: { nodeId: number; hours: number } | null; // 피워 둔 불. 자리를 뜨면 꺼진다
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
@@ -213,6 +225,7 @@ export interface When {
   noFlag?: string; // 이 표시가 없어야
   gear?: GearKey;
   noGear?: GearKey;
+  facility?: EquipKind; // 지금 자리 거점에서 이 시설이 돌아가고 있어야 (전기 포함)
 }
 
 export interface Effect {

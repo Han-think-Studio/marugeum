@@ -95,6 +95,11 @@ export function generateMap(rng: Rng): MapNode[] {
       camp: false,
       store: null,
       equip: [],
+      genOn: false,
+      heaterOn: false,
+      fuelClock: 0,
+      heaterClock: 0,
+      freshDay: 0,
     };
     nodes.push(node);
     return node;

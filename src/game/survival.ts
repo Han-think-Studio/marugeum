@@ -2,6 +2,7 @@ import { Rng } from '../core/rng';
 import { INDOOR, REGROWS, REGROW_DAYS, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
 import { hasEquip } from './equip';
+import { facilityRunning, spoilFresh, tickFacilities } from './facilities';
 import { addLog } from './log';
 
 export type Activity = 'travel' | 'rest' | 'sleep' | 'forage' | 'work';
@@ -36,10 +37,12 @@ export interface TickOpts {
 }
 
 // 한 시간이 흐를 때 몸에 일어나는 일
-function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickOpts): void {
+function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, opts: TickOpts): void {
   const night = isNight(state.hour);
   const indoor = act !== 'travel' && INDOOR.has(node.kind);
   const camp = indoor && node.camp;
+  const heater = camp && facilityRunning(node, 'heater');
+  const lamp = camp && facilityRunning(node, 'lamp');
 
   // 허기, 갈증
   add(state, 'hunger', act === 'sleep' ? -0.8 : act === 'travel' ? -1.6 : -1.0);
@@ -67,6 +70,7 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickO
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
   if (camp && act === 'sleep') add(state, 'temp', 2);
   if (fire) add(state, 'temp', 3);
+  if (heater) add(state, 'temp', 3);
   if (fire && state.fire) {
     state.fire.hours -= 1;
     if (state.fire.hours <= 0) {
@@ -79,9 +83,9 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickO
   add(state, 'rad', radPerHour(state, node, indoor));
 
   // 정신
-  if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0));
+  if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
   else if (act === 'rest') add(state, 'mind', 1);
-  else if (night) add(state, 'mind', -1);
+  else if (night) add(state, 'mind', lamp ? 0 : -1);
   const s = state.stats;
   if (s.hunger < 20 || s.thirst < 20 || s.temp < 30) add(state, 'mind', -1);
   if (s.rad >= 60) add(state, 'mind', -0.8);
@@ -96,6 +100,9 @@ function tickOneHour(state: GameState, node: MapNode, act: Activity, opts: TickO
   if (s.mind <= 0) dmg += 1;
   if (dmg > 0) add(state, 'hp', -dmg);
   else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', camp ? 2.5 : 1.5);
+
+  // 거점 시설은 내가 어디 있든 돈다
+  tickFacilities(state, rng);
 
   // 시계
   state.hour += 1;
@@ -122,6 +129,7 @@ function onNewDay(state: GameState): void {
     16: '이제는 비를 한 번만 맞아도 위험하다.',
   };
   if (notes[state.day]) addLog(state, notes[state.day]);
+  spoilFresh(state);
 }
 
 export interface TickResult {
@@ -131,7 +139,7 @@ export interface TickResult {
 // hours 만큼 시간을 흘린다. 날씨도 함께 흐른다
 export function passHours(state: GameState, rng: Rng, node: MapNode, hours: number, act: Activity, opts: TickOpts = {}): TickResult {
   for (let i = 0; i < hours; i++) {
-    tickOneHour(state, node, act, opts);
+    tickOneHour(state, rng, node, act, opts);
     tickWeather(state, rng, 1);
     if (state.stats.hp <= 0) {
       state.over = 'dead';
