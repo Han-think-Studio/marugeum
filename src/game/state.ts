@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  FAMILY, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId,
+  FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { addLog } from './log';
@@ -16,6 +16,7 @@ export { visibleObjects, hiddenCount } from './objects';
 import { canCarry, equipLabel, hasEquip, heavyCount } from './equip';
 import { isNight, rollWeather } from './weather';
 import { syncFresh } from './facilities';
+import { endStandoff, standoffAct } from './standoff';
 
 export { hasEquip, canCarry, equipLabel } from './equip';
 export { addLog } from './log';
@@ -53,6 +54,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     baseId: 0,
     ending: null,
     photoDay: 0,
+    standoff: null,
     log: [],
     over: 'none',
     overText: '',
@@ -103,7 +105,7 @@ export function foodTotal(s: Supplies): number {
 
 // 이벤트 선택을 기다리는 동안에는 다른 행동을 못 한다
 export function busy(state: GameState): boolean {
-  return state.over !== 'none' || state.event !== null;
+  return state.over !== 'none' || state.event !== null || state.standoff !== null;
 }
 
 export function currentNode(state: GameState): MapNode {
@@ -136,7 +138,21 @@ export function travelHours(state: GameState, from: MapNode, to: MapNode): numbe
   if (state.weather === 'rain') h += 1;
   if (isNight(state.hour)) h += 2 * pen;
   if (state.stats.fatigue < 30) h += 2;
+  h += weightPenalty(state);
   return Math.max(2, Math.round(h));
+}
+
+// 짐 무게. 물 1, 먹을 것 0.5, 땔감 1, 기름 1.5, 부품 0.3. 가벼운 장비 1, 무거운 장비 6
+export function packWeight(state: GameState): number {
+  const p = state.pack;
+  let w = p.water + p.dirty + (p.food + p.fresh) * 0.5 + p.wood + (p.gasoline + p.diesel) * 1.5 + p.parts * 0.3;
+  for (const e of state.equip) w += EQUIP_INFO[e.kind].heavy ? 6 : 1;
+  return Math.round(w * 10) / 10;
+}
+
+// 12 까지는 제값, 그 위로 6 마다 한 시간씩 더 걸린다
+export function weightPenalty(state: GameState): number {
+  return Math.max(0, Math.ceil((packWeight(state) - 12) / 6));
 }
 
 export function timeLabel(state: GameState): string {
@@ -163,7 +179,7 @@ export function travelTo(state: GameState, id: number): boolean {
   const rng = takeRng(state);
   // 이동 중에는 출발지와 도착지의 중간 고도에 노출된다고 본다
   const midway: MapNode = { ...to, alt: (from.alt + to.alt) / 2, side: to.side, camp: false };
-  const res = passHours(state, rng, midway, hours, 'travel', { uphill: to.alt > from.alt + 0.1, known });
+  const res = passHours(state, rng, midway, hours, 'travel', { uphill: to.alt > from.alt + 0.1, known, heavy: weightPenalty(state) > 0 });
   giveRng(state, rng);
   if (res.died) {
     addLog(state, `${to.name}으로 가는 길이었다.`);
@@ -518,6 +534,35 @@ export function boil(state: GameState): boolean {
   afterAction(state);
   return true;
 }
+
+// ---------- 대치 ----------
+
+export function standoffMove(state: GameState, action: StandoffAction): boolean {
+  if (!state.standoff || state.standoff.done || state.over !== 'none') return false;
+  const rng = takeRng(state);
+  const ok = standoffAct(state, rng, action);
+  giveRng(state, rng);
+  if (ok && state.stats.hp <= 0) {
+    state.over = 'dead';
+    state.overText = `${state.day}일째, ${STANDOFF_INFO[state.standoff.kind].name}에게 당했다.`;
+    addLog(state, state.overText);
+    state.standoff = null;
+  }
+  return ok;
+}
+
+export function standoffClose(state: GameState): boolean {
+  if (!state.standoff || !state.standoff.done) return false;
+  const node = currentNode(state);
+  endStandoff(state);
+  const rng = takeRng(state);
+  passHours(state, rng, node, 1, 'work');
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+export { standoffOdds, canThrow } from './standoff';
 
 // ---------- 사진 ----------
 

@@ -1,9 +1,10 @@
-import { ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject } from '../core/types';
+import { ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import {
   WATER_LABEL, atCamp, boil, buildWindbreak, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
-  isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
+  isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
+  canThrow, standoffClose, standoffMove, standoffOdds, weightPenalty,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
@@ -207,6 +208,15 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       } else if (k >= 1 && k <= 4 && pickChoice(state, k - 1)) render();
       return;
     }
+    if (state.standoff) {
+      if (state.standoff.done) {
+        if (e.key === 'Enter' || e.key === ' ' || k === 1) { if (standoffClose(state)) render(); }
+      } else {
+        const acts: StandoffAction[] = ['threaten', 'retreat', 'throw', 'fight'];
+        if (k >= 1 && k <= 4 && standoffMove(state, acts[k - 1])) render();
+      }
+      return;
+    }
     if (k >= 1 && k <= 6) {
       const target = neighbors(state)[k - 1];
       if (target && travelTo(state, target.id)) render();
@@ -267,8 +277,10 @@ function renderHud(refs: Refs, state: GameState): void {
     refs.place.after(el);
     return el;
   })();
+  const wt = packWeight(state);
+  const wpen = weightPenalty(state);
   packLine.innerHTML =
-    `<span>배낭</span> 물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted"> (신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
+    `<span>배낭</span> <span class="${wpen ? 'heavy' : ''}" title="12까지는 제값, 그 위로 6마다 이동 한 시간씩">무게 ${wt}${wpen ? ` (+${wpen}시간)` : ''}</span> · 물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food + p.fresh}/${cap.food}${p.fresh ? `<span class="muted"> (신선 ${p.fresh})</span>` : ''} · 땔감 ${p.wood}/${cap.wood}` +
     `${p.gasoline ? ` · 휘발유 ${p.gasoline}` : ''}${p.diesel ? ` · 경유 ${p.diesel}` : ''}${p.parts ? ` · 부품 ${p.parts}` : ''}` +
     `${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}`;
 }
@@ -294,6 +306,12 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
 
   if (state.event) {
     renderEvent(refs, state, rerender);
+    return;
+  }
+
+  if (state.standoff) {
+    refs.hud.parentElement!.classList.add('has-event');
+    renderStandoff(refs, state, rerender);
     return;
   }
 
@@ -415,4 +433,46 @@ function toggleFullscreen(): void {
   }
   if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
   else document.documentElement.requestFullscreen().catch(() => undefined);
+}
+
+// 대치 화면. 상대의 기세와 거리, 수마다 확률
+function renderStandoff(refs: Refs, state: GameState, rerender: () => void): void {
+  const s = state.standoff!;
+  const info = STANDOFF_INFO[s.kind];
+  const box = document.createElement('div');
+  box.className = 'event standoff appear';
+  const dist = ['코앞', '가까움', '멀다'][s.distance];
+  const threatPct = Math.max(0, Math.min(100, s.threat));
+  box.innerHTML =
+    `<h3>대치 · ${info.name}</h3>` +
+    `<div class="so-status"><span>기세</span><i class="so-bar"><i style="width:${threatPct}%"></i></i><span class="muted">${Math.round(threatPct)}</span><span class="so-dist">거리 ${dist}</span><span class="so-round">${s.round}수</span></div>` +
+    `<div class="so-log">${s.log.slice(-4).map((l, i, a) => `<p class="${i === a.length - 1 ? 'latest' : ''}">${l}</p>`).join('')}</div>`;
+  if (s.done) {
+    const b = document.createElement('button');
+    b.className = 'ok';
+    b.innerHTML = `<span class="num">1</span> 계속`;
+    b.addEventListener('click', () => { if (standoffClose(state)) rerender(); });
+    box.appendChild(b);
+  } else {
+    const list = document.createElement('div');
+    list.className = 'event-choices';
+    const acts: StandoffAction[] = ['threaten', 'retreat', 'throw', 'fight'];
+    const hints: Record<StandoffAction, string> = {
+      threaten: s.kind === 'deserter' ? '말로 밀어붙인다' : '소리치고 팔을 휘두른다',
+      retreat: '눈을 떼지 않고 물러선다. 멀어지면 끝',
+      throw: info.throwItem === 'food' ? (s.kind === 'deserter' ? '먹을 것 1을 주고 끝낸다' : '먹을 것 1을 던진다') : '땔감 1을 던진다. 불붙은 가지면 더 세다',
+      fight: s.kind === 'boar' ? '두 번 맞히면 고기' : s.kind === 'dogs' ? '앞장선 놈을 친다' : '총을 쳐 낸다',
+    };
+    acts.forEach((a, i) => {
+      const b = document.createElement('button');
+      const enabled = a !== 'throw' || canThrow(state);
+      b.disabled = !enabled;
+      const odds = Math.round(standoffOdds(state, a) * 100);
+      b.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${STANDOFF_ACTION_LABEL[a]}</span><span class="meta">${enabled ? `${odds}% · ` : '던질 것이 없다 · '}${hints[a]}</span>`;
+      b.addEventListener('click', () => { if (standoffMove(state, a)) rerender(); });
+      list.appendChild(b);
+    });
+    box.appendChild(list);
+  }
+  refs.choices.appendChild(box);
 }

@@ -215,6 +215,7 @@ export interface GameState {
   baseId: number; // 시작 거점 노드
   ending: EndingId | null; // 어떻게 끝났나
   photoDay: number; // 마지막으로 사진을 본 날
+  standoff: Standoff | null; // 지금 벌어지는 대치
   log: string[];
   over: 'none' | 'dead' | 'won';
   overText: string;
@@ -264,6 +265,7 @@ export interface Effect {
   poisonWell?: boolean; // 이 자리의 물을 못 쓰게 된다
   clue?: string; // 가족 단서를 얻는다
   ending?: EndingId; // 여정이 이렇게 끝난다
+  standoff?: StandoffKind; // 대치가 시작된다
   objUsed?: boolean; // 이 사물을 다 썼다 (object 이벤트에서)
   objRemove?: boolean; // 이 사물이 사라진다
   bury?: boolean; // 묻어 준다. 두 시간, 수첩에 이름
@@ -393,3 +395,30 @@ export const ENDING_INFO: Record<EndingId, { title: string; short: string }> = {
 };
 
 export const FAMILY = { spouse: '수연', child: '하율' };
+
+// ---------- 대치 ----------
+// 위험한 조우는 주사위 한 번이 아니라 서너 수의 공방이다. 상대의 기세와 거리가 보이고 수마다 확률이 보인다
+
+export type StandoffKind = 'boar' | 'dogs' | 'deserter';
+export type StandoffAction = 'threaten' | 'retreat' | 'throw' | 'fight';
+
+export interface Standoff {
+  kind: StandoffKind;
+  round: number;
+  threat: number; // 0..100 상대의 기세. 0이면 물러난다
+  distance: 0 | 1 | 2; // 0 코앞, 1 가까움, 2 멂
+  hits: number; // 내가 맞힌 횟수
+  cool: number; // 상대가 다시 달려들기까지 남은 수
+  log: string[];
+  done: null | 'fled' | 'driven' | 'killed' | 'escaped' | 'lost'; // 끝난 방식
+}
+
+export const STANDOFF_INFO: Record<StandoffKind, { name: string; threat: number; charge: number; throwItem: 'food' | 'wood'; intro: string }> = {
+  boar: { name: '멧돼지', threat: 70, charge: 12, throwItem: 'wood', intro: '멧돼지가 콧김을 뿜으며 앞발로 땅을 긁는다. 어깨가 허리까지 온다.' },
+  dogs: { name: '들개 떼', threat: 60, charge: 7, throwItem: 'food', intro: '들개 넷이 반원으로 다가온다. 앞장선 놈의 목에 목줄 자국이 있다.' },
+  deserter: { name: '탈영병', threat: 55, charge: 10, throwItem: 'food', intro: '총구가 가슴을 겨눈다. 손이 떨리는 건 그도 마찬가지다.' },
+};
+
+export const STANDOFF_ACTION_LABEL: Record<StandoffAction, string> = {
+  threaten: '위협한다', retreat: '물러선다', throw: '던진다', fight: '맞선다',
+};

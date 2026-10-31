@@ -224,3 +224,13 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 
 .end .ending-art { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; max-height: 340px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
 .end h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: 0.2em; }
+
+.packline .heavy { color: var(--warn); }
+.standoff { border-color: var(--warn); }
+.standoff h3 { color: var(--warn); }
+.so-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.so-bar { display: inline-block; width: 160px; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.so-bar > i { display: block; height: 100%; background: var(--warn); transition: width 0.4s; }
+.so-dist, .so-round { padding-left: 10px; border-left: 1px solid var(--line); }
+.so-log p { margin: 0 0 4px; font-size: 14px; color: var(--muted); }
+.so-log p.latest { color: var(--ink); }

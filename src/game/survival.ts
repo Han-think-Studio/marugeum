@@ -37,6 +37,7 @@ export function radPerHour(state: GameState, node: MapNode, indoor: boolean): nu
 export interface TickOpts {
   uphill?: boolean;
   known?: boolean; // 아는 길이면 덜 지친다
+  heavy?: boolean; // 짐이 무거우면 더 지친다
 }
 
 // 한 시간이 흐를 때 몸에 일어나는 일
@@ -56,7 +57,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 피로
   if (act === 'travel') {
     const base = opts.uphill ? -4.2 : -3.0;
-    add(state, 'fatigue', base * (night ? 1.4 : 1) * (opts.known ? 0.8 : 1));
+    add(state, 'fatigue', base * (night ? 1.4 : 1) * (opts.known ? 0.8 : 1) * (opts.heavy ? 1.3 : 1));
   } else if (act === 'rest') add(state, 'fatigue', 5);
   else if (act === 'sleep') add(state, 'fatigue', camp ? 12 : indoor ? 11 : 8);
   else if (act === 'work') add(state, 'fatigue', -2.5);

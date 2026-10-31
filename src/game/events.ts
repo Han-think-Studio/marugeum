@@ -4,6 +4,7 @@ import {
 } from '../core/types';
 import { canCarry, hasEquip } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
+import { startStandoff } from './standoff';
 import { EVENTS } from '../data/events';
 import { OBJECT_EVENTS } from '../data/objects';
 import { addLog } from './log';
@@ -181,6 +182,7 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
   if (e.cave) node.cave = true;
+  if (e.standoff) startStandoff(state, e.standoff);
   const obj = state.event?.objectId !== undefined ? node.objects.find((x) => x.id === state.event!.objectId) : undefined;
   if (e.bury && obj) {
     state.buried.push(obj.name);

@@ -168,10 +168,7 @@ export const EVENTS: EventDef[] = [
     when: { kinds: ['military'] },
     choices: [
       { text: '먹을 것을 준다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '그는 받자마자 봉지를 뜯어 입에 넣었다. 총구는 끝까지 내려가지 않았다. "꺼져. 북쪽은 다 죽었어." 그의 명찰에 "이"자만 남아 있었다.', effects: { food: -1, mind: -3, flag: 'deserter_met' } }] },
-      { text: '없다고 한다', hint: '위험', outcomes: [
-        { chance: 0.5, text: '그는 배낭을 뒤집어 보더니 침을 뱉고 돌아섰다. 거짓말이 통했는지, 그냥 지쳤는지 모르겠다.', effects: { mind: -2, flag: 'deserter_met' } },
-        { text: '개머리판이 날아왔다. 정신을 차렸을 때 배낭의 먹을 것은 전부 사라져 있었다.', effects: { hp: -20, foodAll: true, mind: -10 } },
-      ] },
+      { text: '없다고 한다', hint: '대치', outcomes: [{ text: '"없어." 그의 눈이 배낭으로 갔다가 돌아왔다.', effects: { flag: 'deserter_met', standoff: 'deserter' } }] },
       { text: '달아난다', hint: '2시간 · 위험', outcomes: [
         { chance: 0.3, text: '등 뒤에서 총성. 허벅지가 뜨겁다. 스친 것뿐이지만 한참을 절뚝거렸다.', effects: { hp: -15, fatigue: -15, hours: 2 } },
         { text: '비탈을 굴러 내려왔다. 그는 쫓아오지 않았다. 총알이 아까웠을 것이다.', effects: { fatigue: -15, hours: 2 } },
@@ -220,10 +217,7 @@ export const EVENTS: EventDef[] = [
     choices: [
       { text: '나무 위로 피한다', hint: '1시간 · 피로', outcomes: [{ text: '한 시간을 가지 위에서 버텼다. 녀석은 밑동을 들이받다가 흥미를 잃고 갔다.', effects: { fatigue: -10, hours: 1 } }] },
       { text: '불을 들이댄다', hint: '땔감 1', req: { wood: 1 }, outcomes: [{ text: '마른 가지에 불을 붙여 휘둘렀다. 녀석은 뒷걸음질 치다가 사라졌다. 심장이 한참을 뛰었다.', effects: { wood: -1, mind: 2 } }] },
-      { text: '맞선다', hint: '고기 · 큰 위험', outcomes: [
-        { chance: 0.4, text: '돌로 머리를 쳤다. 몇 번인지 모른다. 피비린내 속에서 고기를 발랐다. 오늘은 먹는다.', effects: { food: 3, hp: -8, mind: -4 } },
-        { text: '엄니가 허벅지를 찢었다. 녀석이 돌아서 가는 걸 보며 지혈만 했다.', effects: { hp: -25, mind: -8 } },
-      ] },
+      { text: '맞선다', hint: '대치', outcomes: [{ text: '돌을 주워 들었다. 녀석이 앞발로 땅을 긁는다.', effects: { standoff: 'boar' } }] },
     ],
   },
   {
@@ -374,10 +368,7 @@ export const EVENTS: EventDef[] = [
     choices: [
       { text: '불을 키운다', hint: '불 필요', req: { fire: true }, outcomes: [{ text: '가지를 던져 넣자 불꽃이 치솟았다. 녀석들은 불빛 끝에서 서성이다 물러갔다.', effects: { mind: -2 } }] },
       { text: '먹을 것을 던진다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '봉지를 멀리 던졌다. 녀석들이 그쪽으로 달려가 싸우는 소리를 들으며 다시 누웠다.', effects: { food: -1, mind: -3 } }] },
-      { text: '소리치며 막대를 휘두른다', hint: '위험', outcomes: [
-        { chance: 0.6, text: '목이 쉬도록 소리쳤다. 녀석들은 물러갔지만 날이 샐 때까지 잠들지 못했다.', effects: { mind: -5, fatigue: -15 } },
-        { text: '한 마리가 달려들어 종아리를 물었다. 배낭을 끌고 가려는 걸 겨우 뺏었지만 먹을 것 하나는 녀석 입에 있었다.', effects: { hp: -15, food: -1, mind: -8 } },
-      ] },
+      { text: '일어나 맞선다', hint: '대치', outcomes: [{ text: '막대를 쥐고 일어섰다. 놈들이 반원을 좁혀 온다.', effects: { standoff: 'dogs' } }] },
     ],
   },
   {
