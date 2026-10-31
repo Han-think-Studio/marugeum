@@ -134,6 +134,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   });
   window.addEventListener('keydown', (e) => {
     audio.unlock();
+    if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); return; }
     if (e.key.toLowerCase() === 'm') { audio.toggleMuted(); renderHud(refs, state); return; }
     if (root.querySelector('.overlay')) return;
     if (e.key === 'Escape') { openMenu(); return; }
@@ -312,4 +313,20 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
     box.appendChild(b);
   }
   refs.choices.appendChild(box);
+}
+
+// 전체화면. 데스크톱 앱(Tauri)이면 창을, 브라우저면 문서를 전체화면으로
+interface TauriWindow {
+  isFullscreen(): Promise<boolean>;
+  setFullscreen(v: boolean): Promise<void>;
+}
+function toggleFullscreen(): void {
+  const tauri = (window as unknown as { __TAURI__?: { window: { getCurrentWindow(): TauriWindow } } }).__TAURI__;
+  if (tauri) {
+    const w = tauri.window.getCurrentWindow();
+    w.isFullscreen().then((f) => w.setFullscreen(!f)).catch(() => undefined);
+    return;
+  }
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+  else document.documentElement.requestFullscreen().catch(() => undefined);
 }

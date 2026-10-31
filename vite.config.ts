@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: './',
-  server: { port: 5173, strictPort: false },
-  build: { target: 'es2020', outDir: 'dist' },
+  clearScreen: false,
+  server: { port: 5173, strictPort: true },
+  build: { target: ['es2021', 'chrome100', 'safari13'], outDir: 'dist' },
 });
