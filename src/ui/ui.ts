@@ -340,8 +340,10 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   if (!ev || !state.event) return;
   const box = document.createElement('div');
   box.className = 'event appear';
+  // public/art/event-<id>.png 가 있으면 본문 위에 삽화가 뜬다. 없으면 조용히 사라진다
+  const art = `<img class="event-art" src="./art/event-${ev.id}.png" alt="" onerror="this.remove()">`;
   if (state.event.result === null) {
-    box.innerHTML = `<h3>${ev.title}</h3><p>${ev.text}</p>`;
+    box.innerHTML = `${art}<h3>${ev.title}</h3><p>${ev.text}</p>`;
     const list = document.createElement('div');
     list.className = 'event-choices';
     ev.choices.forEach((c, i) => {
@@ -356,7 +358,7 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
     });
     box.appendChild(list);
   } else {
-    box.innerHTML = `<h3>${ev.title}</h3><p class="result">${state.event.result}</p>`;
+    box.innerHTML = `${art}<h3>${ev.title}</h3><p class="result">${state.event.result}</p>`;
     const b = document.createElement('button');
     b.className = 'ok';
     b.innerHTML = `<span class="num">1</span> 계속`;

@@ -17,6 +17,14 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
   const won = o.journal.runs.filter((r) => r.over === 'won').length;
   const el = document.createElement('div');
   el.className = 'overlay title';
+  // public/art/title.png 가 있으면 제목 화면 배경이 된다
+  const bg = new Image();
+  bg.onload = () => {
+    el.style.backgroundImage = `linear-gradient(rgba(6,9,13,0.55), rgba(6,9,13,0.85)), url(./art/title.png)`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+  };
+  bg.src = './art/title.png';
   el.innerHTML = `
     <div class="card">
       <h1>마루금</h1>
