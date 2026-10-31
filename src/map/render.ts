@@ -1,4 +1,5 @@
 import { KIND_GLYPH, type GameState, type MapNode } from '../core/types';
+import { isNight } from '../game/weather';
 import { STAGES } from './generate';
 
 export interface View {
@@ -61,13 +62,18 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   const { w, h } = v;
   ctx.clearRect(0, 0, w, h);
 
-  // 하늘
+  // 하늘. 시간에 따라 밝기가 바뀐다
+  const dark = darkness(state.hour);
   const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#0c1320');
-  sky.addColorStop(0.6, '#1a2538');
-  sky.addColorStop(1, '#2a2f33');
+  sky.addColorStop(0, mix('#0c1320', '#3a5a8a', 1 - dark));
+  sky.addColorStop(0.6, mix('#1a2538', '#6d8fb8', 1 - dark));
+  sky.addColorStop(1, mix('#2a2f33', '#9fb3c8', 1 - dark));
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
+  if (state.weather === 'cloud' || state.weather === 'rain') {
+    ctx.fillStyle = `rgba(40, 45, 55, ${state.weather === 'rain' ? 0.45 : 0.3})`;
+    ctx.fillRect(0, 0, w, h);
+  }
 
   // 먼 산 (한 겹 뒤)
   const ridge = ridgeLine(state, v);
@@ -160,6 +166,32 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     }
   }
 
+  // 비와 안개
+  if (state.weather === 'rain') {
+    ctx.strokeStyle = 'rgba(200, 220, 255, 0.35)';
+    ctx.lineWidth = 1;
+    const slant = state.wind === 'E' ? -6 : state.wind === 'W' ? 6 : 2;
+    for (let i = 0; i < 140; i++) {
+      const rx = ((i * 97) % w) + ((state.hour * 13) % 17);
+      const ry = ((i * 61 + state.day * 7) % h);
+      ctx.beginPath();
+      ctx.moveTo(rx, ry);
+      ctx.lineTo(rx + slant, ry + 14);
+      ctx.stroke();
+    }
+  } else if (state.weather === 'fog') {
+    ctx.fillStyle = 'rgba(200, 205, 210, 0.28)';
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 바람 표시
+  if (state.wind !== 'calm') {
+    ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.textAlign = 'center';
+    ctx.fillText(state.wind === 'E' ? '동풍 ◀' : '▶ 서풍', w / 2, 16);
+  }
+
   // 방향 표시
   ctx.font = '11px "Noto Sans KR", "Malgun Gothic", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
@@ -167,4 +199,21 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   ctx.fillText('남 · 지리산', 10, h - 10);
   ctx.textAlign = 'right';
   ctx.fillText('북 · 향로봉', w - 10, h - 10);
+}
+
+// 0 낮 .. 1 깊은 밤
+function darkness(hour: number): number {
+  if (isNight(hour)) return hour >= 22 || hour < 4 ? 1 : 0.8;
+  if (hour < 7) return 0.55;
+  if (hour < 9) return 0.25;
+  if (hour < 17) return 0.1;
+  if (hour < 19) return 0.35;
+  return 0.6;
+}
+
+function mix(a: string, b: string, t: number): string {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  const c = pa.map((v, i) => Math.round(v + (pb[i] - v) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }

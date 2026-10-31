@@ -10,16 +10,22 @@ export type NodeKind =
   | 'military'
   | 'goal';
 
+// 능선 위인지, 동쪽 사면인지, 서쪽 사면인지. 바다 쪽 바람이 불면 그쪽 사면이 위험하다
+export type Side = 'ridge' | 'E' | 'W';
+
 export interface MapNode {
   id: number;
   stage: number;
   kind: NodeKind;
   name: string;
   alt: number; // 0..1 고도. 높을수록 깨끗하지만 춥다
+  side: Side;
   x: number; // 0..1 정규화 좌표
   y: number;
   links: number[]; // 다음 단계로 이어지는 노드 id
   visited: boolean;
+  forageLeft: number; // 이 노드에서 먹을 것을 더 찾을 수 있는 횟수
+  waterLeft: number; // 물. -1 무제한, 0 없음, n 남은 횟수
 }
 
 export const KIND_LABEL: Record<NodeKind, string> = {
@@ -48,6 +54,17 @@ export const KIND_GLYPH: Record<NodeKind, string> = {
   goal: '終',
 };
 
+// 지붕이 있어 비와 바람을 피할 수 있는 곳
+export const INDOOR: ReadonlySet<NodeKind> = new Set(['temple', 'shelter', 'village', 'military']);
+
+export const SIDE_LABEL: Record<Side, string> = { ridge: '능선', E: '동쪽 사면', W: '서쪽 사면' };
+
+export type Weather = 'clear' | 'cloud' | 'rain' | 'fog';
+export type Wind = 'calm' | 'E' | 'W';
+
+export const WEATHER_LABEL: Record<Weather, string> = { clear: '맑음', cloud: '흐림', rain: '비', fog: '안개' };
+export const WIND_LABEL: Record<Wind, string> = { calm: '바람 없음', E: '동풍', W: '서풍' };
+
 export interface Stats {
   hp: number;
   hunger: number;
@@ -58,6 +75,8 @@ export interface Stats {
   mind: number;
 }
 
+export type StatKey = keyof Stats;
+
 export interface GameState {
   seed: number;
   nodes: MapNode[];
@@ -65,6 +84,11 @@ export interface GameState {
   day: number;
   hour: number; // 0..23
   stats: Stats;
+  weather: Weather;
+  wind: Wind;
+  weatherLeft: number; // 날씨가 바뀌기까지 남은 시간
   log: string[];
   over: 'none' | 'dead' | 'won';
+  overText: string;
+  rngState: number; // 게임 진행용 난수 상태
 }

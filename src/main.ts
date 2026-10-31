@@ -1,5 +1,6 @@
 import './style.css';
 import { createGame } from './game/state';
+import * as api from './game/state';
 import { mountUI } from './ui/ui';
 
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -12,3 +13,8 @@ const seed = param ? Number(param) >>> 0 : (Date.now() ^ (Math.random() * 0xffff
 const state = createGame(seed);
 mountUI(app, state);
 console.log('마루금 seed =', seed);
+
+// 개발 중에는 콘솔에서 상태와 행동을 직접 다룰 수 있게 열어둔다
+if (import.meta.env.DEV) {
+  (window as unknown as { marugeum: unknown }).marugeum = { state, ...api };
+}

@@ -30,6 +30,16 @@ const ALT_RANGE: Record<NodeKind, [number, number]> = {
   goal: [0.9, 0.98],
 };
 
+// 노드 종류별로 먹을 것을 찾아볼 수 있는 횟수
+const FORAGE_TRIES: Record<NodeKind, number> = {
+  start: 0, peak: 1, pass: 1, shelter: 2, spring: 1, temple: 2, military: 2, valley: 2, village: 3, goal: 0,
+};
+
+// 노드 종류별 물. -1 무제한, 0 없음
+const WATER: Record<NodeKind, number> = {
+  start: 0, peak: 0, pass: 0, shelter: 1, spring: -1, temple: -1, military: 2, valley: -1, village: -1, goal: 0,
+};
+
 function nameFor(rng: Rng, kind: NodeKind, region: string): string {
   switch (kind) {
     case 'start':
@@ -66,16 +76,20 @@ export function generateMap(rng: Rng): MapNode[] {
     // 고도가 높을수록 위쪽. 같은 단계 안에서는 slot으로 살짝 벌린다
     const spread = slots > 1 ? (slot / (slots - 1) - 0.5) * 0.08 : 0;
     const y = 0.1 + (1 - alt) * 0.72 + spread;
+    const onRidge = kind === 'start' || kind === 'goal' || kind === 'peak' || kind === 'pass';
     const node: MapNode = {
       id: nodes.length,
       stage,
       kind,
       name: nameFor(rng, kind, REGIONS[stage]),
       alt,
+      side: onRidge ? 'ridge' : rng.chance(0.5) ? 'E' : 'W',
       x,
       y: Math.min(0.9, Math.max(0.08, y)),
       links: [],
       visited: false,
+      forageLeft: FORAGE_TRIES[kind],
+      waterLeft: WATER[kind],
     };
     nodes.push(node);
     return node;
@@ -97,6 +111,9 @@ export function generateMap(rng: Rng): MapNode[] {
     if (!list.some((n) => n.alt >= 0.75)) {
       const n = list[0];
       n.kind = 'peak';
+      n.side = 'ridge';
+      n.forageLeft = FORAGE_TRIES.peak;
+      n.waterLeft = 0;
       n.alt = rng.range(0.82, 1.0);
       n.y = 0.1 + (1 - n.alt) * 0.72;
       n.name = nameFor(rng, 'peak', REGIONS[s]);
