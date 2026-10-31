@@ -646,4 +646,54 @@ export const EVENTS: EventDef[] = [
       { text: '낙하산 천부터 챙긴다', outcomes: [{ text: '낙하산 천을 잘라 배낭에 넣었다. 비를 막고 몸을 덮을 수 있다. 상자도 열었다.', effects: { water: 2, food: 2, parts: 1, gear: 'blanket', mind: 10, flag: 'drop_found' } }] },
     ],
   },
+
+  // ---------- 차량에서 연료 뽑기 ----------
+  {
+    id: 'pass_siphon',
+    trigger: 'arrive',
+    title: '멈춘 차들',
+    text: '고갯길에 승용차 몇 대가 문을 연 채 서 있다. 연료 주입구를 열어 보니 기름 냄새가 올라온다. 호스만 있으면 뽑을 수 있다. 트렁크의 세차용 호스가 보인다.',
+    weight: 2,
+    when: { kinds: ['pass'], noFlag: 'siphon_pass_done' },
+    choices: [
+      { text: '호스로 휘발유를 뽑는다', hint: '2시간 · 휘발유', outcomes: [
+        { chance: 0.75, text: '입으로 빨아 올리다 한 모금 삼켰다. 토하면서도 통을 채웠다. 휘발유 냄새가 하루 종일 났다.', effects: { gasoline: 2, hours: 2, hp: -4, mind: -3, flag: 'siphon_pass_done' } },
+        { text: '연료통은 거의 비어 있었다. 누군가 먼저 뽑아 갔다. 한 통도 안 됐다.', effects: { gasoline: 1, hours: 2, flag: 'siphon_pass_done' } },
+      ] },
+      { text: '차 안만 뒤진다', hint: '1시간', outcomes: [{ text: '글로브박스에서 손전등 건전지와 사탕. 뒷좌석 담요는 가져왔다.', effects: { food: 1, hours: 1, gear: 'blanket' } }] },
+      { text: '지나간다', outcomes: [{ text: '기름은 무겁다. 발전기도 없는데 기름부터 챙길 일은 아니다.', effects: {} }] },
+    ],
+  },
+  {
+    id: 'military_siphon',
+    trigger: 'arrive',
+    title: '군용 트럭',
+    text: '위장막 아래 군용 트럭 두 대. 디젤 엔진 냄새가 아직 남아 있다. 연료 탱크는 자물쇠가 없다. 짐칸에 드럼통도 하나 있다.',
+    weight: 2,
+    when: { kinds: ['military'], noFlag: 'siphon_mil_done' },
+    choices: [
+      { text: '경유를 뽑는다', hint: '2시간 · 경유', outcomes: [
+        { chance: 0.7, text: '탱크와 드럼통에서 경유를 뽑았다. 경유는 휘발유보다 냄새가 덜하고 덜 위험하다. 군용 발전기가 있으면 요긴할 것이다.', effects: { diesel: 3, hours: 2, flag: 'siphon_mil_done' } },
+        { text: '드럼통은 비어 있고 탱크에서 조금 나왔다.', effects: { diesel: 1, hours: 2, flag: 'siphon_mil_done' } },
+      ] },
+      { text: '짐칸을 뒤진다', hint: '1시간', outcomes: [
+        { chance: 0.5, text: '공구함과 부품 상자. 군인들이 정비 중이었던 모양이다.', effects: { parts: 2, hours: 1, gear: 'tools' } },
+        { text: '빈 탄약 상자와 군화 한 짝.', effects: { hours: 1 } },
+      ] },
+      { text: '지나간다', outcomes: [{ text: '트럭은 두고 왔다. 짐은 이미 무겁다.', effects: {} }] },
+    ],
+  },
+  {
+    id: 'village_tractor',
+    trigger: 'arrive',
+    title: '경운기',
+    text: '마을 어귀에 경운기가 서 있다. 짐칸에 배추 몇 포기와 기름통. 주인은 밭에 엎드려 있다. 일하다가 그대로.',
+    weight: 2,
+    when: { kinds: ['village'], noFlag: 'tractor_done' },
+    choices: [
+      { text: '기름통과 배추를 챙긴다', hint: '경유 · 신선식', outcomes: [{ text: '경유 한 통과 배추 두 포기. 주인에게 고개를 숙였다. 배추는 빨리 먹어야 한다.', effects: { diesel: 1, fresh: 2, mind: -3, flag: 'tractor_done' } }] },
+      { text: '주인을 묻어 주고 챙긴다', hint: '2시간 · 정신', outcomes: [{ text: '밭 가장자리에 얕게 묻었다. 경운기 열쇠는 그 위에 올려 두었다. 기름통과 배추는 가져왔다.', effects: { diesel: 1, fresh: 2, hours: 2, mind: 6, flag: 'tractor_done' } }] },
+      { text: '지나간다', outcomes: [{ text: '남의 밭이다. 아직은 그런 생각이 남아 있다.', effects: { mind: 2 } }] },
+    ],
+  },
 ];

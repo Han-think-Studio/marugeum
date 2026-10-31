@@ -5,7 +5,7 @@ import {
 } from '../game/state';
 import { audio } from '../audio/engine';
 
-// 거점 화면. 저장고와 배낭 사이 옮기기, 장비 상태와 수리. 시설 작동은 다음 단계
+// 거점 화면. 거점이면 저장고와 시설까지, 아니면 짐 정리(두고 가기·가져가기·수리)만
 export function showBase(root: HTMLElement, state: GameState, rerender: () => void): HTMLElement {
   const old = root.querySelector('.overlay.base');
   if (old) old.remove();
@@ -13,7 +13,8 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
   const el = document.createElement('div');
   el.className = 'overlay base';
   const draw = () => {
-    const st = node.store!;
+    const camp = node.camp && node.store !== null;
+    const st = node.store ?? { water: 0, dirty: 0, food: 0, fresh: 0, wood: 0, gasoline: 0, diesel: 0, parts: 0 };
     const p = state.pack;
     const cap = packCap(state);
     const capOf = (k: string): string => {
@@ -62,23 +63,22 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
         <span class="desc muted">${info.desc}</span>
         <span class="ops">
           ${e.broken ? `<button data-rep="${where}" data-i="${i}" ${partsHere <= 0 ? 'disabled' : ''}>수리 ${chance}% · 부품 1 · 2시간</button>` : ''}
-          ${where === 'pack' ? `<button data-eq="toBase" data-i="${i}">거점에 두기</button>` : `<button data-eq="toPack" data-i="${i}" ${canTake ? '' : 'disabled'}>가져가기${canTake ? '' : ' (무거운 장비 한도)'}</button>`}
+          ${where === 'pack' ? `<button data-eq="toBase" data-i="${i}">${node.camp ? '거점에 두기' : '여기 두기'}</button>` : `<button data-eq="toPack" data-i="${i}" ${canTake ? '' : 'disabled'}>가져가기${canTake ? '' : ' (무거운 장비 한도)'}</button>`}
         </span></li>`;
     };
     el.innerHTML = `
       <div class="card wide">
-        <div class="head"><h2>거점 · ${node.name}</h2><span class="muted">${timeLabel(state)}</span><button class="close"><span class="num">Esc</span> 조사 나가기</button></div>
+        <div class="head"><h2>${camp ? '거점' : '짐 정리'} · ${node.name}</h2><span class="muted">${timeLabel(state)}</span><button class="close"><span class="num">Esc</span> ${camp ? '조사 나가기' : '닫기'}</button></div>
         <div class="cols">
           <section>
-            <h3>저장고 ↔ 배낭</h3>
-            <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>
-            <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음.</p>
-            <h3>시설</h3>
-            ${facilities()}
+            ${camp ? `<h3>저장고 ↔ 배낭</h3>
+            <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
+            <p class="muted">무거운 장비 ${heavyCarried(state)}/2 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
+            ${camp ? `<h3>시설</h3>${facilities()}` : '<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p>'}
           </section>
           <section>
-            <h3>거점 장비 <span class="muted">${node.equip.length}</span></h3>
-            ${node.equip.length ? `<ul class="equip">${node.equip.map((e, i) => equipRow(e, i, 'base')).join('')}</ul>` : '<p class="muted">아직 둔 장비가 없다.</p>'}
+            <h3>${camp ? '거점 장비' : '여기 둔 장비'} <span class="muted">${node.equip.length}</span></h3>
+            ${node.equip.length ? `<ul class="equip">${node.equip.map((e, i) => equipRow(e, i, 'base')).join('')}</ul>` : '<p class="muted">둔 장비가 없다.</p>'}
             <h3>지닌 장비 <span class="muted">${state.equip.length}</span></h3>
             ${state.equip.length ? `<ul class="equip">${state.equip.map((e, i) => equipRow(e, i, 'pack')).join('')}</ul>` : '<p class="muted">지닌 장비가 없다.</p>'}
           </section>

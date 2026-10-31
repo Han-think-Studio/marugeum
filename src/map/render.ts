@@ -168,6 +168,12 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fill();
     }
 
+    // 두고 간 장비 표시
+    if (!n.camp && n.equip.length > 0) {
+      ctx.fillStyle = 'rgba(232, 228, 218, 0.8)';
+      ctx.fillRect(x + r + 3, y - 3, 6, 6);
+    }
+
     // 거점 표시
     if (n.camp) {
       ctx.beginPath();

@@ -451,7 +451,8 @@ export function forage(state: GameState): boolean {
           state.equip.push({ kind: found.equip, broken });
           addLog(state, `${found.text} ${EQUIP_INFO[found.equip].label}${broken ? '. 고장 나 있다. 수리하면 쓸 수 있을지도' : ''}.`);
         } else {
-          addLog(state, `${found.text} 하지만 무거운 장비를 더 질 수 없어 두고 왔다.`);
+          node.equip.push({ kind: found.equip, broken });
+          addLog(state, `${found.text} 무거운 장비를 더 질 수 없어 여기 두었다. 나중에 가지러 올 수 있다.`);
         }
       } else if (found.add) {
         addLog(state, `${found.text} ${addSupplies(state, found.add)}.`);
@@ -486,14 +487,14 @@ function partsSource(state: GameState): Supplies | null {
 export function canRepair(state: GameState): boolean {
   if (busy(state) || partsSource(state) === null) return false;
   const node = currentNode(state);
-  return state.equip.some((e) => e.broken) || (node.camp && node.equip.some((e) => e.broken));
+  return state.equip.some((e) => e.broken) || node.equip.some((e) => e.broken);
 }
 
 // 수리. 두 시간과 부품 하나. where 가 'pack' 이면 지닌 장비, 'base' 면 거점 장비
 export function repair(state: GameState, where: 'pack' | 'base', idx: number): boolean {
   if (busy(state)) return false;
   const node = currentNode(state);
-  const list = where === 'pack' ? state.equip : node.camp ? node.equip : [];
+  const list = where === 'pack' ? state.equip : node.equip;
   const item = list[idx];
   if (!item || !item.broken) return false;
   const src = partsSource(state);
@@ -642,10 +643,10 @@ export function moveSupply(state: GameState, key: SupplyKey, dir: 'toBase' | 'to
   return true;
 }
 
-// 장비 하나를 배낭과 거점 사이로 옮긴다
+// 장비 하나를 배낭과 이 자리 사이로 옮긴다. 거점이면 시설이 되고, 아니면 두고 간 짐이 된다
 export function moveEquip(state: GameState, dir: 'toBase' | 'toPack', idx: number): boolean {
   const node = currentNode(state);
-  if (busy(state) || !node.camp) return false;
+  if (busy(state)) return false;
   const from = dir === 'toBase' ? state.equip : node.equip;
   const item = from[idx];
   if (!item) return false;

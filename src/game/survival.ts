@@ -1,5 +1,5 @@
 import { Rng } from '../core/rng';
-import { INDOOR, REGROWS, REGROW_DAYS, type GameState, type MapNode, type StatKey } from '../core/types';
+import { EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
 import { hasEquip } from './equip';
 import { facilityRunning, spoilFresh, tickFacilities } from './facilities';
@@ -39,7 +39,9 @@ export interface TickOpts {
 // 한 시간이 흐를 때 몸에 일어나는 일
 function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, opts: TickOpts): void {
   const night = isNight(state.hour);
-  const indoor = act !== 'travel' && INDOOR.has(node.kind);
+  // 텐트가 있으면 지붕 없는 곳에서도 비와 바람을 반쯤 막는다
+  const tent = act !== 'travel' && !INDOOR.has(node.kind) && hasEquip(state, 'tent');
+  const indoor = act !== 'travel' && (INDOOR.has(node.kind) || tent);
   const camp = indoor && node.camp;
   const heater = camp && facilityRunning(node, 'heater');
   const lamp = camp && facilityRunning(node, 'lamp');
@@ -80,7 +82,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   }
 
   // 피폭
-  add(state, 'rad', radPerHour(state, node, indoor));
+  add(state, 'rad', radPerHour(state, node, indoor) * (tent ? 1.5 : 1));
 
   // 정신
   if (act === 'sleep') add(state, 'mind', (camp ? 3.5 : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
@@ -109,12 +111,20 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   if (state.hour >= 24) {
     state.hour = 0;
     state.day += 1;
-    onNewDay(state);
+    onNewDay(state, rng);
   }
 }
 
 // 자정마다. 자연 자원이 조금 돌아오고, 낙진 소식이 온다
-function onNewDay(state: GameState): void {
+function onNewDay(state: GameState, rng: Rng): void {
+  // 지닌 장비가 닳는다
+  for (const e of state.equip) {
+    const c = WEAR_CHANCE[e.kind] ?? 0;
+    if (!e.broken && c > 0 && rng.chance(c)) {
+      e.broken = true;
+      addLog(state, `${EQUIP_INFO[e.kind].label}가 고장 났다. 험한 길에 부딪히고 젖은 탓이다.`);
+    }
+  }
   for (const n of state.nodes) {
     if (!REGROWS.has(n.kind) || n.forageLeft >= n.forageMax) continue;
     if (state.day - n.lastForageDay >= REGROW_DAYS) {

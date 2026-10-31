@@ -161,7 +161,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       r: () => rest(state), s: () => sleep(state), w: () => drink(state), q: () => fill(state),
       e: () => eat(state), f: () => forage(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
       n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
-      c: () => { if (atCamp(state)) showBase(root, state, render); return false; },
+      c: () => { showBase(root, state, render); return false; },
     };
     const fn = map[e.key.toLowerCase()];
     if (fn && fn()) render();
@@ -263,8 +263,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act(hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1개 · 10시간', () => lightFire(state), canLightFire(state));
   act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
   if (canCamp(state)) act('거점 세우기', 'B', '3시간', () => makeCamp(state));
+  act(atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 장비 · 수리' : `장비 두고 가져가기 · 수리${cur.equip.length ? ` · 여기 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
   if (atCamp(state)) {
-    act('거점 화면', 'C', '저장고 · 장비 · 수리', () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
     act('맡기기', 'G', '배낭을 저장고에', () => deposit(state), Object.values(p).some((v) => v > 0));
     act('챙기기', 'T', '저장고에서 배낭에', () => withdraw(state), !!cur.store && Object.values(cur.store).some((v) => v > 0));
   }
@@ -276,7 +276,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
     const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
     const info = n.visited
-      ? ` · 먹을 것 ${n.forageLeft}회${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}`
+      ? ` · 뒤질 곳 ${n.forageLeft}회${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ' · 거점' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
     btn.className = n.stage < cur.stage ? 'back' : '';
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span>`;

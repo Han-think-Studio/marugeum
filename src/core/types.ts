@@ -119,6 +119,11 @@ export const FRESH_DAYS = 2; // 신선식이 냉장 없이 버티는 날
 export const GEN_BREAK_CHANCE = 0.01; // 발전기가 한 시간 돌 때 고장 날 확률
 export const DIESEL_GEN_BREAK_CHANCE = 0.004;
 
+// 지니고 다니는 장비가 하루 사이 고장 날 확률. 험한 길에서 흔들리고 젖는다
+export const WEAR_CHANCE: Partial<Record<EquipKind, number>> = {
+  lamp: 0.03, radio: 0.03, geiger: 0.02, tools: 0.01, fridge: 0.01, heater: 0.01, generator: 0.01, dieselGenerator: 0.005, tent: 0.02,
+};
+
 export const REPAIR_HOURS = 2;
 export const REPAIR_BASE = 0.55;
 export const REPAIR_WITH_TOOLS = 0.8;
