@@ -1,6 +1,7 @@
 import type { Journal } from '../core/types';
 import { eventTitle, lessons, regionName } from '../game/journal';
 import { REGIONS } from '../map/generate';
+import { audio } from '../audio/engine';
 
 // 제목 화면, 기록 수첩, 메뉴. 전부 게임 위에 얹는 덮개다
 
@@ -42,6 +43,7 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
     else if (e.key === '3' && o.resume) o.onJournal();
   };
   window.addEventListener('keydown', key);
+  el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button')) audio.sfx('click'); });
   root.appendChild(el);
   return el;
 }
@@ -93,6 +95,7 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
   };
   el.querySelector('.close')!.addEventListener('click', close);
   window.addEventListener('keydown', key, true);
+  el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button')) audio.sfx('click'); });
   root.appendChild(el);
   return el;
 }
@@ -132,6 +135,7 @@ export function showMenu(root: HTMLElement, o: MenuOpts): HTMLElement {
   el.querySelector('.journal')!.addEventListener('click', o.onJournal);
   el.querySelector('.title-btn')!.addEventListener('click', () => { close(); o.onTitle(); });
   window.addEventListener('keydown', key, true);
+  el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button')) audio.sfx('click'); });
   root.appendChild(el);
   return el;
 }

@@ -37,6 +37,9 @@ html, body, #app { margin: 0; height: 100%; overflow: hidden; }
 .hud .title { font-weight: 700; letter-spacing: 0.3em; color: var(--accent); margin-right: 6px; }
 .hud .menu-btn { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 26px; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
 .hud .menu-btn:hover { color: var(--ink); border-color: var(--muted); }
+.hud .sound-btn { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 26px; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+.hud .sound-btn.off { color: var(--warn); border-color: var(--warn); text-decoration: line-through; }
+.hud .sound-btn:hover { color: var(--ink); }
 .hud .time { color: var(--muted); }
 .hud .weather { color: var(--muted); padding-left: 10px; border-left: 1px solid var(--line); }
 .hud .pack { color: var(--ink); margin-right: auto; padding-left: 10px; border-left: 1px solid var(--line); }

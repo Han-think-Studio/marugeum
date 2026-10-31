@@ -9,6 +9,8 @@ import { eventById, meetsReq } from '../game/events';
 import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
 import { showJournal, showMenu } from './screens';
+import { audio } from '../audio/engine';
+import { sceneTargets } from '../audio/scene';
 import { radPerHour } from '../game/survival';
 import { envTemp, weatherText } from '../game/weather';
 
@@ -72,6 +74,22 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     drawMap(refs.ctx, state, view, hover);
   };
 
+  // 행동 전후를 비교해 효과음을 고른다
+  let lastNode = state.nodeId;
+  let lastEvent: string | null = state.event ? state.event.id : null;
+  let lastFire = state.fire !== null;
+  const cue = () => {
+    if (state.over === 'dead') audio.sfx('death');
+    else if (state.over === 'won') audio.sfx('arrive');
+    else if (state.nodeId !== lastNode) audio.sfx('step');
+    else if (state.fire !== null && !lastFire) audio.sfx('fire');
+    else audio.sfx('click');
+    if (state.event && state.event.id !== lastEvent && state.event.result === null) audio.sfx('event');
+    lastNode = state.nodeId;
+    lastEvent = state.event ? state.event.id : null;
+    lastFire = state.fire !== null;
+  };
+
   const render = () => {
     if (state.over !== 'none' && !state.recorded) {
       state.recorded = true;
@@ -80,6 +98,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     } else if (state.over === 'none') {
       saveGame(state);
     }
+    if (firstRender) firstRender = false;
+    else cue();
+    audio.apply(sceneTargets(state, state.over !== 'none'));
     drawMap(refs.ctx, state, view, hover);
     renderHud(refs, state);
     renderPanel(refs, state, () => render());
@@ -112,6 +133,8 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (n && travelTo(state, n.id)) render();
   });
   window.addEventListener('keydown', (e) => {
+    audio.unlock();
+    if (e.key.toLowerCase() === 'm') { audio.toggleMuted(); renderHud(refs, state); return; }
     if (root.querySelector('.overlay')) return;
     if (e.key === 'Escape') { openMenu(); return; }
     if (e.key.toLowerCase() === 'j') { showJournal(root, loadJournal(), () => undefined); return; }
@@ -141,13 +164,19 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   });
   window.addEventListener('resize', resize);
   refs.hud.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).classList.contains('menu-btn')) openMenu();
+    const el = e.target as HTMLElement;
+    if (el.classList.contains('menu-btn')) openMenu();
+    if (el.classList.contains('sound-btn')) { audio.toggleMuted(); renderHud(refs, state); }
   });
+  root.addEventListener('pointerdown', () => audio.unlock(), { capture: true });
 
   resize();
+  firstRender = true;
   render();
   return render;
 }
+
+let firstRender = false;
 
 function renderHud(refs: Refs, state: GameState): void {
   const chips = Object.entries(state.stats)
@@ -165,7 +194,7 @@ function renderHud(refs: Refs, state: GameState): void {
   const gear = gearList(state);
   const geiger = state.gear.geiger ? ` · <span class="geiger">☢ ${radPerHour(state, cur, INDOOR.has(cur.kind)).toFixed(1)}/시</span>` : '';
   refs.hud.innerHTML =
-    `<button class="menu-btn" title="메뉴 (Esc)">≡</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
+    `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
     `<span class="pack">물 ${p.water}${dirty}/${cap.water} · 먹을 것 ${p.food}/${cap.food} · 땔감 ${p.wood}/${cap.wood}${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}</span>${chips}`;
 }
