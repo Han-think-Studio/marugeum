@@ -132,7 +132,7 @@ export const EVENTS: EventDef[] = [
     weight: 2,
     when: { kinds: ['village'] },
     choices: [
-      { text: '귀를 기울인다', hint: '1시간', outcomes: [{ text: '"...동해안 전역 접근 금지... 국군과 연합군은 향로봉 일대에 임시 수용소를... 남하하는 북한군 잔존 병력은... 반복합니다..." 방송은 같은 말을 되풀이하다 끊겼다. 거기 사람이 있다.', effects: { mind: 8, hours: 1, flag: 'radio_heard' } }] },
+      { text: '귀를 기울인다', hint: '1시간', outcomes: [{ text: '"...동해안 전역 접근 금지... 국군과 연합군은 향로봉 일대에 임시 수용소를... 비무장지대 동부 산악 측정치 전국 최저... 남하하는 북한군 잔존 병력은... 반복합니다..." 방송은 같은 말을 되풀이하다 끊겼다. 거기 사람이 있다.', effects: { mind: 8, hours: 1, flag: 'radio_heard' } }] },
       { text: '라디오를 챙긴다', outcomes: [{ text: '건전지가 거의 다 됐다. 그래도 가방에 넣었다. 밤에 소리라도 들릴지 모른다.', effects: { mind: 3 } }] },
     ],
   },
@@ -595,7 +595,7 @@ export const EVENTS: EventDef[] = [
         { chance: 0.7, text: '산비탈로 돌아 검문소를 피했다. 세 시간을 더 걸었다. 왜 피했는지 나도 모르겠다.', effects: { hours: 3, fatigue: -15, mind: -5, flag: 'checkpoint_evaded' } },
         { text: '비탈에서 미끄러져 돌에 다리를 찧었다. 검문소 군인이 올라와 나를 부축했다. 결국 측정을 받았다.', effects: { hp: -12, hours: 3, flag: 'checkpoint_pass' } },
       ] },
-      { text: '북쪽 사정을 묻는다', hint: '정보', outcomes: [{ text: '"수용소는 있습니다. 배급은 하루 한 끼. 헬기는 사흘에 한 번. 남쪽에서 오신 분은 당신이 이번 주 둘째입니다." 둘째. 그 말이 오래 남았다. 사진을 보이자 군인은 명단을 넘겼다. "수연, 하율. 엿새 전. 아이는 의무대." 그 말도.', effects: { mind: 8, flag: 'checkpoint_info', clue: 'seorak' } }] },
+      { text: '북쪽 사정을 묻는다', hint: '정보', outcomes: [{ text: '"수용소는 있습니다. 배급은 하루 한 끼. 헬기는 사흘에 한 번. 봄이 되면 수용소를 철책 너머로 옮깁니다. 비무장지대요. 칠십 년 동안 아무도 안 들어갔으니 거기가 제일 깨끗해요. 남쪽에서 오신 분은 당신이 이번 주 둘째입니다." 둘째. 그 말이 오래 남았다. 사진을 보이자 군인은 명단을 넘겼다. "수연, 하율. 엿새 전. 아이는 의무대." 그 말도.', effects: { mind: 8, flag: 'checkpoint_info', clue: 'seorak' } }] },
     ],
   },
 

@@ -37,7 +37,7 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
     <div class="card">
       <h1>마루금</h1>
       <p class="sub">백두대간 생존기</p>
-      <p class="intro">바다는 죽었고 낮은 땅은 비에 젖으면 위험하다.<br>지리산에서 향로봉까지, 능선을 따라 북쪽으로.</p>
+      <p class="intro">바다는 죽었고 낮은 땅은 비에 젖으면 위험하다.<br>칠십 년 동안 아무도 밟지 않은 땅만이 깨끗하다.<br>지리산에서 향로봉까지, 능선을 따라 북쪽으로.</p>
       <div class="menu">
         ${o.resume ? `<button class="primary resume"><span class="num">1</span> 이어하기 <span class="meta">${o.resume.day}일째 · ${o.resume.place}</span></button>` : ''}
         <button class="${o.resume ? '' : 'primary '}new"><span class="num">${o.resume ? 2 : 1}</span> 새 여정</button>
