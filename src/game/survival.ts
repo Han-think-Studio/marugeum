@@ -104,7 +104,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   add(state, 'rad', radNow);
   // 거점에서 배부르고 목마르지 않게 쉬면 몸이 조금씩 피폭을 덜어낸다. 집 거점이 가장 잘
   if (camp && state.stats.hunger > 40 && state.stats.thirst > 40) {
-    if (act === 'sleep') add(state, 'rad', tier >= 3 ? -0.45 : -0.25);
+    if (act === 'sleep') add(state, 'rad', tier >= 3 ? -0.6 : -0.35);
     else if (act === 'rest') add(state, 'rad', -0.15);
   }
 
@@ -122,7 +122,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   if (s.thirst <= 0) dmg += 4;
   if (s.temp < 20) dmg += 3;
   if (s.fatigue <= 0) dmg += 1;
-  if (s.rad >= 60) dmg += (s.rad - 60) / 15;
+  if (s.rad >= 70) dmg += (s.rad - 70) / 12; // 60 이 넘으면 격리동, 70 이 넘으면 몸이 무너지기 시작한다
   if (s.mind <= 0) dmg += 1;
   if (dmg > 0) add(state, 'hp', -dmg);
   else if (act === 'sleep' && s.hunger > 40 && s.thirst > 40) add(state, 'hp', camp ? (tier >= 3 ? 2.5 : 2) : 1.5);
