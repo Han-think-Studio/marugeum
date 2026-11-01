@@ -71,6 +71,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 불 옆이면 거의 식지 않고 오히려 덥혀지고, 담요는 잘 때 추위를 절반으로 줄인다
   const fire = act !== 'travel' && state.fire !== null && state.fire.nodeId === node.id;
   let env = envTemp(state, node);
+  if (act === 'travel' || act === 'work') env += 3; // 몸을 쓰면 데워진다
   if (camp && node.upgrades.includes('roof') && state.weather === 'rain') env += 5; // 비가 새지 않는다
   if (!indoor && state.weather === 'rain' && hasEquip(state, 'raincoat')) env += 5; // 우비
   const chill = Math.max(0, 6 - env);

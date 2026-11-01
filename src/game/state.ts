@@ -217,6 +217,15 @@ export function travelTo(state: GameState, id: number): boolean {
   }
   state.nodeId = id;
   state.view = 'scene';
+  // 거점기에 야영장에서 너무 멀리 오면 종주가 시작된다. 조사는 두 단계까지다
+  if (state.phase === 'base' && to.stage >= 3) {
+    const base = state.nodes[state.baseId];
+    base.genOn = false;
+    base.heaterOn = false;
+    state.phase = 'trek';
+    state.departedDay = state.day;
+    addLog(state, `야영장에서 너무 멀리 왔다. 돌아가지 않기로 한다. ${state.day}일째, 여기서부터 종주다. 발전기는 꺼졌을 것이다.`);
+  }
   const first = !to.visited;
   to.visited = true;
   const dir = to.alt > from.alt + 0.1 ? '올라' : to.alt < from.alt - 0.1 ? '내려' : '걸어';
@@ -510,6 +519,7 @@ function checkSecured(state: GameState, node: MapNode): void {
 
 // 위험한 길(위험 높음)은 안정된 자리에서 아침에만 떠날 수 있다. 막히면 이유를 돌려준다
 export function travelBlock(state: GameState, to: MapNode): string | null {
+  if (to.visited) return null; // 가 본 자리로 돌아가는 길은 안다. 위험은 내가 진다
   if (routeRisk(state, to).level !== 'high') return null;
   const cur = currentNode(state);
   if (!cur.secured) return '위험 높음 · 자리를 안정시켜야 떠난다';

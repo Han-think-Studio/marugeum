@@ -745,4 +745,18 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '로비를 뒤진다', hint: '1시간', outcomes: [{ text: '프런트 뒤에서 생수 두 병과 비상식량. 누가 일부러 남겨 둔 것처럼 종이에 "다음 사람"이라고 적혀 있었다.', effects: { hours: 1, water: 2, food: 1, mind: 4 } }] },
     ],
   },
+  // ---------- 능선 길의 들개 ----------
+  {
+    id: 'ridge_dogs',
+    trigger: 'arrive',
+    title: '길을 막은 들개',
+    text: '능선 길 앞에 들개 떼가 앉아 있다. 여섯, 일곱. 사람이 버린 개들이 이제 능선의 주인이다. 맨 앞의 큰 녀석이 일어선다.',
+    weight: 2,
+    when: { kinds: ['peak', 'pass', 'spring'], phase: 'trek', minDay: 3 },
+    choices: [
+      { text: '맞선다', hint: '대치', outcomes: [{ text: '막대를 쥐고 한 걸음 나섰다. 녀석들이 흩어지며 반원을 그린다.', effects: { standoff: 'dogs' } }] },
+      { text: '먹을 것을 던지고 지나간다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '통조림을 따서 비탈 아래로 굴렸다. 녀석들이 우르르 내려갔다. 그 사이에 지나왔다.', effects: { food: -1, mind: -2 } }] },
+      { text: '멀리 돌아간다', hint: '2시간', outcomes: [{ text: '비탈로 내려가 크게 돌았다. 두 시간. 발소리가 한참 따라오다 끊겼다.', effects: { hours: 2, fatigue: -10, mind: -3 } }] },
+    ],
+  },
 ];

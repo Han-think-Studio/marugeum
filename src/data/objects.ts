@@ -264,7 +264,10 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '바위 사이 풀밭. 산나물과 산딸기, 그리고 모르는 버섯.',
     choices: [
       { text: '칼로 뿌리째 캔다', hint: '칼 · 1시간 · 신선식', req: { gear: 'knife' }, outcomes: [{ text: '칼로 더덕과 도라지 뿌리까지 캤다. 흙냄새가 났다. 신선식 셋.', effects: { fresh: 3, hours: 1, objUsed: true } }] },
-      { text: '아는 것만 뜯는다', hint: '1시간 · 신선식', outcomes: [{ text: '미나리와 산딸기 두 줌. 버섯은 두고 왔다.', effects: { fresh: 2, hours: 1, objUsed: true } }] },
+      { text: '아는 것만 뜯는다', hint: '1시간 · 신선식', outcomes: [
+        { chance: 0.15, text: '덤불 너머에서 콧김 소리. 멧돼지가 먼저 와서 뿌리를 파고 있었다. 녀석이 고개를 든다.', effects: { hours: 1, standoff: 'boar' } },
+        { text: '미나리와 산딸기 두 줌. 버섯은 두고 왔다.', effects: { fresh: 2, hours: 1, objUsed: true } },
+      ] },
       { text: '버섯도 뜯는다', hint: '위험', outcomes: [
         { chance: 0.6, text: '다행히 먹는 버섯이었다. 배낭이 조금 무거워졌다.', effects: { fresh: 2, hours: 1, objUsed: true } },
         { text: '밤새 토했다. 독버섯이었다.', effects: { hp: -15, hours: 1, mind: -5, objUsed: true } },

@@ -365,7 +365,7 @@ export const EVENTS: EventDef[] = [
     trigger: 'night',
     title: '들개',
     text: '잠결에 눈을 떴다. 어둠 속에 눈이 여럿. 들개 떼다. 목줄 자국이 남은 녀석도 있다. 한때 누군가의 개였다.',
-    weight: 2,
+    weight: 3,
     when: { outdoor: true },
     choices: [
       { text: '불을 키운다', hint: '불 필요', req: { fire: true }, outcomes: [{ text: '가지를 던져 넣자 불꽃이 치솟았다. 녀석들은 불빛 끝에서 서성이다 물러갔다.', effects: { mind: -2 } }] },

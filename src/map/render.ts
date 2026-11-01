@@ -9,16 +9,17 @@ export interface View {
   w: number;
   h: number;
   padX: number;
+  padRight: number; // 오른쪽 여백. 지도 옆 목록이 열려 있으면 넓다
   padTop: number;
   padBottom: number;
 }
 
 export function makeView(w: number, h: number): View {
-  return { w, h, padX: 36, padTop: 28, padBottom: 24 };
+  return { w, h, padX: 36, padRight: 36, padTop: 28, padBottom: 24 };
 }
 
 export function toPx(v: View, n: MapNode): [number, number] {
-  const x = v.padX + n.x * (v.w - v.padX * 2);
+  const x = v.padX + n.x * (v.w - v.padX - v.padRight);
   const y = v.padTop + n.y * (v.h - v.padTop - v.padBottom);
   return [x, y];
 }
@@ -113,8 +114,8 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (let s = 0; s < STAGES; s++) {
-    const x0 = v.padX + (s / STAGES) * (w - v.padX * 2);
-    const x1 = v.padX + ((s + 1) / STAGES) * (w - v.padX * 2);
+    const x0 = v.padX + (s / STAGES) * (w - v.padX - v.padRight);
+    const x1 = v.padX + ((s + 1) / STAGES) * (w - v.padX - v.padRight);
     if (s % 2 === 1) { ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(x0, 0, x1 - x0, h); }
     ctx.fillStyle = state.knownStages.includes(s) || state.nodes.some((n) => n.stage === s && n.visited) ? 'rgba(255, 227, 163, 0.8)' : 'rgba(255,255,255,0.3)';
     ctx.fillText(REGIONS[s], (x0 + x1) / 2, 12);

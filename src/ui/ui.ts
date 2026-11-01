@@ -82,6 +82,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   let animating = false;
   const paintTop = () => {
     refs.mapSide.style.display = state.view === 'map' ? '' : 'none';
+    view.padRight = state.view === 'map' && !sideCollapsed ? Math.min(290, view.w * 0.3) : 36;
     if (state.view === 'map') {
       drawMap(refs.ctx, state, view, hover);
       renderMapSide(refs, state);
@@ -123,6 +124,8 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     view = makeView(rect.width, rect.height);
     paintTop();
   };
+  // 지도 옆 목록이 열렸다 닫히면 지도를 다시 맞춘다
+  window.addEventListener('marugeum:side', () => { view.padRight = sideCollapsed ? 36 : Math.min(290, view.w * 0.3); paintTop(); });
 
   // 행동 전후를 비교해 효과음을 고른다
   let lastNode = state.nodeId;
@@ -483,7 +486,7 @@ function renderMapSide(refs: Refs, state: GameState): void {
   refs.mapSide.classList.toggle('collapsed', sideCollapsed);
   if (sideCollapsed) {
     refs.mapSide.innerHTML = '<button class="side-toggle">목록 ◂</button>';
-    refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = false; renderMapSide(refs, state); });
+    refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = false; window.dispatchEvent(new Event('marugeum:side')); });
     return;
   }
   const far = (n: MapNode): string => { const h = hoursTo(state, n.id); return h === null ? '' : h === 0 ? '여기' : `약 ${h}시간`; };
@@ -498,7 +501,7 @@ function renderMapSide(refs: Refs, state: GameState): void {
     (stash.length ? `<h4>둔 물건</h4><ul>${stash.map((n) => row(n, n.equip.map((e) => equipLabel(e)).join(', '))).join('')}</ul>` : '') +
     (dead.length ? `<h4>지난 여정이 끝난 자리</h4><ul>${dead.map((n) => row(n, REGION_OF(n))).join('')}</ul>` : '') +
     `<p class="muted">자리를 가리키면 아는 만큼 보인다. 노란 테두리는 지금 갈 수 있는 곳.</p>`;
-  refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = true; renderMapSide(refs, state); });
+  refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = true; window.dispatchEvent(new Event('marugeum:side')); });
 }
 
 // 대치 화면. 상대의 기세와 거리, 수마다 확률

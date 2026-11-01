@@ -64,12 +64,13 @@ export function isNight(hour: number): boolean {
 
 // 체감 기온. 고도, 밤, 비, 바람으로 낮아지고 북쪽으로 갈수록 춥다
 export function envTemp(state: GameState, node: { alt: number; stage: number }): number {
-  let t = 26 - node.alt * 12 - node.stage * 0.5;
-  if (isNight(state.hour)) t -= 8;
-  else if (state.hour < 8 || state.hour >= 18) t -= 4;
+  let t = 25 - node.alt * 12 - node.stage * 0.5;
+  t -= (state.day - 1) * 0.4; // 늦가을. 날마다 조금씩 추워진다
+  if (isNight(state.hour)) t -= 11;
+  else if (state.hour < 8 || state.hour >= 18) t -= 5;
   if (state.weather === 'rain') t -= 5;
   if (state.weather === 'fog') t -= 2;
-  if (state.wind !== 'calm') t -= 4;
+  if (state.wind !== 'calm') t -= 5;
   return t;
 }
 
