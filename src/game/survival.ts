@@ -102,6 +102,11 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   let radNow = radPerHour(state, node, indoor) * (tentHere ? 1.5 : 1); // 천막은 낙진을 반밖에 못 막는다. 바위는 막는다
   if (!indoor && state.weather === 'rain' && hasEquip(state, 'mask')) radNow *= 0.5; // 방독면
   add(state, 'rad', radNow);
+  // 거점에서 배부르고 목마르지 않게 쉬면 몸이 조금씩 피폭을 덜어낸다. 집 거점이 가장 잘
+  if (camp && state.stats.hunger > 40 && state.stats.thirst > 40) {
+    if (act === 'sleep') add(state, 'rad', tier >= 3 ? -0.45 : -0.25);
+    else if (act === 'rest') add(state, 'rad', -0.15);
+  }
 
   // 정신
   if (act === 'sleep') add(state, 'mind', (camp ? (tier >= 3 ? 3.5 : 3) : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
