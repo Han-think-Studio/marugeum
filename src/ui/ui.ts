@@ -346,6 +346,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     refs.choices.innerHTML =
       `<div class="end ${won ? 'won' : 'dead'}">${art}${ending ? `<h3>${ending.title}</h3>` : ''}<p>${state.overText}</p>` +
       `<p class="epilogue">${endingNotes(state).join('<br>')}</p>` +
+      (ending ? `<p class="after">${ending.after}</p>` : '') +
       `<p class="muted">${ending ? ending.short + ' · ' : ''}기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
       `<button class="restart"><span class="num">1</span> 새 여정</button> <button class="book-btn"><span class="num">J</span> 기록 수첩</button></div>`;
     refs.hud.parentElement!.classList.add('has-event');

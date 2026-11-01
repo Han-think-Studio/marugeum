@@ -10,7 +10,7 @@ import { addLog } from './log';
 import { passHours, radPerHour, warnings } from './survival';
 import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
 
-export { clueCount, clueFoundPlaces } from './events';
+export { clueCount, clueFoundPlaces, eventById, meetsReq } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';

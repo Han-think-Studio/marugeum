@@ -30,11 +30,11 @@ export const PLACES: PlaceDef[] = [
   // 1 지리
   { id: 'cheonwang', links: ['hyangjeok', 'satgatjae'], icon: 'stele', name: '천왕봉', kind: 'peak', stage: 1, alt: 1.0, side: 'ridge', desc: '지리산 꼭대기. 남쪽 하늘이 누렇다. 비석의 글자만 또렷하다. "한국인의 기상 여기서 발원되다."' },
   { id: 'jangteomok', links: ['satgatjae', 'hyangjeok'], name: '장터목 대피소', kind: 'shelter', stage: 1, alt: 0.8, side: 'ridge', desc: '능선 안부의 대피소. 문이 열려 있고 침상에 담요가 흐트러져 있다. 옛날에 장이 서던 자리다.' },
-  { id: 'seongsamjae', links: ['yuksimnyeong', 'baengnyeonsa'], icon: 'bus', name: '성삼재', kind: 'pass', stage: 1, alt: 0.58, side: 'ridge', objects: ['car'], desc: '도로가 넘는 고개. 주차장에 차들이 그대로 서 있다. 대피 버스가 여기서 사람을 태웠다.' },
+  { id: 'seongsamjae', links: ['yuksimnyeong', 'baengnyeonsa'], icon: 'bus', name: '성삼재', kind: 'pass', stage: 1, alt: 0.58, side: 'ridge', water: 1, objects: ['car'], desc: '도로가 넘는 고개. 주차장에 차들이 그대로 서 있다. 대피 버스가 여기서 사람을 태웠다.' },
   { id: 'cheonwangsaem', links: ['hyangjeok', 'satgatjae'], name: '천왕샘', kind: 'spring', stage: 1, alt: 0.88, side: 'E', desc: '천왕봉 아래 바위틈의 샘. 물이 차갑고 맑다. 낙진이 닿기 전의 물이다.' },
 
   // 2 덕유
-  { id: 'yuksimnyeong', links: ['samdobong', 'udureong', 'mulhan'], icon: 'shop', name: '육십령 휴게소', kind: 'pass', stage: 2, alt: 0.55, side: 'ridge', objects: ['car', 'crate'], desc: '전라와 경상을 잇는 고개의 휴게소. 버스 행렬이 쉬어 간 자리다. 매점 유리가 깨져 있다.' },
+  { id: 'yuksimnyeong', links: ['samdobong', 'udureong', 'mulhan'], icon: 'shop', name: '육십령 휴게소', kind: 'pass', stage: 2, alt: 0.55, side: 'ridge', water: 2, objects: ['car', 'crate'], desc: '전라와 경상을 잇는 고개의 휴게소. 버스 행렬이 쉬어 간 자리다. 매점 유리가 깨져 있다.' },
   { id: 'hyangjeok', links: ['samdobong', 'minjuji_shelter'], icon: 'gondola', name: '향적봉', kind: 'peak', stage: 2, alt: 0.95, side: 'ridge', desc: '덕유산 꼭대기. 설천봉 쪽으로 리조트 곤돌라 케이블이 늘어져 있다.' },
   { id: 'satgatjae', links: ['minjuji_shelter', 'samdobong'], name: '삿갓재 대피소', kind: 'shelter', stage: 2, alt: 0.78, side: 'ridge', desc: '남덕유와 향적봉 사이의 대피소. 태양광 판이 아직 지붕에 붙어 있다.' },
   { id: 'baengnyeonsa', links: ['mulhan', 'udureong'], name: '백련사', kind: 'temple', stage: 2, alt: 0.45, side: 'E', desc: '구천동 계곡 끝의 절. 계곡물 소리가 법당까지 올라온다. 동쪽 사면이라 바람을 조심해야 한다.' },
@@ -59,18 +59,18 @@ export const PLACES: PlaceDef[] = [
   // 6 소백
   { id: 'sobaek_biro', links: ['cheonjedan', 'hwabangjae'], name: '소백산 비로봉', kind: 'peak', stage: 6, alt: 1.0, side: 'ridge', desc: '소백산 꼭대기. 나무가 없는 풀밭 능선. 바람이 사람을 밀어낸다.' },
   { id: 'yeonhwa', links: ['cheonjedan', 'hwabangjae'], name: '제2연화봉 대피소', kind: 'shelter', stage: 6, alt: 0.85, side: 'ridge', objects: ['radio'], desc: '능선의 대피소. 옆 봉우리에 천문대의 흰 돔이 서 있다. 밤하늘이 가장 가까운 곳이다.' },
-  { id: 'jungnyeong', links: ['cheoram', 'hwangji', 'hwabangjae'], icon: 'tunnel', name: '죽령', kind: 'pass', stage: 6, alt: 0.6, side: 'ridge', objects: ['car', 'truck'], desc: '천 년 넘은 고갯길. 옛길 아래로 고속도로 터널 입구가 보인다. 차들이 터널 안까지 줄지어 멈춰 있다.' },
+  { id: 'jungnyeong', links: ['cheoram', 'hwangji', 'hwabangjae'], icon: 'tunnel', name: '죽령', kind: 'pass', stage: 6, alt: 0.6, side: 'ridge', water: 2, objects: ['car', 'truck'], desc: '천 년 넘은 고갯길. 옛길 아래로 고속도로 터널 입구가 보인다. 차들이 터널 안까지 줄지어 멈춰 있다.' },
   { id: 'jukgye', links: ['cheoram', 'hwangji'], name: '죽계구곡', kind: 'valley', stage: 6, alt: 0.3, side: 'E', desc: '소백산 동쪽의 계곡. 물이 많고 숲이 짙다. 동쪽 바람이 불면 낙진이 내려앉는 곳이다.' },
 
   // 7 태백
   { id: 'cheonjedan', links: ['hambaek', 'manhangjae'], icon: 'altar', name: '태백산 천제단', kind: 'peak', stage: 7, alt: 0.95, side: 'ridge', objects: [['shrine', '천제단']], desc: '하늘에 제사 지내던 돌 제단. 주목 고사목들이 흰 뼈처럼 서 있다. 누가 제단에 새 돌을 올려 두었다.' },
-  { id: 'hwabangjae', links: ['manhangjae', 'jeongamsa'], name: '화방재', kind: 'pass', stage: 7, alt: 0.62, side: 'ridge', desc: '태백산과 함백산 사이의 고개. 주유소와 휴게소가 있었다. 지금은 문이 열린 채 비어 있다.' },
+  { id: 'hwabangjae', links: ['manhangjae', 'jeongamsa'], name: '화방재', kind: 'pass', stage: 7, alt: 0.62, side: 'ridge', water: 1, desc: '태백산과 함백산 사이의 고개. 주유소와 휴게소가 있었다. 지금은 문이 열린 채 비어 있다.' },
   { id: 'hwangji', links: ['gohan', 'jeongamsa'], name: '황지 연못', kind: 'spring', stage: 7, alt: 0.4, side: 'W', desc: '낙동강이 시작되는 못. 도시 한가운데의 샘이다. 거리는 비어 있고 못은 여전히 솟는다.' },
   { id: 'cheoram', links: ['manhangjae', 'gohan'], icon: 'mine', name: '철암 폐광촌', kind: 'village', stage: 7, alt: 0.4, side: 'E', objects: ['woodpile', 'well'], desc: '탄광이 닫힌 뒤 남은 마을. 선탄장의 검은 건물. 산비탈에 막장 입구가 입을 벌리고 있다.' },
 
   // 8 함백
   { id: 'hambaek', links: ['duta', 'daetjae'], icon: 'antenna', name: '함백산 통신기지', kind: 'military', stage: 8, alt: 0.98, side: 'ridge', desc: '남한에서 여섯째로 높은 산. 꼭대기에 철탑과 군 통신 시설. 철문이 열려 있다.' },
-  { id: 'manhangjae', links: ['daetjae', 'duta'], icon: 'truck', name: '만항재', kind: 'pass', stage: 8, alt: 0.85, side: 'ridge', objects: ['truck'], desc: '포장도로가 넘는 가장 높은 고개. 야생화 밭이었던 곳에 군용 트럭들이 서 있다.' },
+  { id: 'manhangjae', links: ['daetjae', 'duta'], icon: 'truck', name: '만항재', kind: 'pass', stage: 8, alt: 0.85, side: 'ridge', water: 1, objects: ['truck'], desc: '포장도로가 넘는 가장 높은 고개. 야생화 밭이었던 곳에 군용 트럭들이 서 있다.' },
   { id: 'jeongamsa', links: ['daetjae', 'mureung'], name: '정암사', kind: 'temple', stage: 8, alt: 0.5, side: 'E', desc: '부처의 사리를 모셨다는 절. 수마노탑이 산비탈에 서 있다. 법당 안이 따뜻하다.' },
   { id: 'gohan', links: ['mureung', 'daetjae'], icon: 'mine', name: '고한 탄광 마을', kind: 'village', stage: 8, alt: 0.4, side: 'W', objects: ['woodpile'], desc: '골짜기를 따라 늘어선 탄광 마을. 연탄 공장 굴뚝. 집집마다 연탄이 쌓여 있다.' },
 

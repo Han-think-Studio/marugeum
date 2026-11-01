@@ -290,3 +290,4 @@ html[data-text="large"] .stat > i { width: 34px; }
 .place .securing { color: var(--muted); font-size: 12px; }
 .end .epilogue { color: var(--ink); font-size: 13px; line-height: 1.8; opacity: 0.9; }
 .choices .mark { color: var(--accent); }
+.end .after { color: var(--muted); font-size: 13px; line-height: 1.8; border-top: 1px dashed var(--line); padding-top: 8px; }
