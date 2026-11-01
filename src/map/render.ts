@@ -173,6 +173,18 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fillRect(x + r + 3, y - 3, 6, 6);
     }
 
+    // 흔적이 있을 법한 자리. 가족의 쪽지와 사람들의 말이 가리킨 곳
+    if (state.marked.includes(n.place) && !n.visited) {
+      ctx.beginPath();
+      ctx.moveTo(x, y - r - 16);
+      ctx.lineTo(x + 6, y - r - 9);
+      ctx.lineTo(x, y - r - 2);
+      ctx.lineTo(x - 6, y - r - 9);
+      ctx.closePath();
+      ctx.fillStyle = '#f2c76a';
+      ctx.fill();
+    }
+
     // 안정된 자리 표시. 작은 점
     if (n.secured && !n.camp) {
       ctx.beginPath();
@@ -192,8 +204,9 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fill();
     }
 
-    if (isCur || isNext || n.kind === 'goal' || n.camp || n.scouted) {
-      const remembered = state.knownStages.includes(n.stage) || n.scouted;
+    const marked = state.marked.includes(n.place);
+    if (isCur || isNext || n.kind === 'goal' || n.camp || n.scouted || marked || n.visited) {
+      const remembered = state.knownStages.includes(n.stage) || n.scouted || marked;
       ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
       ctx.fillStyle = isCur ? '#ffe3a3' : n.visited || remembered ? '#e8e8e8' : 'rgba(232,232,232,0.75)';
       ctx.fillText(n.visited || isCur || remembered ? n.name : `${n.name.split(' ')[0]} ?`, x, y - r - 10);

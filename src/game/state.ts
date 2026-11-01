@@ -5,6 +5,7 @@ import {
   CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
+import { placeById } from '../data/places';
 import { addLog } from './log';
 import { passHours, radPerHour, warnings } from './survival';
 import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
@@ -21,7 +22,7 @@ import { endStandoff, standoffAct } from './standoff';
 export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt } from './equip';
 export { addLog } from './log';
 
-export function createGame(seed: number, opts: { knownStages?: number[]; runNo?: number } = {}): GameState {
+export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; deadAt?: string[]; runNo?: number } = {}): GameState {
   const mapRng = new Rng(seed);
   const nodes = generateMap(mapRng);
   const stats: Stats = { hp: 100, hunger: 90, thirst: 90, temp: 100, fatigue: 100, rad: 0, mind: 100 };
@@ -45,9 +46,12 @@ export function createGame(seed: number, opts: { knownStages?: number[]; runNo?:
     flags: {},
     event: null,
     seen: [],
+    marked: ['seongsamjae'], // 쪽지가 가리키는 첫 자리
     buried: [],
     view: 'scene',
     knownStages: opts.knownStages ?? [],
+    knownPlaces: opts.knownPlaces ?? [],
+    deadAt: opts.deadAt ?? [],
     runNo: opts.runNo ?? 1,
     started: Date.now(),
     recorded: false,
@@ -218,6 +222,11 @@ export function travelTo(state: GameState, id: number): boolean {
   const dir = to.alt > from.alt + 0.1 ? '올라' : to.alt < from.alt - 0.1 ? '내려' : '걸어';
   const back = to.stage < from.stage ? '되돌아' : '';
   addLog(state, `${hours}시간을 ${back}${dir}가 ${to.name}에 ${first ? '처음 ' : '다시 '}닿았다.${known ? ' 아는 길이라 수월했다.' : ''}`);
+  if (first && to.kind !== 'goal') {
+    addLog(state, placeById(to.place).desc);
+    if (state.deadAt.includes(to.place)) addLog(state, '지난 여정은 여기서 끝났다. 그때 둔 돌무더기가 그대로 있다. 이번에는 지나간다.');
+    else if (state.knownPlaces.includes(to.place)) addLog(state, '지난 여정에 와 본 자리다. 길이 눈에 익다.');
+  }
   if (to.kind === 'goal') {
     addLog(state, '안전지대의 불빛이 보인다. 살아서 도착했다.');
     const rng3 = takeRng(state);
@@ -434,6 +443,29 @@ export function lookAround(state: GameState): boolean {
   }
   afterAction(state);
   return true;
+}
+
+// ---------- 끝에 남는 말 ----------
+// 향로봉에 닿았거나 길에서 끝났을 때, 이 여정이 무엇이었는지 몇 줄로 돌아본다
+export function endingNotes(state: GameState): string[] {
+  const out: string[] = [];
+  const visited = state.nodes.filter((n) => n.visited && n.kind !== 'start');
+  const secured = state.nodes.filter((n) => n.secured && n.kind !== 'start');
+  const camps = state.nodes.filter((n) => n.camp && n.kind !== 'start');
+  out.push(`${state.day}일. ${visited.length}곳을 지났고 ${secured.length}곳에서 자리를 잡았다${camps.length ? `. 거점을 ${camps.length}곳에 세웠다` : ''}.`);
+  if (state.buried.length > 0) out.push(`묻어 준 사람: ${state.buried.join(', ')}.`);
+  const met: string[] = [];
+  if (state.flags['survivor_friend']) met.push('정우');
+  if (state.flags['family_fed']) met.push('그 가족');
+  if (state.flags['deserter_met']) met.push('탈영병');
+  if (state.flags['mine_people']) met.push('폐광 사람들');
+  if (state.flags['monk_letter']) met.push('월정사의 승려');
+  if (state.flags['grandma']) met.push('마을의 할머니');
+  if (met.length > 0) out.push(`길에서 만난 사람: ${met.join(', ')}.`);
+  const clues = clueCount(state);
+  if (clues > 0) out.push(`${FAMILY.spouse}과 ${FAMILY.child}의 흔적 ${clues}개를 따라왔다.`);
+  if (state.runNo > 1) out.push(`${state.runNo}번째 여정이었다.`);
+  return out;
 }
 
 // ---------- 안정과 정찰 ----------

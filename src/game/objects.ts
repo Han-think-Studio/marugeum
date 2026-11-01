@@ -1,13 +1,23 @@
 import { Rng } from '../core/rng';
 import { OBJECT_LABEL, type GameState, type MapNode, type SceneObject } from '../core/types';
 import { BODY_NAMES, PLACE_OBJECTS } from '../data/objects';
+import type { FixedObject } from '../data/places';
 
 // 자리에 사물을 놓는다. 지도를 만들 때 한 번
-export function spawnObjects(rng: Rng, node: MapNode, nextId: () => number): void {
+export function spawnObjects(rng: Rng, node: MapNode, nextId: () => number, fixed: FixedObject[] = []): void {
   const spec = PLACE_OBJECTS[node.kind];
-  const n = rng.int(spec.count[0], spec.count[1]);
   const anchors = [...spec.anchors];
   const used = new Set<string>();
+  // 자리에 정해진 사물부터. 보이는 채로 놓인다
+  for (const f of fixed) {
+    if (anchors.length === 0) break;
+    const kind = Array.isArray(f) ? f[0] : f;
+    const name = Array.isArray(f) ? f[1] : OBJECT_LABEL[kind];
+    used.add(kind);
+    const a = anchors.splice(rng.int(0, anchors.length - 1), 1)[0];
+    node.objects.push({ id: nextId(), kind, x: a[0] + rng.range(-0.03, 0.03), y: a[1] + rng.range(-0.02, 0.02), hidden: false, used: false, usedDay: 0, name });
+  }
+  const n = Math.max(0, rng.int(spec.count[0], spec.count[1]) - fixed.length);
   for (let i = 0; i < n && anchors.length > 0; i++) {
     const total = spec.pool.reduce((a, o) => a + o.weight, 0);
     let r = rng.next() * total;

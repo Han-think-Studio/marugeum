@@ -101,8 +101,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '천왕봉',
     text: '지리산 천왕봉 표석. "한국인의 기상 여기서 발원되다." 표석 위에 누군가 돌을 올려 두었다. 동쪽 하늘이 누렇다. 바다 쪽이다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [1], kinds: ['peak'] },
+    when: { places: ['cheonwang'] },
     choices: [
       { text: '돌을 하나 올린다', outcomes: [{ text: '표석 위에 돌을 올렸다. 수연과 하율도 여기 올라왔을까. 버스는 능선 길로 간다고 했으니 아마 보지 못했을 것이다. 내가 대신 본다.', effects: { mind: 6 } }] },
       { text: '동쪽을 오래 본다', outcomes: [{ text: '누런 하늘 아래 바다가 있다. 거기 있던 사람들을 생각하다가 그만두었다.', effects: { mind: -3 } }] },
@@ -114,8 +115,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '향적봉의 노부부',
     text: '덕유산 향적봉 대피소. 노부부가 난로 앞에 앉아 있다. 할아버지가 말한다. "우리는 여기 있을 거요. 북쪽까지는 못 가. 무릎이." 할머니가 보리차를 내민다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [2], kinds: ['shelter'] },
+    when: { places: ['satgatjae'] },
     choices: [
       { text: '보리차를 마시며 이야기를 듣는다', hint: '1시간', outcomes: [{ text: '그들은 버스 행렬을 봤다고 했다. "아이들 많았어. 열 있는 애도 있고." 할머니가 보리차를 통에 담아 주었다. "물 끓인 거야. 들고 가."', effects: { water: 1, thirst: 30, mind: 8, hours: 1 } }] },
       { text: '먹을 것을 나누고 간다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '할아버지는 받지 않으려다 받았다. "젊은 사람이 더 먹어야지." 그러면서도 받았다. 그게 더 아팠다.', effects: { food: -1, mind: 6 } }] },
@@ -127,8 +129,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '옛 국도',
     text: '삼도봉 아래 국도에 바리케이드. 군 전단이 붙어 있다. "민간인 통제선. 능선 이외 통행 금지. 저지대는 오염." 바리케이드 너머 도로에 버스 바퀴 자국이 북쪽으로 이어진다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [3], kinds: ['pass'] },
+    when: { places: ['udureong'] },
     choices: [
       { text: '바퀴 자국을 따라 조금 걷는다', hint: '1시간', outcomes: [{ text: '자국은 도로를 따라 북쪽으로 가다 능선 길로 꺾였다. 전단이 말한 대로다. 버스는 능선 길로 갔다.', effects: { hours: 1, mind: 4 } }] },
       { text: '능선으로 바로 오른다', outcomes: [{ text: '도로는 낮다. 낮은 곳은 오래 있을 데가 아니다.', effects: {} }] },
@@ -140,8 +143,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '멈춘 열차',
     text: '추풍령 아래 철길에 열차가 서 있다. 문이 전부 열려 있다. 객실에 두고 간 짐과 도시락과 신발. 사람들은 여기서 내려 걸었다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [4], kinds: ['pass', 'village'] },
+    when: { places: ['chupungnyeong'] },
     choices: [
       { text: '객실을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.6, text: '선반에서 생수와 과자, 그리고 담요. 아이 신발 한 짝은 두고 왔다. 하율 것이 아니었다. 확인했다.', effects: { water: 2, food: 1, gear: 'blanket', hours: 1, mind: -3 } },
@@ -156,8 +160,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '문장대',
     text: '속리산 문장대. 바위 꼭대기에서 북쪽이 열린다. 소백산 쪽 하늘에 점 하나. 헬리콥터다. 북쪽으로 간다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [5], kinds: ['peak'] },
+    when: { places: ['munjangdae'] },
     choices: [
       { text: '헬기가 사라질 때까지 본다', outcomes: [{ text: '점이 산 너머로 사라졌다. 북쪽에 헬기가 뜬다. 북쪽에 사람이 있다.', effects: { mind: 8, flag: 'heli_far' } }] },
       { text: '바로 내려간다', outcomes: [{ text: '바위 꼭대기는 바람이 세다. 오래 있을 곳이 아니다.', effects: { mind: 2 } }] },
@@ -169,8 +174,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '천문대',
     text: '소백산 천문대. 돔이 닫혀 있고 안에 사람이 하나 있다. 연구원이라고 했다. "관측은 못 해요. 하늘이 저래서. 대신 낙진은 재고 있어요." 그는 계수기를 보여 줬다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [6], kinds: ['peak', 'military'] },
+    when: { places: ['yeonhwa'] },
     choices: [
       { text: '낙진 이야기를 듣는다', hint: '1시간 · 정보', outcomes: [{ text: '"동풍이 불면 동쪽 사면이 세 배예요. 비는 다섯 배. 고도 천 미터 위는 그나마 낫고요." 그는 여분 계수기를 내밀었다. "저는 두 개 있어요."', effects: { hours: 1, mind: 6, gear: 'geiger' } }] },
       { text: '물을 나눠 달라 한다', outcomes: [{ text: '"빗물은 안 돼요. 저장수는 좀 있어요." 두 통을 받았다. 그는 내 사진을 보더니 고개를 저었다. "여기까지 올라온 사람은 없어요. 다들 능선으로 가죠."', effects: { water: 2, mind: 3 } }] },
@@ -182,8 +188,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '황지',
     text: '태백 황지. 낙동강이 시작되는 연못. 물이 바위 밑에서 솟는다. 사람들이 여기서 물을 받아 갔다. 바닥에 빈 통이 수십 개.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [7], kinds: ['spring', 'valley', 'village'] },
+    when: { places: ['hwangji'] },
     choices: [
       { text: '통을 전부 채운다', hint: '물', outcomes: [{ text: '땅속에서 올라오는 물이다. 비를 맞지 않은 물. 통을 전부 채우고 실컷 마셨다.', effects: { water: 3, thirst: 50, mind: 4 } }] },
       { text: '빈 통들을 본다', outcomes: [{ text: '통마다 이름이 적혀 있었다. 받아 간 사람들의 이름. 수연의 이름은 없었다. 없는 게 다행인지 모르겠다.', effects: { mind: -2 } }] },
@@ -195,8 +202,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '탄광촌',
     text: '함백 아래 탄광촌. 연탄 창고에 연탄이 쌓여 있다. 집집마다 연탄 보일러. 사람들은 떠났지만 연탄은 남았다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [8], kinds: ['village'] },
+    when: { places: ['gohan'] },
     choices: [
       { text: '연탄을 챙긴다', hint: '땔감', outcomes: [{ text: '연탄 네 장을 배낭에 묶었다. 무겁지만 오래 탄다. 손이 검어졌다.', effects: { wood: 3, mind: 2 } }] },
       { text: '집 안을 본다', hint: '30분', outcomes: [
@@ -211,8 +219,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '동해',
     text: '두타산 능선에서 동해가 보인다. 바다 위에 검은 띠. 그리고 떠 있는 것들. 배인지 다른 것인지 멀어서 모르겠다. 모르는 편이 낫다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [9], kinds: ['peak', 'pass'] },
+    when: { places: ['daetjae'] },
     choices: [
       { text: '등을 돌린다', outcomes: [{ text: '북쪽만 보기로 했다. 북쪽에는 아직 연기가 없다.', effects: { mind: -2 } }] },
       { text: '가이거를 켠다', hint: '계수기 필요', req: { gear: 'geiger' }, outcomes: [{ text: '동쪽을 향하자 바늘이 뛰었다. 서쪽을 향하자 내려갔다. 바다는 정말 죽었다. 숫자로 보니 더 확실했다.', effects: { mind: -4, flag: 'sea_measured' } }] },
@@ -224,8 +233,9 @@ export const MORE_EVENTS: EventDef[] = [
     title: '비로봉',
     text: '오대산 비로봉. 북쪽에서 로터 소리. 헬기가 낮게 지나간다. 문이 열려 있고 사람들이 타고 있다. 손을 흔드는 사람도 있다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [10], kinds: ['peak'] },
+    when: { places: ['odae_biro'] },
     choices: [
       { text: '손을 흔든다', outcomes: [{ text: '누군가 흔들어 주었다. 헬기는 향로봉 방향으로 갔다. 사흘에 한 번이라고 했다. 내가 닿을 때까지 몇 번 더 뜰 것이다.', effects: { mind: 10, flag: 'heli_seen2' } }] },
       { text: '바라만 본다', outcomes: [{ text: '손을 흔들 힘이 없었다. 대신 소리가 사라질 때까지 들었다.', effects: { mind: 4 } }] },
@@ -239,7 +249,7 @@ export const MORE_EVENTS: EventDef[] = [
     text: '설악산 대청봉. 북쪽 멀리 불빛이 줄지어 있다. 흔들리지 않는 불빛. 발전기 불빛. 향로봉이다. 걸어서 이틀.',
     once: true,
     weight: 4,
-    when: { stages: [11], kinds: ['peak'] },
+    when: { places: ['daecheong'] },
     choices: [
       { text: '불빛을 센다', outcomes: [{ text: '스물까지 세고 그만두었다. 저기 수연과 하율이 있다. 있어야 한다. 사진을 꺼내 불빛 쪽으로 들었다.', effects: { mind: 12, flag: 'saw_haero' } }] },
       { text: '바로 내려간다', outcomes: [{ text: '보이면 됐다. 걷는다.', effects: { mind: 6 } }] },

@@ -5,7 +5,7 @@ import {
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
-  canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock,
+  canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes,
   canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
@@ -340,6 +340,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const art = ending ? `<img class="ending-art" src="./art/ending-${state.ending}.webp" alt="" onerror="this.remove()">` : '';
     refs.choices.innerHTML =
       `<div class="end ${won ? 'won' : 'dead'}">${art}${ending ? `<h3>${ending.title}</h3>` : ''}<p>${state.overText}</p>` +
+      `<p class="epilogue">${endingNotes(state).join('<br>')}</p>` +
       `<p class="muted">${ending ? ending.short + ' · ' : ''}기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
       `<button class="restart"><span class="num">1</span> 새 여정</button> <button class="book-btn"><span class="num">J</span> 기록 수첩</button></div>`;
     refs.hud.parentElement!.classList.add('has-event');
@@ -410,9 +411,10 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
       ? ` · 사물 ${objs}${water ? ' · 물' : ''}${n.camp ? ` · ${campLabel(n)}` : ''}${n.cave && !n.camp ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}${n.secured ? ' · 안정' : ''}`
       : n.scouted ? ` · 정찰함 · 사물 ${objs}${water ? ' · 물' : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
+    const mark = state.marked.includes(n.place) && !n.visited ? ' · <b class="mark">흔적 ?</b>' : '';
     btn.className = `go${n.stage < cur.stage ? ' back' : ''}`;
     btn.disabled = !!block;
-    btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span><span class="meta">${riskTxt}</span>`;
+    btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}${mark}</span><span class="meta">${riskTxt}</span>`;
     btn.addEventListener('click', () => {
       if (travelTo(state, n.id)) rerender();
     });

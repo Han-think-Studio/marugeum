@@ -17,6 +17,7 @@ export interface MapNode {
   id: number;
   stage: number;
   kind: NodeKind;
+  place: string; // 자리 id. src/data/places.ts
   name: string;
   alt: number; // 0..1 고도. 높을수록 깨끗하지만 춥다
   side: Side;
@@ -229,9 +230,12 @@ export interface GameState {
   flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
   event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
   seen: string[]; // 이번 여정에서 만난 이벤트 id
+  marked: string[]; // 지도에 표시된 자리 id. 흔적이 있을 법한 곳
   buried: string[]; // 묻어 준 사람들
   view: 'scene' | 'map'; // 위쪽 큰 화면에 무엇을 보여 주나
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
+  knownPlaces: string[]; // 지난 여정들에서 가 본 자리
+  deadAt: string[]; // 지난 여정들이 끝난 자리. 다시 가면 떠오른다
   runNo: number; // 몇 번째 여정인지
   started: number; // 시작 시각(ms)
   recorded: boolean; // 수첩에 적혔는지
@@ -258,6 +262,7 @@ export type Trigger = 'arrive' | 'night' | 'start' | 'object' | 'scout';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
+  places?: string[]; // 이 자리(들)에서만. src/data/places.ts 의 id
   stages?: number[]; // 이 지역(단계)에서만. 0 지리 … 11 향로
   weather?: Weather[];
   night?: boolean; // 밤에만 (arrive)
@@ -327,6 +332,7 @@ export interface EventDef {
   weight?: number; // 기본 1
   once?: boolean;
   priority?: boolean; // 처음 온 곳에서 조건이 맞으면 확률 없이 반드시 나온다. 가족의 흔적처럼 놓치면 안 되는 것
+  marks?: string[]; // 이 사건을 만나면 지도에 표시되는 자리들. 흔적이 다음 흔적을 가리킨다
   when?: When;
   choices: Choice[];
 }
@@ -354,6 +360,8 @@ export interface RunRecord {
   buried?: string[]; // 묻어 준 사람들
   ending?: EndingId | null;
   clues?: number;
+  place?: string; // 여정이 끝난 자리 이름
+  placeId?: string;
   endedAt: number;
 }
 
@@ -361,6 +369,7 @@ export interface Journal {
   v: number;
   runs: RunRecord[];
   knownStages: number[]; // 가 본 지역
+  knownPlaces?: string[]; // 가 본 자리 id
   eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
   deaths: Record<string, number>; // 사망 원인별 횟수
 }

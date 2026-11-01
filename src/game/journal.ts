@@ -6,7 +6,7 @@ import { clueCount, eventById } from './events';
 const KEY = 'marugeum.journal.v1';
 
 function empty(): Journal {
-  return { v: 1, runs: [], knownStages: [], eventsSeen: {}, deaths: {} };
+  return { v: 1, runs: [], knownStages: [], knownPlaces: [], eventsSeen: {}, deaths: {} };
 }
 
 export function loadJournal(): Journal {
@@ -15,6 +15,7 @@ export function loadJournal(): Journal {
     if (!raw) return empty();
     const j = JSON.parse(raw) as Journal;
     if (!j || j.v !== 1 || !Array.isArray(j.runs)) return empty();
+    if (!Array.isArray(j.knownPlaces)) j.knownPlaces = [];
     return j;
   } catch {
     return empty();
@@ -61,6 +62,8 @@ export function recordRun(state: GameState): Journal {
     buried: [...state.buried],
     ending: state.ending,
     clues: clueCount(state),
+    place: state.nodes[state.nodeId].name,
+    placeId: state.nodes[state.nodeId].place,
     endedAt: Date.now(),
   };
   j.runs.push(rec);
@@ -69,6 +72,10 @@ export function recordRun(state: GameState): Journal {
     if (n.visited && !j.knownStages.includes(n.stage)) j.knownStages.push(n.stage);
   }
   j.knownStages.sort((a, b) => a - b);
+  const kp = j.knownPlaces ?? (j.knownPlaces = []);
+  for (const n of state.nodes) {
+    if (n.visited && !kp.includes(n.place)) kp.push(n.place);
+  }
   for (const id of state.seen) j.eventsSeen[id] = (j.eventsSeen[id] ?? 0) + 1;
   if (state.over === 'dead') {
     const key = deathKey(state.overText);
@@ -84,6 +91,11 @@ function deathKey(text: string): string {
   if (text.includes('피폭')) return '피폭';
   if (text.includes('굶주림')) return '굶주림';
   return '기타';
+}
+
+// 지난 여정들이 끝난 자리들. 다시 가면 떠오른다
+export function deadPlaces(j: Journal): string[] {
+  return [...new Set(j.runs.filter((r) => r.over === 'dead' && r.placeId).map((r) => r.placeId as string))];
 }
 
 export function regionName(stage: number): string {

@@ -10,8 +10,9 @@ export const EVENTS: EventDef[] = [
     id: 'temple_monk',
     trigger: 'arrive',
     title: '남은 사람',
-    text: '법당 문이 열려 있다. 늙은 승려가 촛불 하나를 켜 두고 앉아 있다. 그는 놀라지 않는다. "올 줄 알았소. 남쪽에서 오는 사람은 다 이 길로 오니까."',
+    text: '법당 문이 열려 있다. 늙은 승려가 촛불 하나를 켜 두고 앉아 있다. 그는 놀라지 않는다. "올 줄 알았소. 남쪽에서 오는 사람은 다 이 길로 오니까." "월정사에 내 제자가 있소. 북으로 가거든 들르시오. 전할 것이 있을 게요."',
     once: true,
+    marks: ['woljeongsa'],
     weight: 3,
     when: { kinds: ['temple'] },
     choices: [
@@ -415,8 +416,9 @@ export const EVENTS: EventDef[] = [
     title: '멈춘 곤돌라',
     text: '덕유산 설천봉. 리조트 곤돌라가 케이블 중간에 멈춰 있다. 가장 가까운 곤돌라 안에 사람들의 윤곽이 보인다. 움직이지 않는다. 정류장 매점은 유리가 깨져 있다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [2] },
+    when: { places: ['hyangjeok'] },
     choices: [
       { text: '매점을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.7, text: '진열대 아래 생수와 초코바가 흩어져 있었다. 곤돌라 쪽은 보지 않으려고 등을 돌리고 주웠다.', effects: { water: 2, food: 1, hours: 1, mind: -3 } },
@@ -431,10 +433,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '삼도봉',
-    text: '세 도가 만나는 봉우리. 기념탑 아래 돌무더기에 쪽지들이 눌려 있다. 수십 장. 이름과 날짜, 어디로 간다는 말. 누군가를 찾는다는 말.',
+    text: '세 도가 만나는 봉우리. 기념탑 아래 돌무더기에 쪽지들이 눌려 있다. 수십 장. 이름과 날짜, 어디로 간다는 말. 누군가를 찾는다는 말. 맨 위 쪽지에 큰 글씨. "환자와 아이들은 법주사 진료소로."',
     once: true,
+    marks: ['beopjusa'],
     weight: 3,
-    when: { stages: [3], kinds: ['peak', 'pass'] },
+    when: { places: ['samdobong'] },
     choices: [
       { text: '쪽지를 전부 읽는다', hint: '1시간 · 정보', outcomes: [{ text: '대부분 북쪽으로 간다고 적혀 있다. 한 장에는 "속리산 법주사에 쌀이 있다"고, 다른 한 장에는 "소백 죽령은 밤에 지나라"고. 그리고 맨 아래, 아는 글씨. "하율이 열이 내렸다 올랐다 한다. 법주사에 의사가 있다고 해서 간다. 수연." 쪽지를 손에 쥔 채 한참 서 있었다.', effects: { hours: 1, mind: 6, flag: 'notes_samdobong', clue: 'minjuji' } }] },
       { text: '내 쪽지를 남긴다', outcomes: [{ text: '날짜와 이름, 북쪽으로 간다는 말. 돌로 눌렀다. 누가 읽을지는 모른다.', effects: { mind: 6, flag: 'note_left' } }] },
@@ -447,8 +450,9 @@ export const EVENTS: EventDef[] = [
     title: '직지사',
     text: '황악산 아래 큰 절. 승려들은 없고 대웅전 벽에 종이가 빼곡히 붙어 있다. 거쳐 간 사람들의 이름이다. 공양간 문에는 "먹을 만큼만"이라고 쓰여 있다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [4], kinds: ['temple', 'village'] },
+    when: { places: ['jikjisa'] },
     choices: [
       { text: '먹을 만큼만 가져간다', hint: '먹을 것', outcomes: [{ text: '쌀통에 아직 반이 남아 있었다. 두 끼 분량만 덜었다. 뚜껑을 닫으며 다음 사람을 생각했다.', effects: { food: 2, mind: 5 } }] },
       { text: '있는 대로 챙긴다', hint: '먹을 것 · 정신', outcomes: [{ text: '배낭이 찰 때까지 담았다. 벽의 이름들이 등을 보고 있는 것 같았다.', effects: { food: 4, mind: -8, flag: 'took_all_jikji' } }] },
@@ -460,10 +464,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '미륵대불',
-    text: '속리산 법주사. 서른 미터 금동 미륵불이 흐린 하늘 아래 서 있다. 발치에 타다 남은 모닥불 자리와 비닐 천막들. 사람들이 여기 모였다가 흩어졌다.',
+    text: '속리산 법주사. 서른 미터 금동 미륵불이 흐린 하늘 아래 서 있다. 발치에 타다 남은 모닥불 자리와 비닐 천막들. 사람들이 여기 모였다가 흩어졌다. 천막 기둥에 매직으로 쓴 글. "2차 버스, 죽령 옛길로 출발."',
     once: true,
+    marks: ['jungnyeong'],
     weight: 3,
-    when: { stages: [5] },
+    when: { places: ['beopjusa'] },
     choices: [
       { text: '천막을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.6, text: '버려진 천막 안에 라면과 생수가 있었다. 그리고 아이 신발 한 짝. 신발은 두고 왔다.', effects: { food: 2, water: 1, hours: 1, mind: -3 } },
@@ -480,8 +485,9 @@ export const EVENTS: EventDef[] = [
     title: '죽령 터널',
     text: '소백산 죽령. 옛 고갯길 아래 고속도로 터널 입구가 보인다. 차들이 터널 안쪽까지 줄지어 멈춰 있고 입구에 바리케이드가 넘어져 있다. 안은 완전한 어둠이다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [6] },
+    when: { places: ['jungnyeong'] },
     choices: [
       { text: '터널 안 차들을 뒤진다', hint: '2시간 · 물건 · 위험', outcomes: [
         { chance: 0.55, text: '어둠 속에서 손으로 더듬어 트렁크를 열었다. 생수 묶음과 과자 상자. 뒤쪽에서 무언가 움직이는 소리에 뛰쳐나왔다.', effects: { water: 2, food: 2, hours: 2, mind: -6 } },
@@ -496,10 +502,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '폐광',
-    text: '태백. 산비탈에 막장 입구가 입을 벌리고 있다. 안쪽에서 희미한 불빛과 사람 소리. 피난민들이 갱도에 들어가 있다. 바위 수십 미터 아래라면 비는 닿지 않는다.',
+    text: '태백. 산비탈에 막장 입구가 입을 벌리고 있다. 안쪽에서 희미한 불빛과 사람 소리. 피난민들이 갱도에 들어가 있다. 바위 수십 미터 아래라면 비는 닿지 않는다. 갱도 입구 벽에 분필 글씨. "군 트럭 만항재 집결. 향로봉행."',
     once: true,
+    marks: ['manhangjae'],
     weight: 3,
-    when: { stages: [7] },
+    when: { places: ['cheoram'] },
     choices: [
       { text: '들어가 하룻밤 청한다', hint: '8시간 · 피폭 거의 없음', outcomes: [
         { chance: 0.7, text: '노인들과 아이들이 대부분이었다. 그들은 자리를 내주고 멀건 죽 한 그릇을 건넸다. 갱도 안은 바위 냄새가 났고 비 소리가 들리지 않았다. 사진을 보여 주자 한 할머니가 말했다. "아이 열 있던 엄마. 하룻밤 자고 갔어. 사흘 전. 북쪽으로." 손이 떨려서 사진을 떨어뜨렸다.', effects: { hours: 8, fatigue: 50, temp: 20, hunger: 15, mind: 12, flag: 'mine_people', clue: 'taebaek' } },
@@ -517,7 +524,7 @@ export const EVENTS: EventDef[] = [
     text: '폐광 사람들이 다시 자리를 내준다. 할머니가 말한다. "북쪽은 멀어. 여기는 비도 안 들어오고 사람도 있어. 남아도 돼." 갱도 안은 따뜻하고 조용하다. 사진 속 두 사람은 사흘 먼저 북쪽으로 갔다.',
     once: true,
     weight: 4,
-    when: { stages: [7], flag: 'mine_people', minDay: 6 },
+    when: { places: ['cheoram'], flag: 'mine_people', minDay: 6 },
     choices: [
       { text: '북쪽으로 간다', outcomes: [{ text: '"고맙습니다. 가야 할 사람이 있어요." 할머니는 말린 감 두 개를 쥐여 주었다.', effects: { food: 2, mind: 6 } }] },
       { text: '여기 남는다', hint: '여정이 끝난다', outcomes: [{ text: '배낭을 벽에 기대 두었다. 갱도 안에서는 비 소리가 들리지 않는다. 사진은 꺼내지 않았다. 언젠가 꺼낼 것이다. 언젠가는.', effects: { ending: 'stay' } }] },
@@ -528,10 +535,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '만항재',
-    text: '함백산 만항재. 포장도로가 넘는 가장 높은 고개. 군용 트럭 다섯 대가 길을 막은 채 서 있다. 짐칸의 천막이 바람에 펄럭이고, 운전석에는 아무도 없다.',
+    text: '함백산 만항재. 포장도로가 넘는 가장 높은 고개. 군용 트럭 다섯 대가 길을 막은 채 서 있다. 짐칸의 천막이 바람에 펄럭이고, 운전석에는 아무도 없다. 운전석에 남은 일지의 마지막 줄. "민간인 전원 한계령 검문소 인계."',
     once: true,
+    marks: ['hangyeryeong'],
     weight: 3,
-    when: { stages: [8], kinds: ['pass', 'peak', 'military'] },
+    when: { places: ['manhangjae'] },
     choices: [
       { text: '짐칸을 뒤진다', hint: '1시간 · 물건', outcomes: [
         { chance: 0.6, text: '전투식량 상자 하나가 뜯기지 않은 채 남아 있었다. 그리고 담요. 군인들은 급하게 떠난 것이다.', effects: { food: 2, hours: 1, gear: 'blanket' } },
@@ -547,8 +555,9 @@ export const EVENTS: EventDef[] = [
     title: '무릉계곡의 연기',
     text: '두타산. 계곡 아래 마을에서 연기가 올라온다. 밥 짓는 연기다. 사람들이 살아 있다. 하지만 저 마을은 동해에서 십 킬로미터도 안 된다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [9] },
+    when: { places: ['duta'] },
     choices: [
       { text: '내려가 본다', hint: '3시간 · 피폭 · 정신', outcomes: [{ text: '바닷가에서 올라온 사람들이었다. 반은 누워 있었고 머리카락이 빠진 아이가 있었다. 그들은 내게 물을 달라 하지 않았다. 대신 북쪽으로 가라고 했다. 나는 가진 것을 조금 나누고 돌아섰다.', effects: { hours: 3, rad: 8, food: -1, mind: 6, flag: 'duta_people' } }] },
       { text: '능선에서 지켜본다', hint: '1시간', outcomes: [{ text: '한 시간을 지켜봤다. 연기는 세 줄에서 두 줄이 됐다. 내려가지 않은 이유를 스스로에게 설명하지 못했다.', effects: { hours: 1, mind: -6 } }] },
@@ -561,8 +570,9 @@ export const EVENTS: EventDef[] = [
     title: '전나무 숲',
     text: '오대산 월정사 전나무 숲길. 수백 년 된 전나무가 양쪽에 서 있다. 바람이 지나가면 숲 전체가 숨을 쉬는 소리를 낸다. 이 길만은 아무것도 변하지 않은 것 같다.',
     once: true,
+    priority: true,
     weight: 3,
-    when: { stages: [10] },
+    when: { places: ['woljeongsa'] },
     choices: [
       { text: '천천히 걷는다', hint: '2시간 · 정신', outcomes: [{ text: '두 시간을 걸었다. 전쟁도 바다도 없는 두 시간이었다. 숲 끝에서 다시 배낭을 고쳐 멨다.', effects: { hours: 2, mind: 14, fatigue: 5 } }] },
       { text: '쓰러진 나무에서 땔감을 모은다', hint: '1시간 · 땔감', outcomes: [{ text: '마른 전나무 가지는 불이 잘 붙는다. 송진 냄새가 손에 뱄다.', effects: { hours: 1, wood: 3, mind: 3 } }] },
@@ -576,8 +586,9 @@ export const EVENTS: EventDef[] = [
     title: '살아 있는 검문소',
     text: '설악산 아래 고개. 처음으로 사람이 지키는 검문소를 만났다. 방독면을 쓴 군인 둘이 계수기를 들고 다가온다. "향로봉 가십니까? 측정하겠습니다."',
     once: true,
+    marks: ['hyangno'],
     weight: 4,
-    when: { stages: [11] },
+    when: { places: ['hangyeryeong'] },
     choices: [
       { text: '순순히 측정을 받는다', hint: '피폭에 따라 다르다', outcomes: [{ text: '계수기가 몸을 훑었다. 군인은 수치를 적더니 통행증 대신 종이 한 장을 줬다. "향로봉 수용소. 수치 높은 분은 격리동입니다. 그래도 가세요. 거기가 낫습니다." 나는 사진을 내밀었다. 군인은 명단을 넘기더니 손가락을 멈췄다. "수연, 하율. 엿새 전 통과. 아이는 의무대로." 물 한 통을 건넸다.', effects: { water: 1, mind: 10, flag: 'checkpoint_pass', clue: 'seorak' } }] },
       { text: '측정을 거부하고 우회한다', hint: '3시간 · 위험', outcomes: [
@@ -717,7 +728,7 @@ export const EVENTS: EventDef[] = [
     title: '엿새째 아침',
     text: '중산리 야영장. 대피령이 내린 지 엿새째다. 그날 버스가 왔을 때 하율이 열이 났고 나는 텐트로 약을 가지러 뛰었다. 돌아왔을 때 버스는 없었다. 수연이 남긴 쪽지가 텐트 기둥에 꽂혀 있었다. "향로봉 수용소로 간대. 꼭 와." 남은 건 텐트 한 동, 시동이 안 걸리는 발전기, 냉장고, 기름통 둘, 사진 한 장, 그리고 나.',
     choices: [
-      { text: '쪽지를 다시 읽는다', outcomes: [{ text: '"향로봉 수용소로 간대. 버스가 능선 길로 간다고. 하율이 약 챙겨서 꼭 와. 기다릴게." 글씨가 흔들렸다. 버스 안에서 썼을 것이다. 쪽지를 사진 뒤에 끼웠다. 능선을 따라가면 버스가 간 길을 따라가는 것이다.', effects: { mind: 4, clue: 'note' } }] },
+      { text: '쪽지를 다시 읽는다', outcomes: [{ text: '"향로봉 수용소로 간대. 성삼재에서 버스를 탄다고. 하율이 약 챙겨서 꼭 와. 기다릴게." 글씨가 흔들렸다. 버스 안에서 썼을 것이다. 쪽지를 사진 뒤에 끼웠다. 능선을 따라가면 버스가 간 길을 따라가는 것이다.', effects: { mind: 4, clue: 'note' } }] },
       { text: '짐을 살핀다', outcomes: [{ text: '물 네 통, 통조림과 라면 여섯 끼, 휘발유 둘, 부품 하나. 발전기를 고치면 냉장고와 전등이 돈다. 주변을 뒤지며 모아야 한다. 떠날 때 질 수 있는 만큼만 가져갈 수 있다. 쪽지는 사진 뒤에 끼웠다.', effects: { mind: 2, clue: 'note' } }] },
     ],
   },
@@ -778,10 +789,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '임시 정류장',
-    text: '고갯마루에 임시 정류장 표지가 서 있다. 종이에 손으로 쓴 시간표. "향로봉행 1차 07:00, 2차 09:30." 2차 옆에 "만석"이라고 적혀 있고 그 아래 사람들의 이름이 빼곡하다.',
+    text: '고갯마루에 임시 정류장 표지가 서 있다. 종이에 손으로 쓴 시간표. "향로봉행 1차 07:00, 2차 09:30." 2차 옆에 "만석"이라고 적혀 있고 그 아래 사람들의 이름이 빼곡하다. 시간표 아래에 작게 적혀 있다. "2차는 육십령 휴게소에서 쉬어 감."',
     once: true,
+    marks: ['yuksimnyeong'],
     weight: 6,
-    when: { stages: [1], kinds: ['pass', 'peak'] },
+    when: { places: ['seongsamjae'] },
     choices: [
       { text: '이름을 찾는다', outcomes: [{ text: '2차 명단 열한 번째 줄. "수연, 하율(7)." 수연의 글씨다. 두 사람은 두 번째 버스를 탔다. 나는 손끝으로 그 줄을 오래 눌렀다.', effects: { mind: 8, clue: 'jiri' } }] },
       { text: '그냥 간다', outcomes: [{ text: '이름을 읽지 않았다. 읽으면 걸음이 느려질 것 같았다.', effects: { mind: -3 } }] },
@@ -792,10 +804,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '휴게소 벽',
-    text: '덕유산 고개 휴게소. 버스 행렬이 쉬어 간 자리다. 바닥에 빈 도시락과 기저귀. 벽에는 아이들이 크레파스로 그린 그림이 붙어 있다. 어른들이 아이들을 달래려고 그리게 한 것이다.',
+    text: '덕유산 고개 휴게소. 버스 행렬이 쉬어 간 자리다. 바닥에 빈 도시락과 기저귀. 벽에는 아이들이 크레파스로 그린 그림이 붙어 있다. 어른들이 아이들을 달래려고 그리게 한 것이다. 그림 옆에 어른 글씨 한 줄. "삼도봉 돌탑에 쪽지를 남깁니다. 가족을 찾는 분은 보세요."',
     once: true,
+    marks: ['samdobong'],
     weight: 6,
-    when: { stages: [2] },
+    when: { places: ['yuksimnyeong'] },
     choices: [
       { text: '그림을 하나씩 본다', hint: '30분', outcomes: [{ text: '산, 버스, 개. 그리고 셋이서 손을 잡은 그림. 한 사람은 크게, 한 사람은 작게, 한 사람은 점선으로. 점선 옆에 "아빠 온다"라고 적혀 있다. 하율의 글씨다. 점선은 나였다.', effects: { mind: 10, clue: 'deogyu' } }] },
       { text: '지나간다', outcomes: [{ text: '아이들 그림은 보지 않기로 했다. 그래야 걸을 수 있었다.', effects: { mind: -4 } }] },
@@ -806,10 +819,11 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '멈춘 버스',
-    text: '죽령 옛길 중턱에 버스 한 대가 비스듬히 서 있다. "향로봉 2차"라고 유리창에 적혀 있다. 바퀴 하나가 빠졌다. 사람들은 여기서부터 걸었다.',
+    text: '죽령 옛길 중턱에 버스 한 대가 비스듬히 서 있다. "향로봉 2차"라고 유리창에 적혀 있다. 바퀴 하나가 빠졌다. 사람들은 여기서부터 걸었다. 앞 유리 안쪽에 종이가 붙어 있다. "걸어서 태백 철암 폐광으로. 바위 밑이 안전하다."',
     once: true,
+    marks: ['cheoram'],
     weight: 6,
-    when: { stages: [6] },
+    when: { places: ['jungnyeong'] },
     choices: [
       { text: '버스 안을 본다', hint: '30분', outcomes: [{ text: '좌석마다 두고 간 짐. 열한 번째 줄쯤, 창가에 아이 머리끈이 걸려 있다. 노란 곰. 하율이 것이다. 머리끈을 손목에 묶었다. 두 사람은 여기서부터 걸었다. 엿새 전쯤.', effects: { mind: 8, clue: 'sobaek' } }] },
       { text: '트렁크를 연다', hint: '물건', outcomes: [
@@ -826,7 +840,7 @@ export const EVENTS: EventDef[] = [
     text: '월정사 요사채에 젊은 승려가 남아 있다. 남쪽에서 왔다고 하자 그는 봉투를 꺼냈다. "지리산 노스님께서 능선으로 오는 사람 편에 보내셨습니다. 남쪽에서 오는 이에게 읽어 주라고."',
     once: true,
     weight: 6,
-    when: { stages: [9, 10], kinds: ['temple'] },
+    when: { places: ['woljeongsa'] },
     choices: [
       { text: '편지를 듣는다', outcomes: [
         { text: '"오는 사람은 다 이 길로 온다. 그러니 먼저 간 사람도 이 길로 갔다. 열 있는 아이와 어머니를 사흘 재웠다. 헬기가 와서 둘을 먼저 태웠다. 향로봉으로." 승려는 편지를 접어 내게 주었다. 노스님 글씨 아래 다른 글씨로 "고맙습니다. 수연"이라고 적혀 있었다.', effects: { mind: 14, clue: 'odae', flag: 'monk_letter' } },

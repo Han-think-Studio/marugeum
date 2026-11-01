@@ -36,6 +36,7 @@ export function eventById(id: string): EventDef | undefined {
 function matches(when: When | undefined, state: GameState, node: MapNode, trigger: Trigger): boolean {
   if (!when) return true;
   if (when.kinds && !when.kinds.includes(node.kind)) return false;
+  if (when.places && !when.places.includes(node.place)) return false;
   if (when.stages && !when.stages.includes(node.stage)) return false;
   if (when.weather && !when.weather.includes(state.weather)) return false;
   if (when.night !== undefined && isNight(state.hour) !== when.night) return false;
@@ -83,6 +84,14 @@ function open(state: GameState, ev: EventDef, objectId?: number): void {
     state.seen.push(ev.id);
   }
   addLog(state, `[${ev.title}]`);
+  if (ev.marks) {
+    const fresh = ev.marks.filter((m) => !state.marked.includes(m));
+    if (fresh.length > 0) {
+      state.marked.push(...fresh);
+      const names = fresh.map((m) => state.nodes.find((n) => n.place === m)?.name ?? m).join(', ');
+      addLog(state, `지도에 표시해 두었다: ${names}.`);
+    }
+  }
 }
 
 // 사물 이벤트 열기. 본문의 {name} 은 사물 이름으로 바뀐다
@@ -250,5 +259,11 @@ export function choose(state: GameState, rng: Rng, node: MapNode, idx: number, c
 export function closeEvent(state: GameState): boolean {
   if (!state.event || state.event.result === null) return false;
   state.event = null;
+  // 같은 자리에 놓치면 안 되는 이야기가 더 남아 있으면 이어서 연다 (죽령의 터널과 버스처럼)
+  if (state.over === 'none' && !state.standoff) {
+    const node = state.nodes[state.nodeId];
+    const must = pool(state, node, 'arrive').filter((e) => e.priority && e.once);
+    if (must.length > 0) open(state, must[0]);
+  }
   return true;
 }

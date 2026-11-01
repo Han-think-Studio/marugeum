@@ -6,12 +6,14 @@ const fs = require('fs');
 
 const outDir = path.join(__dirname, '..', '.tmp-events');
 fs.rmSync(outDir, { recursive: true, force: true });
-execSync(`npx tsc src/data/events.ts src/data/events-more.ts src/data/objects.ts --outDir ${outDir} --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop`, { stdio: 'inherit' });
+execSync(`npx tsc src/data/events.ts src/data/events-more.ts src/data/objects.ts src/data/places.ts --outDir ${outDir} --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop`, { stdio: 'inherit' });
 fs.writeFileSync(path.join(outDir, 'package.json'), '{"type":"commonjs"}');
 const dataDir = fs.existsSync(path.join(outDir, 'data')) ? path.join(outDir, 'data') : outDir;
 const { EVENTS } = require(path.join(dataDir, 'events.js'));
 const { MORE_EVENTS } = require(path.join(dataDir, 'events-more.js'));
 const { OBJECT_EVENTS, PLACE_OBJECTS } = require(path.join(dataDir, 'objects.js'));
+const { PLACES, STAGES } = require(path.join(dataDir, 'places.js'));
+const placeIds = new Set(PLACES.map((p) => p.id));
 const all = [...EVENTS, ...MORE_EVENTS, ...OBJECT_EVENTS];
 const problems = [];
 const ids = new Set();
@@ -30,7 +32,9 @@ for (const e of all) {
     }
   }
   const w = e.when || {};
-  if (w.stages && w.stages.some((s) => s < 0 || s > 12)) problems.push(`${e.id}: 단계 범위 밖 ${w.stages}`);
+  if (w.stages && w.stages.some((s) => s < 0 || s >= STAGES)) problems.push(`${e.id}: 단계 범위 밖 ${w.stages}`);
+  if (w.places) for (const p of w.places) if (!placeIds.has(p)) problems.push(`${e.id}: 없는 자리 ${p}`);
+  if (e.trigger === 'arrive' && (w.stages || w.kinds || w.places) && !PLACES.some((p) => (!w.stages || w.stages.includes(p.stage)) && (!w.kinds || w.kinds.includes(p.kind)) && (!w.places || w.places.includes(p.id)))) problems.push(`${e.id}: 조건에 맞는 자리가 지도에 없다`);
   if (e.trigger === 'object' && !e.id.startsWith('obj_')) problems.push(`${e.id}: object 이벤트 id 는 obj_ 로 시작`);
   if (w.minClues !== undefined && w.maxClues !== undefined && w.minClues > w.maxClues) problems.push(`${e.id}: 단서 조건 모순`);
 }
@@ -56,7 +60,7 @@ for (let clues = 0; clues <= 11; clues++) {
   }
 }
 fs.rmSync(outDir, { recursive: true, force: true });
-console.log(`이벤트 ${all.length}편 (이야기 ${EVENTS.length + MORE_EVENTS.length}, 사물 ${OBJECT_EVENTS.length})`);
+console.log(`이벤트 ${all.length}편 (이야기 ${EVENTS.length + MORE_EVENTS.length}, 사물 ${OBJECT_EVENTS.length}) · 자리 ${PLACES.length}곳 · 자리에 묶인 사건 ${all.filter((e) => e.when && e.when.places).length}편`);
 if (problems.length) {
   console.log('문제:');
   for (const p of problems) console.log(' -', p);

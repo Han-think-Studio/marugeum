@@ -278,3 +278,5 @@ html[data-text="large"] .stat > i { width: 34px; }
 .choices .block { display: block; color: var(--warn); font-size: 11px; margin-top: 2px; }
 .place .secured { color: #7fae8a; }
 .place .securing { color: var(--muted); font-size: 12px; }
+.end .epilogue { color: var(--ink); font-size: 13px; line-height: 1.8; opacity: 0.9; }
+.choices .mark { color: var(--accent); }
