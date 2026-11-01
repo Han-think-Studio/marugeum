@@ -2,12 +2,21 @@
 
 백두대간 생존 로그라이크. 바다는 죽었고 낮은 땅은 비에 젖으면 위험하다. 지리산에서 향로봉까지, 능선을 따라 북쪽으로.
 
-## 브라우저에서 실행
+## 실행하는 세 가지 길
+
+| 길 | 명령 | 결과 |
+|---|---|---|
+| 한 번에 | `play.cmd` 더블클릭 | 받기 → 빌드 → 브라우저로 열림 (http://localhost:4173). 창을 닫으면 끝 |
+| 개발 중 | `npm.cmd run dev` | 고치면 바로 반영되는 개발 서버 (http://localhost:5173) |
+| 설치 없이 앱으로 | `npm.cmd run desktop:build` 뒤 `src-tauri\target\release\Marugeum.exe` | 서버 없이 창으로 뜬다. 더블클릭 |
+
+바탕화면 바로가기는 `tools\make-shortcut.ps1` 을 한 번 돌리면 생긴다.
 
 ```powershell
-npm install
-npm run dev
+Set-Location "E:\Game_project\marugeum"; powershell -ExecutionPolicy Bypass -File tools\make-shortcut.ps1
 ```
+
+처음 한 번은 `npm install` 이 필요하다 (`play.cmd` 는 알아서 한다).
 
 ## 윈도우 실행 파일 만들기 (Tauri)
 
