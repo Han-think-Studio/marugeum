@@ -8,7 +8,7 @@ import { generateMap } from '../map/generate';
 import { placeById } from '../data/places';
 import { addLog } from './log';
 import { passHours, radPerHour, warnings } from './survival';
-import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
+import { choose, clueCount, closeEvent, maybeArrive, maybeLook, maybeNight, openGoal, openObject, startEvent } from './events';
 
 export { clueCount, clueFoundPlaces, eventById, meetsReq } from './events';
 import { visibleObjects } from './objects';
@@ -451,6 +451,11 @@ export function lookAround(state: GameState): boolean {
     checkSecured(state, node);
   }
   afterAction(state);
+  if (!res.died) {
+    const rng2 = takeRng(state);
+    maybeLook(state, rng2, node);
+    giveRng(state, rng2);
+  }
   return true;
 }
 

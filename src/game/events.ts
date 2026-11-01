@@ -136,6 +136,17 @@ export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: bo
   return true;
 }
 
+// 둘러보기 중에 만나는 일. 그 자리의 일반 사건 하나가 굴러간다. 반드시 나오는 자리 사건에 밀린 이야기들이 여기서 나온다
+export function maybeLook(state: GameState, rng: Rng, node: MapNode): boolean {
+  if (state.over !== 'none' || state.event || state.standoff) return false;
+  const list = pool(state, node, 'arrive').filter((e) => !e.priority && !e.when?.kinds?.includes('goal'));
+  if (list.length === 0 || !rng.chance(0.55)) return false;
+  const ev = pickWeighted(rng, list);
+  if (!ev) return false;
+  open(state, ev);
+  return true;
+}
+
 // 밤 이벤트. 잠에서 깬 뒤에 닥친다
 // 시작 장면. 첫 아침
 export function startEvent(state: GameState, rng: Rng, node: MapNode): boolean {

@@ -1,4 +1,5 @@
 import { Rng } from '../core/rng';
+import { DIFFICULTY, settings } from './settings';
 import { EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, type GameState, type MapNode, type StatKey } from '../core/types';
 import { envTemp, isNight, tickWeather } from './weather';
 import { hasEquip, tentAt } from './equip';
@@ -18,7 +19,7 @@ function add(state: GameState, key: StatKey, delta: number): void {
 
 // 날이 갈수록 바다에서 오는 비가 더러워진다. 오래 머물 수 없게 만드는 시계
 export function falloutFactor(state: GameState): number {
-  return 1 + (state.day - 1) * 0.04;
+  return 1 + (state.day - 1) * DIFFICULTY[settings.difficulty].fallout;
 }
 
 // 시간당 피폭량. 낮은 땅, 비, 바다 쪽 바람이 겹치면 급격히 오른다
@@ -55,8 +56,9 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   const lamp = camp && facilityRunning(node, 'lamp');
 
   // 허기, 갈증
-  add(state, 'hunger', act === 'sleep' ? -0.9 : act === 'travel' ? -1.85 : -1.15);
-  add(state, 'thirst', act === 'sleep' ? -0.9 : act === 'travel' ? -2.3 : -1.4);
+  const need = DIFFICULTY[settings.difficulty].need;
+  add(state, 'hunger', (act === 'sleep' ? -0.9 : act === 'travel' ? -1.85 : -1.15) * need);
+  add(state, 'thirst', (act === 'sleep' ? -0.9 : act === 'travel' ? -2.3 : -1.4) * need);
 
   // 피로
   if (act === 'travel') {
