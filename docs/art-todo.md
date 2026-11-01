@@ -37,6 +37,19 @@ Style for the 4 cards (768x512, 3:2) and the 1 band (1536x512, 3:1): Monochrome 
 After saving, list the 16 paths and confirm each file exists.
 ```
 
+## 1-2. 24단계 추가 그림 4장
+
+```
+Save each image to the EXACT path. Lowercase names, PNG.
+Icon style (512x512): Single object icon, centered, monochrome linocut woodblock print style, bold black ink on warm aged paper, high contrast, simplified shapes, one muted gold accent used sparingly, plain aged paper background, no text, no border, square.
+Band style (1536x512, 3:1): Monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains, no text. People only as silhouettes or from behind, no faces.
+
+17. E:\Game_project\marugeum\public\art\equip-battery.png (512x512) — Two cylindrical batteries tied together with a rubber band, one standing upright
+18. E:\Game_project\marugeum\public\art\event-crisis_cold.png (1536x512) — A small stone hut on a frozen ridge at night, smoke from a chimney, frost on rocks, a figure wrapped in a blanket by a fire inside the doorway, wide 3:1 composition
+19. E:\Game_project\marugeum\public\art\event-crisis_fallout.png (1536x512) — Heavy yellowish rain falling on mountain ridges, a figure sheltering under the eaves of a temple building watching the rain, wide 3:1 composition
+20. E:\Game_project\marugeum\public\art\event-crisis_snow.png (1536x512) — A rock cave mouth after a heavy snowfall, a lone figure stepping out into a silent white valley, a single line of footprints, wide 3:1 composition
+```
+
 ## 2. 표로 보기
 
 | # | 파일 (public\art\ 안) | 크기 | 어디에 쓰이나 |
