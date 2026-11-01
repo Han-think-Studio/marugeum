@@ -241,7 +241,7 @@ export const EVENTS: EventDef[] = [
     text: '출렁다리가 중간에서 끊겨 있다. 아래 물살이 세다. 바위를 디디면 건널 수 있을 것 같기도 하다.',
     when: { kinds: ['valley'] },
     choices: [
-      { text: '로프를 걸고 건넌다', hint: '로프 · 안전', req: { gear: 'rope' }, outcomes: [{ text: '남은 다리 기둥에 로프를 걸고 몸을 묶었다. 한 번 미끄러졌지만 로프가 잡았다. 젖지 않고 건넜다.', effects: { mind: 3 } }] },
+      { text: '밧줄을 걸고 건넌다', hint: '밧줄 · 안전', req: { gear: 'rope' }, outcomes: [{ text: '남은 다리 기둥에 밧줄을 걸고 몸을 묶었다. 한 번 미끄러졌지만 밧줄이 잡았다. 젖지 않고 건넜다.', effects: { mind: 3 } }] },
       { text: '바위를 디뎌 건넌다', hint: '위험', outcomes: [
         { chance: 0.6, text: '세 번째 바위에서 미끄러질 뻔했지만 건넜다. 신발만 젖었다.', effects: { temp: -5 } },
         { text: '물에 빠졌다. 바위를 붙잡고 기어 나왔지만 온몸이 젖고 배낭 속까지 물이 들어갔다.', effects: { hp: -10, temp: -25, rad: 4, fatigue: -15 } },
@@ -655,7 +655,7 @@ export const EVENTS: EventDef[] = [
     weight: 6,
     when: { flag: 'drop_coming', kinds: ['peak', 'pass'] },
     choices: [
-      { text: '상자를 연다', outcomes: [{ text: '생수, 전투식량, 요오드 알약, 구급약, 그리고 부품 몇 개가 든 수리 키트. 상자 뚜껑 안쪽에 "살아서 오십시오"라고 쓰여 있었다.', effects: { water: 2, food: 3, parts: 2, rad: -10, mind: 12, gear: 'iodine', gear2: 'medkit', flag: 'drop_found' } }] },
+      { text: '상자를 연다', outcomes: [{ text: '생수, 전투식량, 요오드 알약, 구급낭, 그리고 부품 몇 개가 든 수리 키트. 상자 뚜껑 안쪽에 "살아서 오십시오"라고 쓰여 있었다.', effects: { water: 2, food: 3, parts: 2, rad: -10, mind: 12, gear: 'iodine', gear2: 'medkit', flag: 'drop_found' } }] },
       { text: '낙하산 천부터 챙긴다', outcomes: [{ text: '낙하산 천을 잘라 배낭에 넣었다. 비를 막고 몸을 덮을 수 있다. 상자도 열었다.', effects: { water: 2, food: 2, parts: 1, gear: 'blanket', mind: 10, flag: 'drop_found' } }] },
     ],
   },

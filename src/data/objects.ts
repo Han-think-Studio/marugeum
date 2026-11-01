@@ -90,7 +90,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     choices: [
       { text: '뒤진다', outcomes: [
         { chance: 0.35, text: '통조림 둘과 담요. 밑바닥에 아이 그림이 한 장 있었다. 그림은 두고 왔다.', effects: { food: 2, gear: 'blanket', mind: -2, objUsed: true } },
-        { chance: 0.35, text: '등산용 로프와 접이식 칼. 주인은 산을 아는 사람이었다.', effects: { gear: 'rope', brokenGear: 'knife', objUsed: true } },
+        { chance: 0.35, text: '등산용 밧줄과 접이식 칼. 주인은 산을 아는 사람이었다.', effects: { gear: 'rope', brokenGear: 'knife', objUsed: true } },
         { chance: 0.6, text: '먹을 것 둘과 물 한 통. 주인이 급히 떠난 모양이다.', effects: { food: 2, water: 1, objUsed: true } },
         { text: '젖은 옷가지뿐이었다.', effects: { objUsed: true } },
       ] },
@@ -124,7 +124,7 @@ export const OBJECT_EVENTS: EventDef[] = [
         { text: '연료통은 거의 비어 있었다. 한 통도 안 됐다.', effects: { gasoline: 1, hours: 1, objUsed: true } },
       ] },
       { text: '차 안을 뒤진다', hint: '30분', outcomes: [
-        { chance: 0.4, text: '글로브박스에서 사탕과 라이터. 트렁크의 담요도 챙겼다.', effects: { food: 1, gear: 'matches', objUsed: true } },
+        { chance: 0.4, text: '글로브박스에서 사탕과 방수 성냥 한 통. 트렁크의 담요도 챙겼다.', effects: { food: 1, gear: 'matches', objUsed: true } },
         { chance: 0.4, text: '글로브박스에 손전등. 켜 보니 밝다.', effects: { gear: 'flashlight', objUsed: true } },
         { text: '아이 의자 밑에 장난감 하나. 그것뿐이었다.', effects: { mind: -3, objUsed: true } },
       ] },
@@ -289,7 +289,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '헛간 옆 창고. 괭이와 낫, 지게, 밧줄 뭉치. 농사짓던 사람의 손때가 묻은 것들이다.',
     choices: [
       { text: '지게를 멘다', hint: '지게', outcomes: [{ text: '지게를 등에 졌다. 어깨끈이 낡았지만 틀은 단단하다. 더 질 수 있다. 대신 걸음이 느려질 것이다.', effects: { gear: 'carrier', objUsed: true } }] },
-      { text: '낫과 밧줄을 챙긴다', hint: '칼 · 로프', outcomes: [{ text: '낫을 숫돌에 갈아 칼 대신 쓰기로 했다. 밧줄은 둘둘 말아 배낭에 묶었다.', effects: { gear: 'knife', gear2: 'rope', objUsed: true } }] },
+      { text: '낫과 밧줄을 챙긴다', hint: '칼 · 밧줄', outcomes: [{ text: '낫을 숫돌에 갈아 칼 대신 쓰기로 했다. 밧줄은 둘둘 말아 배낭에 묶었다.', effects: { gear: 'knife', gear2: 'rope', objUsed: true } }] },
       { text: '두고 간다', outcomes: [{ text: '남의 연장이다. 아직은 그런 생각이 남아 있다.', effects: { mind: 1 } }] },
     ],
   },

@@ -120,15 +120,15 @@ export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
   bigPack: { label: '큰 배낭', heavy: false, desc: '더 많이 진다' },
   tent: { label: '텐트', heavy: true, desc: '지붕 없는 곳에서도 비와 바람을 막는다. 텐트 거점을 세울 수 있다' },
   carrier: { label: '지게', heavy: false, desc: '등에 지는 틀. 무거운 장비를 넷까지, 보급품도 더 진다. 대신 걸음이 한 시간 느리다' },
-  rope: { label: '로프', heavy: false, desc: '끊어진 다리와 급한 비탈을 안전하게 건넌다' },
+  rope: { label: '밧줄', heavy: false, desc: '끊어진 다리와 급한 비탈을 안전하게 건넌다' },
   flashlight: { label: '손전등', heavy: false, desc: '밤길이 덜 느리고 밤이 덜 위험하다' },
   mask: { label: '방독면', heavy: false, desc: '비 올 때 밖에서 피폭이 절반이 된다' },
   raincoat: { label: '우비', heavy: false, desc: '비 올 때 밖에서 추위가 덜하다' },
   knife: { label: '칼', heavy: false, desc: '맞설 때 세고, 물고기와 나물을 더 챙긴다' },
   iodine: { label: '요오드 알약', heavy: false, desc: '먹으면 피폭이 15 내려간다. 하루 한 번' },
-  medkit: { label: '구급약', heavy: false, desc: '응급처치로 체력 25 회복. 한 시간' },
+  medkit: { label: '구급낭', heavy: false, desc: '응급처치로 체력 25 회복. 한 시간' },
   purifier: { label: '정수 알약', heavy: false, desc: '불 없이 오염수 두 통을 깨끗하게' },
-  matches: { label: '라이터', heavy: false, desc: '비 오는 바깥에서도 불이 붙는다' },
+  matches: { label: '방수 성냥', heavy: false, desc: '비 오는 바깥에서도 불이 붙는다' },
 };
 export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
   (Object.keys(EQUIP_INFO) as EquipKind[]).map((k) => [k, EQUIP_INFO[k].label]),

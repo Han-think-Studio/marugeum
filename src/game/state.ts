@@ -505,7 +505,7 @@ export function hasFire(state: GameState): boolean {
   return state.fire !== null && state.fire.nodeId === state.nodeId;
 }
 
-// 비 오는 바깥에서는 불이 붙지 않는다. 라이터가 있으면 붙는다
+// 비 오는 바깥에서는 불이 붙지 않는다. 방수 성냥이 있으면 붙는다
 export function rainBlocksFire(state: GameState): boolean {
   return state.weather === 'rain' && !INDOOR.has(currentNode(state).kind) && !hasEquip(state, 'matches');
 }
