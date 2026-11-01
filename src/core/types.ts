@@ -176,7 +176,7 @@ export const CRISIS_INFO: Record<CrisisKind, { label: string; sign: string; radi
     start: '낙진비가 내린다. 빗방울이 누렇다. 바깥은 한 시간도 위험하다.',
     good: '낙진비가 그쳤다. 지붕 아래서 빗소리를 세며 버텼다. 젖은 것은 땅이지 내가 아니다.',
     bad: '낙진비가 그쳤다. 너무 많이 맞았다. 입안에 쇠맛이 남았다.',
-    effect: '비, 피폭 ×1.8',
+    effect: '비, 바깥 피폭 ×1.8',
   },
   snow: {
     label: '폭설',

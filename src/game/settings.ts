@@ -4,9 +4,9 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 
 // 난이도. 낙진이 날마다 짙어지는 속도와 배고픔·목마름의 속도
 export const DIFFICULTY: Record<Difficulty, { label: string; fallout: number; need: number }> = {
-  easy: { label: '쉬움', fallout: 0.025, need: 0.85 },
-  normal: { label: '보통', fallout: 0.04, need: 1 },
-  hard: { label: '어려움', fallout: 0.06, need: 1.2 },
+  easy: { label: '쉬움', fallout: 0.02, need: 0.85 },
+  normal: { label: '보통', fallout: 0.033, need: 1 },
+  hard: { label: '어려움', fallout: 0.05, need: 1.2 },
 };
 
 // 설정. 소리는 소리 엔진이 따로 저장하고, 나머지는 여기서 저장한다. 함수 없는 평범한 객체다

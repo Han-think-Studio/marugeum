@@ -30,7 +30,7 @@ export function radPerHour(state: GameState, node: MapNode, indoor: boolean): nu
   const roof = indoor && node.camp && node.upgrades.includes('roof');
   if (state.weather === 'rain') r *= roof ? 1.5 : 3;
   if (state.wind !== 'calm' && state.wind === node.side) r *= 1.8;
-  if (state.crisis && state.crisis.kind === 'fallout' && crisisActive(state)) r *= 1.8; // 낙진비
+  if (!indoor && state.crisis && state.crisis.kind === 'fallout' && crisisActive(state)) r *= 1.8; // 낙진비. 지붕 아래는 여느 비와 같다
   if (indoor) r *= node.camp && node.campTier >= 3 ? 0.15 : node.camp && node.campTier === 2 ? 0.25 : 0.35;
   if (indoor && node.camp && node.upgrades.includes('earth')) r *= 0.5;
   return r;
