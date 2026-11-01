@@ -99,6 +99,9 @@ export function generateMap(rng: Rng): MapNode[] {
       equip: [],
       objects: [],
       looked: false,
+      rested: false,
+      secured: false,
+      scouted: false,
       cave: false,
       windbreak: false,
       upgrades: [],
@@ -154,6 +157,8 @@ export function generateMap(rng: Rng): MapNode[] {
   const base = byStage[0][0];
   base.visited = true;
   base.looked = true;
+  base.rested = true;
+  base.secured = true;
   base.camp = true;
   base.campTier = 3;
   base.store = { water: 4, dirty: 0, food: 6, fresh: 0, wood: 2, gasoline: 2, diesel: 0, parts: 1 };

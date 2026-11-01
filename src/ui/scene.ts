@@ -465,6 +465,7 @@ function upImg(file: string, onload: () => void): HTMLImageElement | null {
 export function drawBuilt(ctx: CanvasRenderingContext2D, node: MapNode, onload: () => void): void {
   const items: [string, string][] = [];
   if (node.camp && node.campTier > 0) items.push([`camp-${node.campTier === 1 ? 'tent' : node.campTier === 2 ? 'cave' : 'house'}`, campLabel(node)]);
+  if (node.secured) items.push(['mark-secured', '안정']);
   if (node.windbreak) items.push(['upgrade-windbreak', '바람막이']);
   for (const u of node.upgrades) items.push([`upgrade-${u}`, UPGRADES[u].label]);
   if (items.length === 0) return;

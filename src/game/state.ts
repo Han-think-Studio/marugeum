@@ -1,6 +1,6 @@
 import { Rng } from '../core/rng';
 import {
-  EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
+  EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, KIND_LABEL, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
   CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
@@ -186,6 +186,15 @@ export function travelTo(state: GameState, id: number): boolean {
   const from = currentNode(state);
   const to = state.nodes[id];
   if (!to || !neighbors(state).includes(to)) return false;
+  const block = travelBlock(state, to);
+  if (block) {
+    addLog(state, `${to.name} 쪽은 ${block.replace('위험 높음 · ', '')}.`);
+    if (!state.flags['guide:secure']) {
+      state.flags['guide:secure'] = true;
+      addLog(state, '위험한 길은 함부로 못 간다. 둘러보고, 불을 피우거나 지붕 아래서 하룻밤을 나면 자리가 안정된다. 정찰로 길을 알아 두면 위험이 한 단계 내려간다.');
+    }
+    return true;
+  }
   const known = isKnown(state, from, to);
   const hours = travelHours(state, from, to);
   const rng = takeRng(state);
@@ -256,9 +265,15 @@ export function rest(state: GameState): boolean {
 export function sleep(state: GameState): boolean {
   if (busy(state)) return false;
   const node = currentNode(state);
+  const sheltered = shelterHere(state, node);
+  const nightSleep = Array.from({ length: 8 }, (_, i) => (state.hour + i) % 24).some(isNight);
   const rng = takeRng(state);
   const res = passHours(state, rng, node, 8, 'sleep');
   giveRng(state, rng);
+  if (!res.died && sheltered && nightSleep && !node.rested) {
+    node.rested = true;
+    checkSecured(state, node);
+  }
   if (!res.died) {
     const where = node.camp ? (node.campTier === 1 ? '텐트 안에서' : node.campTier === 2 ? '굴 안쪽 잠자리에서' : '거점의 잠자리에서') : node.kind === 'temple' ? '법당 구석에서' : INDOOR.has(node.kind) ? '벽 안쪽에서' : node.cave ? '굴 안에서' : hasEquip(state, 'tent') ? '텐트를 치고' : '바람을 등지고';
     addLog(state, `${where} 여덟 시간을 잤다.`);
@@ -415,7 +430,90 @@ export function lookAround(state: GameState): boolean {
     node.looked = true;
     const found = visibleObjects(node).length - before;
     addLog(state, found > 0 ? `한 시간을 돌아봤다. 눈에 안 띄던 것이 ${found}개 보인다.` : '한 시간을 돌아봤다. 더 있는 건 없다.');
+    checkSecured(state, node);
   }
+  afterAction(state);
+  return true;
+}
+
+// ---------- 안정과 정찰 ----------
+// 자리가 안정되려면 둘러보고, 불이나 지붕 아래서 하룻밤을 나야 한다. 안정된 자리에서는 위험한 길도 아침에 떠날 수 있다
+// 정찰은 길의 삼분의 일을 가 보고 돌아오는 것이다. 그 자리와 길을 알아 두면 위험이 한 단계 내려간다
+
+export function shelterHere(state: GameState, node: MapNode = currentNode(state)): boolean {
+  return INDOOR.has(node.kind) || node.cave || node.camp || tentAt(state, node) || (state.fire !== null && state.fire.nodeId === node.id);
+}
+
+export function securingStatus(state: GameState, node: MapNode = currentNode(state)): { looked: boolean; shelter: boolean; rested: boolean; secured: boolean } {
+  return { looked: node.looked, shelter: shelterHere(state, node), rested: node.rested, secured: node.secured };
+}
+
+function checkSecured(state: GameState, node: MapNode): void {
+  if (node.secured || !node.looked || !node.rested) return;
+  node.secured = true;
+  addLog(state, '이 자리가 안정됐다. 둘러봤고 하룻밤을 났다. 여기서는 위험한 길도 아침에 떠날 수 있다.');
+}
+
+// 위험한 길(위험 높음)은 안정된 자리에서 아침에만 떠날 수 있다. 막히면 이유를 돌려준다
+export function travelBlock(state: GameState, to: MapNode): string | null {
+  if (routeRisk(state, to).level !== 'high') return null;
+  const cur = currentNode(state);
+  if (!cur.secured) return '위험 높음 · 자리를 안정시켜야 떠난다';
+  if (isNight(state.hour) || state.hour > 12) return '위험 높음 · 안정된 자리에서 아침에 떠난다';
+  return null;
+}
+
+export function scoutHours(state: GameState, to: MapNode): number {
+  return Math.max(2, Math.round(travelHours(state, currentNode(state), to) * 0.5));
+}
+
+export function scoutBlock(state: GameState, to: MapNode): string | null {
+  if (to.visited || to.scouted) return '이미 안다';
+  if (state.weather === 'rain') return '비가 온다';
+  if (isNight(state.hour)) return '밤이다';
+  if (state.hour + scoutHours(state, to) > 20) return '해가 모자란다';
+  if (state.stats.fatigue < 30) return '너무 지쳤다';
+  return null;
+}
+
+export function canScout(state: GameState, id: number): boolean {
+  const to = state.nodes[id];
+  return !!to && !busy(state) && neighbors(state).includes(to) && scoutBlock(state, to) === null;
+}
+
+const GLIMPSES = [
+  '능선 너머로 연기 한 줄기가 올라왔다. 누가 있다.',
+  '새 떼가 북쪽으로 날아갔다. 그쪽 하늘이 더 맑았다.',
+  '길가 진흙에 발자국이 있었다. 하나는 작았다.',
+  '바람이 바다 냄새를 실어 왔다. 바람받이 사면은 피하자.',
+  '멀리 능선에 사람 그림자가 하나 섰다가 사라졌다.',
+  '까마귀 몇 마리가 한 자리를 맴돌았다. 가까이 가고 싶지 않았다.',
+  '고개 아래로 끊어진 도로와 멈춘 차들이 보였다.',
+  '돌탑 하나가 길을 가리키고 있었다. 쌓은 지 오래지 않았다.',
+];
+
+// 정찰. 길의 삼분의 일을 가 보고 돌아온다. 결과는 띠 그림과 함께 뜬다
+export function scout(state: GameState, id: number): boolean {
+  if (!canScout(state, id)) return false;
+  const from = currentNode(state);
+  const to = state.nodes[id];
+  const hours = scoutHours(state, to);
+  const rng = takeRng(state);
+  const midway: MapNode = { ...to, alt: (from.alt * 2 + to.alt) / 3, side: to.side, camp: false };
+  const res = passHours(state, rng, midway, hours, 'travel', { uphill: to.alt > from.alt + 0.1, known: false, heavy: weightPenalty(state) > 0 });
+  const glimpse = rng.chance(0.6) ? GLIMPSES[Math.floor(rng.next() * GLIMPSES.length)] : '';
+  giveRng(state, rng);
+  if (res.died) {
+    addLog(state, `${to.name} 쪽을 살피러 가는 길이었다.`);
+    return true;
+  }
+  state.known[edgeKey(from.id, to.id)] = true;
+  to.scouted = true;
+  const objs = visibleObjects(to).filter((o) => !o.used).length;
+  const water = to.waterLeft !== 0 || ['spring', 'valley', 'temple', 'village'].includes(to.kind);
+  const text = `${to.name} 쪽으로 길의 삼분의 일을 가 보고 돌아왔다. ${hours}시간. ${KIND_LABEL[to.kind]}${water ? '이고 물이 있어 보인다' : '이다. 물은 안 보였다'}. ${objs > 0 ? `멀리서 눈에 띄는 것이 ${objs}개. ` : ''}${glimpse ? glimpse + ' ' : ''}길을 알아 뒀다. 다음에 갈 때 빠르고 덜 위험하다.`;
+  addLog(state, `[정찰] ${text}`);
+  state.event = { id: 'scout', result: text };
   afterAction(state);
   return true;
 }
@@ -644,6 +742,7 @@ export function routeRisk(state: GameState, to: MapNode): { level: Risk; why: st
   if (isNight(state.hour) || endHour >= 20 || endHour < 5) { score += 1; why.push('밤에 닿음'); }
   if (state.stats.fatigue < 30 || state.stats.thirst < 25) { score += 1; why.push('몸이 안 됨'); }
   if (to.alt < 0.35) { score += 1; why.push('낮은 땅'); }
+  if (!to.visited && !to.scouted) { score += 1; why.push('모르는 길'); }
   const level: Risk = score >= 3 ? 'high' : score >= 1 ? 'mid' : 'low';
   return { level, why };
 }

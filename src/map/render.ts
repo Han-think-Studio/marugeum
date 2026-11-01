@@ -173,6 +173,14 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fillRect(x + r + 3, y - 3, 6, 6);
     }
 
+    // 안정된 자리 표시. 작은 점
+    if (n.secured && !n.camp) {
+      ctx.beginPath();
+      ctx.arc(x + r + 6, y - r - 4, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#7fae8a';
+      ctx.fill();
+    }
+
     // 거점 표시
     if (n.camp) {
       ctx.beginPath();
@@ -184,8 +192,8 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fill();
     }
 
-    if (isCur || isNext || n.kind === 'goal' || n.camp) {
-      const remembered = state.knownStages.includes(n.stage);
+    if (isCur || isNext || n.kind === 'goal' || n.camp || n.scouted) {
+      const remembered = state.knownStages.includes(n.stage) || n.scouted;
       ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
       ctx.fillStyle = isCur ? '#ffe3a3' : n.visited || remembered ? '#e8e8e8' : 'rgba(232,232,232,0.75)';
       ctx.fillText(n.visited || isCur || remembered ? n.name : `${n.name.split(' ')[0]} ?`, x, y - r - 10);

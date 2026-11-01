@@ -267,3 +267,14 @@ html[data-hints="off"] .actions .meta { display: none; }
 .settings-overlay .keys .num { min-width: 36px; font-size: 11px; white-space: nowrap; }
 html[data-text="large"] .hud { gap: 6px; padding: 0 10px; }
 html[data-text="large"] .stat > i { width: 34px; }
+
+/* 길 선택지: 가기 + 정찰 */
+.choices .route { flex: 1 1 200px; display: flex; gap: 6px; align-items: stretch; }
+.choices .route .go { flex: 1 1 auto; }
+.choices .route .scout { flex: 0 0 auto; max-width: 140px; font-size: 12px; padding: 6px 8px; }
+.choices .route .scout .num { background: var(--panel); color: var(--accent); border: 1px solid var(--line); width: auto; padding: 0 4px; }
+.choices button:disabled { opacity: 0.55; cursor: not-allowed; }
+.choices button:disabled:hover { border-color: var(--line); }
+.choices .block { display: block; color: var(--warn); font-size: 11px; margin-top: 2px; }
+.place .secured { color: #7fae8a; }
+.place .securing { color: var(--muted); font-size: 12px; }

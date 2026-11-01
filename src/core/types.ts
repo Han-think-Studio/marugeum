@@ -34,6 +34,9 @@ export interface MapNode {
   equip: Equip[]; // 거점에 둔 장비
   objects: SceneObject[]; // 이 자리에 놓인 사물
   looked: boolean; // 둘러보기를 했나. 숨은 사물이 드러난다
+  rested: boolean; // 불이나 지붕 아래서 하룻밤을 났다
+  secured: boolean; // 안정된 자리. 둘러봤고 하룻밤을 났다. 위험한 길도 아침에 떠날 수 있다
+  scouted: boolean; // 정찰로 본 곳. 길을 안다
   cave: boolean; // 바위굴을 찾았다. 지붕 없는 곳에서도 바람과 비를 피한다
   windbreak: boolean; // 바람막이를 쌓았다. 지붕 없는 곳의 추위를 줄인다
   upgrades: UpgradeId[]; // 거점 보강
@@ -251,7 +254,7 @@ export function edgeKey(a: number, b: number): string {
 // ---------- 이벤트 ----------
 // 이벤트는 src/data/events.ts 에 데이터로만 적는다. 코드 없이 이야기를 더할 수 있다
 
-export type Trigger = 'arrive' | 'night' | 'start' | 'object';
+export type Trigger = 'arrive' | 'night' | 'start' | 'object' | 'scout';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
@@ -269,6 +272,7 @@ export interface When {
   noFacility?: EquipKind; // 이 시설이 돌아가고 있지 않아야
   noUpgrade?: UpgradeId; // 이 보강이 없어야
   campTier?: CampTier; // 지금 자리가 이 단계의 거점이어야 (1 텐트, 2 바위굴, 3 집)
+  secured?: boolean; // 지금 자리가 안정됐어야 / 안 됐어야
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
   minClues?: number; // 가족 단서를 이만큼 모았어야

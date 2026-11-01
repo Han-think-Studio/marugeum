@@ -5,6 +5,7 @@ import {
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
+  canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock,
   canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
@@ -222,6 +223,11 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       }
       return;
     }
+    if (e.shiftKey && /^Digit[1-6]$/.test(e.code)) {
+      const target = neighbors(state)[Number(e.code.slice(5)) - 1];
+      if (target && scout(state, target.id)) render();
+      return;
+    }
     if (k >= 1 && k <= 6) {
       const target = neighbors(state)[k - 1];
       if (target && travelTo(state, target.id)) render();
@@ -297,9 +303,11 @@ function renderHud(refs: Refs, state: GameState): void {
 function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const cur = currentNode(state);
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
+  const sec = securingStatus(state, cur);
+  const securedTxt = sec.secured ? ' · <b class="secured">안정</b>' : ` · <span class="securing">안정까지 — 둘러보기 ${sec.looked ? '✓' : '–'} · 불이나 지붕 ${sec.shelter ? '✓' : '–'} · 하룻밤 ${sec.rested ? '✓' : '–'}</span>`;
   refs.place.innerHTML =
     `<span class="kind">${KIND_LABEL[cur.kind]}</span> <span class="name">${cur.name}</span>` +
-    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.windbreak ? ' · 바람막이' : ''}${cur.camp ? ` · <b>${campLabel(cur)}</b>` : ''}${cur.upgrades.length ? ' · ' + cur.upgrades.map((u) => UPGRADES[u].label).join(', ') : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}</span>`;
+    ` <span class="alt">해발 ${Math.round(600 + cur.alt * 1300)}m · ${SIDE_LABEL[cur.side]}${INDOOR.has(cur.kind) ? ' · 지붕 있음' : cur.cave ? ' · 바위굴' : ''}${cur.windbreak ? ' · 바람막이' : ''}${cur.camp ? ` · <b>${campLabel(cur)}</b>` : ''}${cur.upgrades.length ? ' · ' + cur.upgrades.map((u) => UPGRADES[u].label).join(', ') : ''}${cur.camp && isPowered(cur) ? ' · <span class="power">⚡ 전기</span>' : ''}${store}${securedTxt}</span>`;
 
   refs.log.innerHTML = state.log
     .slice(-8)
@@ -386,22 +394,42 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   }
 
   neighbors(state).forEach((n, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'route';
     const btn = document.createElement('button');
     const hours = travelHours(state, cur, n);
     const dir = n.stage < cur.stage ? '남쪽으로' : n.alt > cur.alt + 0.1 ? '오르막' : n.alt < cur.alt - 0.1 ? '내리막' : '능선길';
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
     const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
     const rk = routeRisk(state, n);
-    const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>`;
+    const block = travelBlock(state, n);
+    const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>${block ? `<span class="block">${block.replace('위험 높음 · ', '')}</span>` : ''}`;
+    const objs = visibleObjects(n).filter((o) => !o.used).length;
+    const water = n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village';
     const info = n.visited
-      ? ` · 사물 ${visibleObjects(n).filter((o) => !o.used).length}${n.waterLeft !== 0 || n.kind === 'spring' || n.kind === 'valley' || n.kind === 'temple' || n.kind === 'village' ? ' · 물' : ''}${n.camp ? ` · ${campLabel(n)}` : ''}${n.cave && !n.camp ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}`
+      ? ` · 사물 ${objs}${water ? ' · 물' : ''}${n.camp ? ` · ${campLabel(n)}` : ''}${n.cave && !n.camp ? ' · 바위굴' : ''}${n.equip.length ? ` · 둔 장비 ${n.equip.length}` : ''}${n.secured ? ' · 안정' : ''}`
+      : n.scouted ? ` · 정찰함 · 사물 ${objs}${water ? ' · 물' : ''}`
       : state.knownStages.includes(n.stage) ? ' · 기억나는 곳' : ' · 미탐사';
-    btn.className = n.stage < cur.stage ? 'back' : '';
+    btn.className = `go${n.stage < cur.stage ? ' back' : ''}`;
+    btn.disabled = !!block;
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}</span><span class="meta">${riskTxt}</span>`;
     btn.addEventListener('click', () => {
       if (travelTo(state, n.id)) rerender();
     });
-    refs.choices.appendChild(btn);
+    wrap.appendChild(btn);
+    if (!n.visited && !n.scouted) {
+      const sc = document.createElement('button');
+      sc.className = 'scout';
+      const why = scoutBlock(state, n);
+      const ok = canScout(state, n.id);
+      sc.disabled = !ok;
+      sc.innerHTML = `<span class="num">⇧${i + 1}</span> 정찰<span class="meta">${scoutHours(state, n)}시간 · ${ok ? '보고 돌아온다' : (why ?? '지금은 안 된다')}</span>`;
+      sc.addEventListener('click', () => {
+        if (scout(state, n.id)) rerender();
+      });
+      wrap.appendChild(sc);
+    }
+    refs.choices.appendChild(wrap);
   });
 }
 

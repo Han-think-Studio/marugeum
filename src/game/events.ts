@@ -25,7 +25,11 @@ export function clueCount(state: GameState): number {
   return Object.keys(state.flags).filter((k) => k.startsWith('clue:') && state.flags[k]).length;
 }
 
+// 정찰 결과. 데이터가 아니라 코드가 결과 문장을 만든다. 띠 그림 event-scout 가 뜬다
+export const SCOUT_EVENT: EventDef = { id: 'scout', trigger: 'scout', title: '정찰', text: '', choices: [] };
+
 export function eventById(id: string): EventDef | undefined {
+  if (id === 'scout') return SCOUT_EVENT;
   return EVENTS.find((e) => e.id === id) ?? OBJECT_EVENTS.find((e) => e.id === id);
 }
 
@@ -46,6 +50,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.noFacility && facilityRunning(node, when.noFacility)) return false;
   if (when.noUpgrade && node.upgrades.includes(when.noUpgrade)) return false;
   if (when.campTier !== undefined && !(node.camp && node.campTier === when.campTier)) return false;
+  if (when.secured !== undefined && node.secured !== when.secured) return false;
   if (when.phase && state.phase !== when.phase) return false;
   const clues = clueCount(state);
   if (when.minClues !== undefined && clues < when.minClues) return false;
