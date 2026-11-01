@@ -751,7 +751,7 @@ export const MORE_EVENTS: EventDef[] = [
     trigger: 'arrive',
     title: '길을 막은 들개',
     text: '능선 길 앞에 들개 떼가 앉아 있다. 여섯, 일곱. 사람이 버린 개들이 이제 능선의 주인이다. 맨 앞의 큰 녀석이 일어선다.',
-    weight: 2,
+    weight: 3,
     when: { kinds: ['peak', 'pass', 'spring'], phase: 'trek', minDay: 3 },
     choices: [
       { text: '맞선다', hint: '대치', outcomes: [{ text: '막대를 쥐고 한 걸음 나섰다. 녀석들이 흩어지며 반원을 그린다.', effects: { standoff: 'dogs' } }] },

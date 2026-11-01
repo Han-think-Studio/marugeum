@@ -18,7 +18,7 @@ function add(state: GameState, key: StatKey, delta: number): void {
 
 // 날이 갈수록 바다에서 오는 비가 더러워진다. 오래 머물 수 없게 만드는 시계
 export function falloutFactor(state: GameState): number {
-  return 1 + (state.day - 1) * 0.035;
+  return 1 + (state.day - 1) * 0.04;
 }
 
 // 시간당 피폭량. 낮은 땅, 비, 바다 쪽 바람이 겹치면 급격히 오른다
@@ -55,8 +55,8 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   const lamp = camp && facilityRunning(node, 'lamp');
 
   // 허기, 갈증
-  add(state, 'hunger', act === 'sleep' ? -0.8 : act === 'travel' ? -1.6 : -1.0);
-  add(state, 'thirst', act === 'sleep' ? -0.8 : act === 'travel' ? -2.0 : -1.2);
+  add(state, 'hunger', act === 'sleep' ? -0.9 : act === 'travel' ? -1.85 : -1.15);
+  add(state, 'thirst', act === 'sleep' ? -0.9 : act === 'travel' ? -2.3 : -1.4);
 
   // 피로
   if (act === 'travel') {
