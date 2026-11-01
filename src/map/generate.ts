@@ -89,14 +89,22 @@ export function generateMap(rng: Rng): MapNode[] {
     { kind: 'lamp', broken: false },
   ];
 
-  // 연결. 가까운 고도끼리 잇고, 고아 노드는 가장 가까운 노드에서 이어준다. 어느 길이 열리는지는 여정마다 다르다
+  // 연결. 자리마다 적힌 길을 잇고, 여정마다 길 하나가 더 열릴 수 있다. 고아 노드는 가장 가까운 노드에서 이어준다
+  const idOf = new Map(nodes.map((n) => [n.place, n.id]));
   for (let s = 0; s < STAGES - 1; s++) {
     const cur = byStage[s];
     const next = byStage[s + 1];
     for (const n of cur) {
-      const sorted = [...next].sort((a, b) => Math.abs(a.y - n.y) - Math.abs(b.y - n.y));
-      const want = s === 0 ? next.length : next.length === 1 ? 1 : rng.chance(0.55) ? 2 : 1;
-      for (let i = 0; i < want && i < sorted.length; i++) n.links.push(sorted[i].id);
+      const fixed = s === 0 ? next.map((m) => m.place) : (placeById(n.place).links ?? []);
+      for (const pid of fixed) {
+        const id = idOf.get(pid);
+        if (id === undefined) throw new Error(`없는 길: ${n.place} → ${pid}`);
+        if (!n.links.includes(id)) n.links.push(id);
+      }
+      if (s > 0 && rng.chance(0.25)) {
+        const extra = next.filter((m) => !n.links.includes(m.id));
+        if (extra.length > 0) n.links.push(rng.pick(extra).id);
+      }
     }
     for (const m of next) {
       if (cur.some((n) => n.links.includes(m.id))) continue;

@@ -14,6 +14,25 @@ const { MORE_EVENTS } = require(path.join(dataDir, 'events-more.js'));
 const { OBJECT_EVENTS, PLACE_OBJECTS } = require(path.join(dataDir, 'objects.js'));
 const { PLACES, STAGES } = require(path.join(dataDir, 'places.js'));
 const placeIds = new Set(PLACES.map((p) => p.id));
+// 길: 적힌 길이 다음 단계의 있는 자리로 가는지, 모든 자리가 중산리에서 닿는지
+{
+  const byId = new Map(PLACES.map((p) => [p.id, p]));
+  const reach = new Set(['jungsanri']);
+  const q = ['jungsanri'];
+  const stage1 = PLACES.filter((p) => p.stage === 1).map((p) => p.id);
+  while (q.length) {
+    const id = q.shift();
+    const p = byId.get(id);
+    const links = p.stage === 0 ? stage1 : (p.links || []);
+    for (const to of links) {
+      const t = byId.get(to);
+      if (!t) { problems.push(`길 ${id} → ${to}: 없는 자리`); continue; }
+      if (t.stage !== p.stage + 1) problems.push(`길 ${id} → ${to}: 다음 단계가 아니다 (${p.stage} → ${t.stage})`);
+      if (!reach.has(to)) { reach.add(to); q.push(to); }
+    }
+  }
+  for (const p of PLACES) if (!reach.has(p.id)) problems.push(`자리 ${p.id}: 중산리에서 닿을 수 없다`);
+}
 const all = [...EVENTS, ...MORE_EVENTS, ...OBJECT_EVENTS];
 const problems = [];
 const ids = new Set();

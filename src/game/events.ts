@@ -21,6 +21,12 @@ const NIGHT_OUTDOOR = 0.35;
 const NIGHT_INDOOR = 0.12;
 
 // 모은 가족 단서 수
+// 흔적을 찾은 자리들. 자리에 묶인 사건 중 단서가 든 것을 만났으면
+export function clueFoundPlaces(state: GameState): string[] {
+  return EVENTS.filter((e) => e.when?.places && state.flags[`ev:${e.id}`] && e.choices.some((c) => c.outcomes.some((o) => o.effects?.clue)))
+    .flatMap((e) => e.when!.places!);
+}
+
 export function clueCount(state: GameState): number {
   return Object.keys(state.flags).filter((k) => k.startsWith('clue:') && state.flags[k]).length;
 }

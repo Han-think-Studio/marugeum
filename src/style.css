@@ -60,6 +60,16 @@ html, body, #app { margin: 0; height: 100%; overflow: hidden; }
 .stat.rad.bad > i > i { background: var(--warn); }
 
 canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
+.top { position: relative; min-height: 0; }
+.map-side { position: absolute; top: 24px; right: 10px; width: 260px; max-height: calc(100% - 52px); overflow-y: auto; background: rgba(12, 16, 24, 0.82); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+.map-side h4 { margin: 4px 0 4px; font-size: 11px; letter-spacing: 0.15em; color: var(--accent); }
+.map-side ul { margin: 0 0 6px; padding-left: 0; list-style: none; }
+.map-side li { padding: 3px 0; border-bottom: 1px dashed var(--line); }
+.map-side li:last-child { border-bottom: 0; }
+.map-side p { margin: 4px 0 0; font-size: 11px; }
+.map-side .side-toggle { float: right; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; cursor: pointer; font: inherit; font-size: 11px; }
+.map-side.collapsed { width: auto; padding: 4px; background: transparent; border: 0; }
+.map-side.collapsed .side-toggle { float: none; background: rgba(12, 16, 24, 0.82); }
 
 .panel {
   display: grid;

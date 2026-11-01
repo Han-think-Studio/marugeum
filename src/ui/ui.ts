@@ -1,11 +1,13 @@
 import { CAMP_HOUSE_LABEL, CAMP_TIERS, ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
+import { REGIONS } from '../map/generate';
+const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
 import {
   WATER_LABEL, atCamp, boil, buildWindbreak, campLabel, campTierHere, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
-  canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes,
+  canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes, hoursTo, equipLabel,
   canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
@@ -31,6 +33,7 @@ interface Refs {
   log: HTMLElement;
   choices: HTMLElement;
   actions: HTMLElement;
+  mapSide: HTMLElement;
 }
 
 const WOOD_HERE = (k: string) => WOOD_NODES.has(k as never);
@@ -50,7 +53,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   root.innerHTML = `
     <div class="game">
       <header class="hud"></header>
-      <canvas class="map"></canvas>
+      <div class="top"><canvas class="map"></canvas><aside class="map-side"></aside></div>
       <section class="panel">
         <div class="place"></div>
         <div class="log"></div>
@@ -68,6 +71,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     log: root.querySelector('.log')!,
     choices: root.querySelector('.choices')!,
     actions: root.querySelector('.actions')!,
+    mapSide: root.querySelector('.map-side')!,
   };
 
   let view: View = makeView(1, 1);
@@ -77,8 +81,10 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
   // 위쪽 큰 화면. 장면이 기본이고 지도는 전환해서 본다. 비·불·별·사물 표식이 있을 때는 느리게 움직인다
   let animating = false;
   const paintTop = () => {
+    refs.mapSide.style.display = state.view === 'map' ? '' : 'none';
     if (state.view === 'map') {
       drawMap(refs.ctx, state, view, hover);
+      renderMapSide(refs, state);
     } else {
       drawScene(refs.ctx, state, view.w, view.h, performance.now(), paintTop);
       drawObjects(refs.ctx, currentNode(state), view.w, view.h, performance.now(), hoverObj, paintTop);
@@ -168,10 +174,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     const py = e.clientY - rect.top;
     if (state.view === 'map') {
       const n = hitTest(state, view, px, py);
-      const next = n && neighbors(state).includes(n) ? n : null;
-      if (next !== hover) {
-        hover = next;
-        canvas.style.cursor = hover ? 'pointer' : 'default';
+      if (n !== hover) {
+        hover = n;
+        canvas.style.cursor = n && neighbors(state).includes(n) ? 'pointer' : 'default';
         paintTop();
       }
     } else {
@@ -469,6 +474,30 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
     box.appendChild(b);
   }
   refs.choices.appendChild(box);
+}
+
+// 지도 옆 목록. 거점과 저장고, 흔적이 있을 법한 곳, 둔 물건, 지난 여정이 끝난 자리. 여기서 몇 시간인지도
+let sideCollapsed = false;
+function renderMapSide(refs: Refs, state: GameState): void {
+  refs.mapSide.classList.toggle('collapsed', sideCollapsed);
+  if (sideCollapsed) {
+    refs.mapSide.innerHTML = '<button class="side-toggle">목록 ◂</button>';
+    refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = false; renderMapSide(refs, state); });
+    return;
+  }
+  const far = (n: MapNode): string => { const h = hoursTo(state, n.id); return h === null ? '' : h === 0 ? '여기' : `약 ${h}시간`; };
+  const camps = state.nodes.filter((n) => n.camp);
+  const marks = state.marked.map((id) => state.nodes.find((n) => n.place === id)).filter((n): n is MapNode => !!n && !n.visited);
+  const stash = state.nodes.filter((n) => !n.camp && n.equip.length > 0);
+  const dead = state.deadAt.map((id) => state.nodes.find((n) => n.place === id)).filter((n): n is MapNode => !!n);
+  const row = (n: MapNode, body: string) => `<li><b>${n.name}</b> <span class="muted">${far(n)}</span><br><span class="muted">${body}</span></li>`;
+  refs.mapSide.innerHTML =
+    `<button class="side-toggle">접기 ▸</button><h4>거점 <span class="muted">${camps.length}</span></h4><ul>${camps.map((n) => row(n, `${campLabel(n)} · ${n.store ? storeText(n.store) : ''}${n.equip.length ? ` · 장비 ${n.equip.length}` : ''}`)).join('')}</ul>` +
+    (marks.length ? `<h4>흔적이 있을 법한 곳</h4><ul>${marks.map((n) => row(n, `${REGION_OF(n)} · ${KIND_LABEL[n.kind]}`)).join('')}</ul>` : '') +
+    (stash.length ? `<h4>둔 물건</h4><ul>${stash.map((n) => row(n, n.equip.map((e) => equipLabel(e)).join(', '))).join('')}</ul>` : '') +
+    (dead.length ? `<h4>지난 여정이 끝난 자리</h4><ul>${dead.map((n) => row(n, REGION_OF(n))).join('')}</ul>` : '') +
+    `<p class="muted">자리를 가리키면 아는 만큼 보인다. 노란 테두리는 지금 갈 수 있는 곳.</p>`;
+  refs.mapSide.querySelector('.side-toggle')!.addEventListener('click', () => { sideCollapsed = true; renderMapSide(refs, state); });
 }
 
 // 대치 화면. 상대의 기세와 거리, 수마다 확률

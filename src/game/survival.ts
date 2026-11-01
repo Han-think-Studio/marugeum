@@ -23,8 +23,8 @@ export function falloutFactor(state: GameState): number {
 
 // 시간당 피폭량. 낮은 땅, 비, 바다 쪽 바람이 겹치면 급격히 오른다
 export function radPerHour(state: GameState, node: MapNode, indoor: boolean): number {
-  let r = node.alt < 0.35 ? 1.0 : node.alt < 0.6 ? 0.5 : 0.1;
-  r *= 1 + node.stage * 0.08; // 북쪽으로 갈수록 짙어진다
+  let r = node.alt < 0.3 ? 0.7 : node.alt < 0.5 ? 0.35 : node.alt < 0.7 ? 0.15 : 0.08;
+  r *= 1 + node.stage * 0.06; // 북쪽으로 갈수록 짙어진다
   r *= falloutFactor(state);
   const roof = indoor && node.camp && node.upgrades.includes('roof');
   if (state.weather === 'rain') r *= roof ? 1.5 : 3;

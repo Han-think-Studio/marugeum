@@ -1,8 +1,9 @@
-import { edgeKey, type GameState, type MapNode } from '../core/types';
+import { SUPPLY_KEYS, SUPPLY_LABEL, edgeKey, type GameState, type MapNode } from '../core/types';
 import { drawIcon } from './icons';
-import { neighbors } from '../game/state';
+import { campLabel, clueFoundPlaces, neighbors } from '../game/state';
 import { isNight } from '../game/weather';
-import { STAGES } from './generate';
+import { REGIONS, STAGES } from './generate';
+import { placeById } from '../data/places';
 
 export interface View {
   w: number;
@@ -105,6 +106,19 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
 
   const cur = state.nodes[state.nodeId];
   const nextIds = new Set(neighbors(state).map((n) => n.id));
+  const found = new Set(clueFoundPlaces(state));
+
+  // 지역 띠. 단계마다 번갈아 밝고, 위에 지역 이름
+  ctx.font = '11px "Noto Sans KR", "Malgun Gothic", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let s = 0; s < STAGES; s++) {
+    const x0 = v.padX + (s / STAGES) * (w - v.padX * 2);
+    const x1 = v.padX + ((s + 1) / STAGES) * (w - v.padX * 2);
+    if (s % 2 === 1) { ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(x0, 0, x1 - x0, h); }
+    ctx.fillStyle = state.knownStages.includes(s) || state.nodes.some((n) => n.stage === s && n.visited) ? 'rgba(255, 227, 163, 0.8)' : 'rgba(255,255,255,0.3)';
+    ctx.fillText(REGIONS[s], (x0 + x1) / 2, 12);
+  }
 
   // 연결선. 아는 길은 실선, 모르는 길은 희미한 점선, 지금 갈 수 있는 길은 노란색
   for (const n of state.nodes) {
@@ -157,7 +171,17 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     ctx.strokeStyle = isCur || isNext ? '#111' : 'rgba(255,255,255,0.25)';
     ctx.stroke();
 
-    drawIcon(ctx, n.kind, x, y, r * 0.55, isCur || isNext ? '#111' : '#cfd3d9');
+    drawIcon(ctx, placeById(n.place).icon ?? n.kind, x, y, r * 0.55, isCur || isNext ? '#111' : '#cfd3d9');
+
+    // 찾은 흔적. 사진 모양
+    if (found.has(n.place)) {
+      ctx.fillStyle = '#ffe3a3';
+      ctx.fillRect(x + r - 3, y + r - 4, 11, 9);
+      ctx.fillStyle = '#111';
+      ctx.fillRect(x + r - 1, y + r - 2, 7, 5);
+      ctx.fillStyle = '#ffe3a3';
+      ctx.fillRect(x + r + 1, y + r - 1, 3, 3);
+    }
 
     // 불 표시
     if (state.fire && state.fire.nodeId === n.id) {
@@ -193,14 +217,14 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.fill();
     }
 
-    // 거점 표시
+    // 거점 표시. 텐트는 삼각, 바위굴은 반원, 집은 깃발
     if (n.camp) {
-      ctx.beginPath();
-      ctx.moveTo(x + r + 2, y - r - 2);
-      ctx.lineTo(x + r + 2, y - r - 14);
-      ctx.lineTo(x + r + 12, y - r - 10);
-      ctx.closePath();
       ctx.fillStyle = '#f2c76a';
+      ctx.beginPath();
+      if (n.campTier === 1) { ctx.moveTo(x + r + 1, y - r - 2); ctx.lineTo(x + r + 7, y - r - 13); ctx.lineTo(x + r + 13, y - r - 2); }
+      else if (n.campTier === 2) { ctx.arc(x + r + 7, y - r - 2, 6, Math.PI, 0); }
+      else { ctx.moveTo(x + r + 2, y - r - 2); ctx.lineTo(x + r + 2, y - r - 14); ctx.lineTo(x + r + 12, y - r - 10); }
+      ctx.closePath();
       ctx.fill();
     }
 
@@ -231,21 +255,54 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
     ctx.fillRect(0, 0, w, h);
   }
 
-  // 바람 표시
-  if (state.wind !== 'calm') {
-    ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.textAlign = 'center';
-    ctx.fillText(state.wind === 'E' ? '동풍 ◀' : '▶ 서풍', w / 2, 16);
-  }
-
-  // 방향 표시
+  // 방향과 바람, 범례
   ctx.font = '11px "Noto Sans KR", "Malgun Gothic", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.textAlign = 'left';
-  ctx.fillText('남 · 지리산', 10, h - 10);
+  ctx.fillText(`남 · 지리산${state.wind !== 'calm' ? (state.wind === 'E' ? '   동풍 ◀' : '   ▶ 서풍') : ''}`, 10, h - 10);
   ctx.textAlign = 'right';
   ctx.fillText('북 · 향로봉', w - 10, h - 10);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillText('◆ 흔적 ?   ▣ 찾은 흔적   ● 안정   ⚑ 거점   ▪ 둔 물건   ― 아는 길   ┄ 모르는 길', w / 2, h - 10);
+
+  // 가리킨 자리의 말풍선. 가 봤거나 정찰했거나 표시된 자리면 아는 만큼 보여 준다
+  if (hover) drawTip(ctx, state, v, hover, found);
+}
+
+function drawTip(ctx: CanvasRenderingContext2D, state: GameState, v: View, n: MapNode, found: Set<string>): void {
+  const known = n.visited || n.scouted || state.marked.includes(n.place) || state.knownStages.includes(n.stage) || n.kind === 'goal' || n.kind === 'start';
+  const lines: string[] = [];
+  const kindName = placeById(n.place).name;
+  lines.push(known ? kindName : `${n.name.split(' ')[0]} ? · ${REGIONS[n.stage]}`);
+  if (n.visited || n.scouted) {
+    const water = n.waterLeft !== 0 || ['spring', 'valley', 'temple', 'village'].includes(n.kind);
+    const objs = n.objects.filter((o) => !o.hidden && !o.used).length;
+    lines.push(`${water ? '물 있음' : '물 없음'} · 사물 ${objs}${n.cave ? ' · 바위굴' : ''}${n.secured ? ' · 안정' : ''}`);
+  } else if (known) lines.push(state.marked.includes(n.place) ? '가족의 흔적이 있을지도' : '가 본 적 없음');
+  if (n.camp && n.store) lines.push(`${campLabel(n)} · ${SUPPLY_KEYS.filter((k) => n.store![k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${n.store![k]}`).join(' ') || '저장고 비었다'}`);
+  if (n.equip.length) lines.push(`${n.camp ? '거점 장비' : '둔 장비'} ${n.equip.length}: ${n.equip.map((e) => e.kind).slice(0, 4).join(', ')}`);
+  if (found.has(n.place)) lines.push('찾은 흔적');
+  if (state.deadAt.includes(n.place)) lines.push('지난 여정이 여기서 끝났다');
+  const [x, y] = toPx(v, n);
+  ctx.font = '12px "Noto Sans KR", "Malgun Gothic", sans-serif';
+  const wd = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 16;
+  const ht = lines.length * 17 + 10;
+  let bx = x + 16;
+  let by = y - ht / 2;
+  if (bx + wd > v.w - 4) bx = x - 16 - wd;
+  by = Math.max(4, Math.min(v.h - ht - 4, by));
+  ctx.fillStyle = 'rgba(10, 14, 20, 0.92)';
+  ctx.fillRect(bx, by, wd, ht);
+  ctx.strokeStyle = 'rgba(242, 199, 106, 0.7)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx + 0.5, by + 0.5, wd - 1, ht - 1);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => {
+    ctx.fillStyle = i === 0 ? '#ffe3a3' : '#e8e4da';
+    ctx.fillText(l, bx + 8, by + 13 + i * 17);
+  });
 }
 
 // 0 낮 .. 1 깊은 밤

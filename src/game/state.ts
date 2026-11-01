@@ -10,7 +10,7 @@ import { addLog } from './log';
 import { passHours, radPerHour, warnings } from './survival';
 import { choose, clueCount, closeEvent, maybeArrive, maybeNight, openGoal, openObject, startEvent } from './events';
 
-export { clueCount } from './events';
+export { clueCount, clueFoundPlaces } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';
@@ -443,6 +443,28 @@ export function lookAround(state: GameState): boolean {
   }
   afterAction(state);
   return true;
+}
+
+// 지금 자리에서 어느 자리까지 걸리는 시간. 길을 양쪽으로 따라 가장 짧은 길. 못 가면 null
+export function hoursTo(state: GameState, targetId: number): number | null {
+  const start = state.nodeId;
+  if (start === targetId) return 0;
+  const dist = new Map<number, number>([[start, 0]]);
+  const done = new Set<number>();
+  for (;;) {
+    let cur = -1;
+    let best = Infinity;
+    for (const [id, d] of dist) if (!done.has(id) && d < best) { best = d; cur = id; }
+    if (cur < 0) return null;
+    if (cur === targetId) return best;
+    done.add(cur);
+    const n = state.nodes[cur];
+    const around = [...n.links, ...state.nodes.filter((m) => m.links.includes(cur)).map((m) => m.id)];
+    for (const id of around) {
+      const d = best + travelHours(state, n, state.nodes[id]);
+      if (d < (dist.get(id) ?? Infinity)) dist.set(id, d);
+    }
+  }
 }
 
 // ---------- 끝에 남는 말 ----------
