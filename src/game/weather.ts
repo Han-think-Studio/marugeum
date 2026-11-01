@@ -1,5 +1,5 @@
 import { Rng } from '../core/rng';
-import { WEATHER_LABEL, WIND_LABEL, type GameState, type Weather, type Wind } from '../core/types';
+import { WEATHER_LABEL, WIND_LABEL, type GameState, type Weather, type Wind, CRISIS_INFO } from '../core/types';
 import { addLog } from './log';
 
 const NEXT: Record<Weather, [Weather, number][]> = {
@@ -58,6 +58,39 @@ export function tickWeather(state: GameState, rng: Rng, hours: number): void {
   }
 }
 
+// 첫날 0시부터 센 시간. 고비와 라디오가 쓴다
+export function absHour(state: GameState): number {
+  return (state.day - 1) * 24 + state.hour;
+}
+
+export function crisisActive(state: GameState): boolean {
+  const c = state.crisis;
+  if (!c) return false;
+  const now = absHour(state);
+  return now >= c.start && now < c.end;
+}
+
+// 아는 고비까지 남은 시간. 징조를 봤거나 라디오로 들었을 때만. 모르면 null
+export function crisisKnownIn(state: GameState): number | null {
+  const c = state.crisis;
+  if (!c || crisisActive(state)) return null;
+  const left = c.start - absHour(state);
+  if (left <= 0) return null;
+  if (c.warned || c.signed) return left;
+  return null;
+}
+
+// 상단에 띄울 고비 글
+export function crisisText(state: GameState): string {
+  const c = state.crisis;
+  if (!c) return '';
+  const label = CRISIS_INFO[c.kind].label;
+  if (crisisActive(state)) return `${label} · ${c.end - absHour(state)}시간 남음`;
+  const left = crisisKnownIn(state);
+  if (left === null) return '';
+  return c.warned ? `${label} · 약 ${left}시간 뒤` : `${label}의 징조 · 반나절 안`;
+}
+
 export function isNight(hour: number): boolean {
   return hour >= 20 || hour < 5;
 }
@@ -66,6 +99,7 @@ export function isNight(hour: number): boolean {
 export function envTemp(state: GameState, node: { alt: number; stage: number }): number {
   let t = 25 - node.alt * 12 - node.stage * 0.5;
   t -= (state.day - 1) * 0.4; // 늦가을. 날마다 조금씩 추워진다
+  if (crisisActive(state) && state.crisis) t -= state.crisis.kind === 'cold' ? 12 : state.crisis.kind === 'snow' ? 7 : 0;
   if (isNight(state.hour)) t -= 11;
   else if (state.hour < 8 || state.hour >= 18) t -= 5;
   if (state.weather === 'rain') t -= 5;

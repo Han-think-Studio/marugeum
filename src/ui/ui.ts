@@ -8,6 +8,7 @@ import {
   isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
   canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes, hoursTo, equipLabel,
+  canMaintain, maintain, maintainNeed, condOf, canListenRadio, listenRadio, radioSource, batteryCount, crisisText, crisisActive,
   canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
@@ -250,6 +251,8 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       o: () => lookPhoto(state),
       i: () => takeIodine(state),
       u: () => firstAid(state),
+      x: () => maintain(state),
+      z: () => listenRadio(state),
       y: () => purify(state),
     };
     const fn = map[e.key.toLowerCase()];
@@ -292,7 +295,9 @@ function renderHud(refs: Refs, state: GameState): void {
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><button class="view-btn" title="장면/지도 (V)">${state.view === 'map' ? '장면' : '지도'}</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
-    `<span class="forecast" title="하늘을 읽은 예보">${daylightLeft(state.hour) > 0 ? `해 ${daylightLeft(state.hour)}시간` : '밤'} · ${forecastText(state)}</span>${chips}`;
+    `<span class="forecast" title="하늘을 읽은 예보">${daylightLeft(state.hour) > 0 ? `해 ${daylightLeft(state.hour)}시간` : '밤'} · ${forecastText(state)}</span>` +
+    (crisisText(state) ? `<span class="crisis${crisisActive(state) ? ' on' : ''}" title="고비. 지붕과 불과 땔감과 물을 챙겨 버틴다">${crisisText(state)}</span>` : '') +
+    chips;
   // 배낭은 장소 줄 아래에
   const packLine = refs.place.parentElement!.querySelector<HTMLElement>('.packline') ?? (() => {
     const el = document.createElement('div');
@@ -388,6 +393,14 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
   if (state.equip.some((e) => e.kind === 'iodine')) act('요오드 먹기', 'I', canTakeIodine(state) ? '피폭 -15 · 하루 한 번' : '오늘은 먹었다', () => takeIodine(state), canTakeIodine(state));
   if (state.equip.some((e) => e.kind === 'medkit')) act('응급처치', 'U', canFirstAid(state) ? '체력 +25 · 1시간' : '다친 데가 없다', () => firstAid(state), canFirstAid(state));
+  if (state.equip.some((e) => condOf(e) !== null)) {
+    const need = maintainNeed(state);
+    act('정비', 'X', !cur.camp ? `거점에서만 · 가장 닳은 것 ${need}%` : canMaintain(state) ? `2시간 · 가장 닳은 것 ${need}%` : '손볼 것이 없다', () => maintain(state), canMaintain(state));
+  }
+  if (state.equip.some((e) => e.kind === 'radio') || radioSource(state) === 'power') {
+    const src = radioSource(state);
+    act('라디오', 'Z', src === null ? (state.equip.some((e) => e.kind === 'radio' && !e.broken) ? '건전지가 없다' : '라디오가 고장') : !canListenRadio(state) ? '방금 들었다 · 여덟 시간에 한 번' : src === 'power' ? '1시간 · 거점 전기' : `1시간 · 건전지 ${batteryCount(state)}`, () => listenRadio(state), canListenRadio(state));
+  }
   if (state.equip.some((e) => e.kind === 'purifier')) act('정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
   if (!cur.camp) {
     const tier = campTierHere(state, cur);
@@ -451,7 +464,7 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   const box = document.createElement('div');
   box.className = 'event appear';
   // public/art/event-<id>.png 가 있으면 본문 위에 삽화가 뜬다. 없으면 조용히 사라진다
-  const art = `<img class="event-art" src="./art/event-${ev.id}.webp" alt="" data-fallback="./art/event-${ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
+  const art = `<img class="event-art" src="./art/event-${ev.art ?? ev.id}.webp" alt="" data-fallback="./art/event-${ev.art ?? ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
   if (state.event.result === null) {
     box.innerHTML = `${art}<h3>${ev.title}</h3><p>${fillName(ev.text, state, currentNode(state))}</p>`;
     const list = document.createElement('div');

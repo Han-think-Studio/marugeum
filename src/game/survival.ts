@@ -1,7 +1,7 @@
 import { Rng } from '../core/rng';
 import { DIFFICULTY, settings } from './settings';
-import { EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, type GameState, type MapNode, type StatKey } from '../core/types';
-import { envTemp, isNight, tickWeather } from './weather';
+import { CRISIS_INFO, EQUIP_INFO, INDOOR, REGROWS, REGROW_DAYS, WEAR_CHANCE, WEAR_RATE, type CrisisKind, type GameState, type MapNode, type StatKey } from '../core/types';
+import { envTemp, isNight, tickWeather, absHour, crisisActive } from './weather';
 import { hasEquip, tentAt } from './equip';
 import { facilityRunning, spoilFresh, tickFacilities } from './facilities';
 import { refreshObjects } from './objects';
@@ -30,6 +30,7 @@ export function radPerHour(state: GameState, node: MapNode, indoor: boolean): nu
   const roof = indoor && node.camp && node.upgrades.includes('roof');
   if (state.weather === 'rain') r *= roof ? 1.5 : 3;
   if (state.wind !== 'calm' && state.wind === node.side) r *= 1.8;
+  if (state.crisis && state.crisis.kind === 'fallout' && crisisActive(state)) r *= 1.8; // 낙진비
   if (indoor) r *= node.camp && node.campTier >= 3 ? 0.15 : node.camp && node.campTier === 2 ? 0.25 : 0.35;
   if (indoor && node.camp && node.upgrades.includes('earth')) r *= 0.5;
   return r;
@@ -135,10 +136,27 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
 
 // 자정마다. 자연 자원이 조금 돌아오고, 낙진 소식이 온다
 function onNewDay(state: GameState, rng: Rng): void {
-  // 지닌 장비가 닳는다
+  // 지닌 장비가 닳는다. 닳는 장비는 상태가 줄고, 나머지는 가끔 고장 난다. 거점기에 야영장에 있으면 쉬는 날이다
+  const resting = state.phase === 'base' && state.nodeId === state.baseId;
+  const harsh = (state.weather === 'rain' ? 1.5 : 1) * (crisisActive(state) ? 1.5 : 1);
   for (const e of state.equip) {
+    if (e.broken) continue;
+    const rate = WEAR_RATE[e.kind];
+    if (rate !== undefined) {
+      if (resting) continue;
+      const before = e.cond ?? 100;
+      e.cond = Math.max(0, before - rate * harsh);
+      const name = EQUIP_INFO[e.kind].label;
+      if (e.cond <= 0) {
+        e.broken = true;
+        addLog(state, `${name}가 끝내 망가졌다. 정비를 미룬 값이다. 부품이 있으면 고칠 수 있다.`);
+      } else if (before > 30 && e.cond <= 30) {
+        addLog(state, `${name}가 많이 닳았다(${Math.round(e.cond)}%). 거점에서 정비해야 한다.`);
+      }
+      continue;
+    }
     const c = WEAR_CHANCE[e.kind] ?? 0;
-    if (!e.broken && c > 0 && rng.chance(c)) {
+    if (c > 0 && rng.chance(c)) {
       e.broken = true;
       addLog(state, `${EQUIP_INFO[e.kind].label}가 고장 났다. 험한 길에 부딪히고 젖은 탓이다.`);
     }
@@ -152,8 +170,11 @@ function onNewDay(state: GameState, rng: Rng): void {
   }
   const notes: Record<number, string> = {
     4: '비가 점점 더 더러워진다. 한곳에 오래 머물 수 없다.',
+    6: '아침에 첫서리가 내렸다. 풀잎이 하얗다. 겨울이 오고 있다.',
     8: '능선 위에서도 입안에 쇠맛이 돈다. 서둘러야 한다.',
+    9: '첫눈이 날렸다. 쌓이지는 않았다. 아직은.',
     12: '하늘이 누렇다. 남쪽은 이미 끝났을 것이다.',
+    13: '겨울이다. 능선의 밤은 이제 지붕과 불 없이는 넘을 수 없다.',
     16: '이제는 비를 한 번만 맞아도 위험하다.',
   };
   if (notes[state.day]) addLog(state, notes[state.day]);
@@ -166,8 +187,49 @@ export interface TickResult {
 }
 
 // hours 만큼 시간을 흘린다. 날씨도 함께 흐른다
+// 고비. 징조, 시작, 버틴 시간 세기, 끝. 끝나면 다음 고비를 정한다
+function tickCrisis(state: GameState, rng: Rng, node: MapNode, act: Activity, count = true): void {
+  const now = absHour(state);
+  if (!state.crisis) state.crisis = planCrisis(rng, now + rng.int(66, 90));
+  const c = state.crisis;
+  const info = CRISIS_INFO[c.kind];
+  if (!c.signed && now >= c.start - 12 && now < c.start) {
+    c.signed = true;
+    addLog(state, info.sign);
+  }
+  if (now >= c.start && now < c.end) {
+    if (!c.started) {
+      c.started = true;
+      c.signed = true;
+      addLog(state, `[고비] ${info.start}`);
+    }
+    if (c.kind === 'fallout') state.weather = 'rain';
+    if (!count) return;
+    const fire = state.fire !== null && state.fire.nodeId === node.id;
+    const sheltered = act !== 'travel' && (INDOOR.has(node.kind) || node.cave || node.camp || fire || hasEquip(state, 'tent'));
+    if (sheltered) c.sheltered += 1;
+    else c.exposed += 1;
+  } else if (now >= c.end && c.started) {
+    const good = c.sheltered >= (c.sheltered + c.exposed) * 0.7;
+    add(state, 'mind', good ? 12 : -10);
+    const text = `${good ? info.good : info.bad} (지붕·불 아래 ${c.sheltered}시간, 밖에서 ${c.exposed}시간)`;
+    addLog(state, `[고비를 넘겼다] ${text}`);
+    if (!state.event && state.over === 'none') state.event = { id: `crisis_${c.kind}`, result: text };
+    state.crisis = planCrisis(rng, c.end + rng.int(72, 100));
+  }
+}
+
+function planCrisis(rng: Rng, start: number): import('../core/types').Crisis {
+  const day = Math.floor(start / 24) + 1;
+  const kinds: CrisisKind[] = day >= 9 ? ['cold', 'snow', 'snow', 'fallout'] : day >= 7 ? ['cold', 'snow', 'fallout'] : ['cold', 'fallout'];
+  const kind = kinds[rng.int(0, kinds.length - 1)];
+  const len = Math.min(26, 14 + day);
+  return { kind, start, end: start + len, warned: false, signed: false, started: false, sheltered: 0, exposed: 0 };
+}
+
 export function passHours(state: GameState, rng: Rng, node: MapNode, hours: number, act: Activity, opts: TickOpts = {}): TickResult {
   for (let i = 0; i < hours; i++) {
+    tickCrisis(state, rng, node, act);
     tickOneHour(state, rng, node, act, opts);
     tickWeather(state, rng, 1);
     if (state.stats.hp <= 0) {
@@ -177,6 +239,7 @@ export function passHours(state: GameState, rng: Rng, node: MapNode, hours: numb
       return { died: true };
     }
   }
+  tickCrisis(state, rng, node, act, false); // 행동이 끝난 그 시각의 징조·시작·끝
   return { died: false };
 }
 

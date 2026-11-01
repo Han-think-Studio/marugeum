@@ -104,7 +104,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '나무 상자. 못이 박혀 있다. 흔들면 안에서 소리가 난다.',
     choices: [
       { text: '뜯는다', hint: '30분', outcomes: [
-        { chance: 0.35, text: '통조림과 부품 상자. 누군가 챙기려다 못 챙긴 것이다.', effects: { food: 3, parts: 1, objUsed: true } },
+        { chance: 0.35, text: '통조림과 부품 상자. 누군가 챙기려다 못 챙긴 것이다.', effects: { food: 3, parts: 1, gear: 'battery', objUsed: true } },
         { chance: 0.3, text: '구급상자. 붕대와 소독약, 요오드 알약 한 통, 정수 알약.', effects: { gear: 'medkit', objUsed: true, flag: 'crate_med' } },
         { chance: 0.3, text: '정수 알약 한 통과 요오드. 누군가 대피 물품을 챙겼다가 두고 갔다.', effects: { gear: 'purifier', objUsed: true } },
         { chance: 0.6, text: '생수 묶음과 라면. 아직 봉인이 그대로다.', effects: { water: 2, food: 2, objUsed: true } },
@@ -125,7 +125,7 @@ export const OBJECT_EVENTS: EventDef[] = [
       ] },
       { text: '차 안을 뒤진다', hint: '30분', outcomes: [
         { chance: 0.4, text: '글로브박스에서 사탕과 방수 성냥 한 통. 트렁크의 담요도 챙겼다.', effects: { food: 1, gear: 'matches', objUsed: true } },
-        { chance: 0.4, text: '글로브박스에 손전등. 켜 보니 밝다.', effects: { gear: 'flashlight', objUsed: true } },
+        { chance: 0.4, text: '글로브박스에 손전등. 켜 보니 밝다.', effects: { gear: 'flashlight', gear2: 'battery', objUsed: true } },
         { text: '아이 의자 밑에 장난감 하나. 그것뿐이었다.', effects: { mind: -3, objUsed: true } },
       ] },
       { text: '지나간다', outcomes: [{ text: '차는 쓸모없다. 길도 끊겼고 기름도 없다.', effects: {} }] },
@@ -222,7 +222,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     text: '선반 위 건전지 라디오. 다이얼을 돌리자 지직거린다.',
     choices: [
       { text: '챙긴다', outcomes: [
-        { chance: 0.5, text: '건전지는 다 됐지만 발전기에 꽂으면 된다. 배낭에 넣었다.', effects: { gear: 'radio', objUsed: true } },
+        { chance: 0.5, text: '건전지는 다 됐지만 발전기에 꽂으면 된다. 배낭에 넣었다.', effects: { gear: 'radio', gear2: 'battery', objUsed: true } },
         { text: '스피커가 찢어졌다. 고치면 될지도 모른다.', effects: { brokenGear: 'radio', objUsed: true } },
       ] },
       { text: '두고 간다', outcomes: [{ text: '무겁지는 않지만 쓸 데가 없다. 아직은.', effects: {} }] },
@@ -236,7 +236,7 @@ export const OBJECT_EVENTS: EventDef[] = [
     choices: [
       { text: '뒤진다', hint: '30분', outcomes: [
         { chance: 0.35, text: '쌀 한 봉지와 라면. 그리고 겨울 외투. 외투는 입었다.', effects: { food: 3, gear: 'blanket', objUsed: true } },
-        { chance: 0.35, text: '우비와 손전등. 손전등은 건전지가 반쯤 남았다.', effects: { gear: 'raincoat', brokenGear: 'flashlight', objUsed: true } },
+        { chance: 0.35, text: '우비와 손전등. 손전등은 건전지가 반쯤 남았다.', effects: { gear: 'raincoat', brokenGear: 'flashlight', gear2: 'battery', objUsed: true } },
         { chance: 0.6, text: '통조림 몇 개와 양초. 양초는 땔감 대신 쓸 수 있다.', effects: { food: 3, wood: 1, objUsed: true } },
         { text: '곰팡이 핀 옷가지뿐이었다.', effects: { objUsed: true } },
       ] },

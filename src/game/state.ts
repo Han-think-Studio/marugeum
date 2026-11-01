@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, KIND_LABEL, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
   SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
-  CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
+  CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, MAINTAIN_GAIN, MAINTAIN_HOURS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
 import { placeById } from '../data/places';
@@ -14,12 +14,13 @@ export { clueCount, clueFoundPlaces, eventById, meetsReq } from './events';
 import { visibleObjects } from './objects';
 
 export { visibleObjects, hiddenCount } from './objects';
-import { canCarry, equipLabel, hasEquip, heavyCount, tentAt, useCharge } from './equip';
-import { isNight, rollWeather } from './weather';
-import { syncFresh } from './facilities';
+import { batteryCount, canCarry, condOf, equipLabel, flashlightLit, hasEquip, heavyCount, tentAt, useCharge } from './equip';
+import { absHour, crisisActive, crisisKnownIn, isNight, rollWeather } from './weather';
+import { facilityRunning, syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 
-export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt } from './equip';
+export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condOf, flashlightLit } from './equip';
+export { crisisActive, crisisKnownIn, crisisText, absHour } from './weather';
 export { addLog } from './log';
 
 export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; deadAt?: string[]; runNo?: number } = {}): GameState {
@@ -47,6 +48,9 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
     event: null,
     seen: [],
     marked: ['seongsamjae'], // 쪽지가 가리키는 첫 자리
+    crisis: null,
+    radioHour: -99,
+    radioCount: 0,
     buried: [],
     view: 'scene',
     knownStages: opts.knownStages ?? [],
@@ -147,7 +151,8 @@ export function travelHours(state: GameState, from: MapNode, to: MapNode): numbe
   const pen = known ? 0.5 : 1;
   if (state.weather === 'fog') h += 1 * pen;
   if (state.weather === 'rain') h += 1;
-  if (isNight(state.hour)) h += 2 * pen * (hasEquip(state, 'flashlight') ? 0.5 : 1);
+  if (isNight(state.hour)) h += 2 * pen * (flashlightLit(state) ? 0.5 : 1);
+  if (state.crisis && state.crisis.kind === 'snow' && crisisActive(state)) h *= 1.5; // 폭설
   if (state.stats.fatigue < 30) h += 2;
   if (hasEquip(state, 'carrier')) h += 1; // 지게는 부피가 크다
   h += weightPenalty(state);
@@ -201,6 +206,10 @@ export function travelTo(state: GameState, id: number): boolean {
   }
   const known = isKnown(state, from, to);
   const hours = travelHours(state, from, to);
+  if (isNight(state.hour) && flashlightLit(state)) {
+    useCharge(state, 'battery');
+    addLog(state, `손전등을 켰다. 건전지 하나가 닳았다. 남은 건전지 ${batteryCount(state)}.`);
+  }
   const rng = takeRng(state);
   // 이동 중에는 출발지와 도착지의 중간 고도에 노출된다고 본다
   const midway: MapNode = { ...to, alt: (from.alt + to.alt) / 2, side: to.side, camp: false };
@@ -481,6 +490,99 @@ export function hoursTo(state: GameState, targetId: number): number | null {
   }
 }
 
+// ---------- 정비와 라디오 ----------
+
+// 정비. 거점에서만. 지닌 장비의 닳은 상태를 돌린다. 손을 움직이면 마음도 가라앉는다
+export function maintainNeed(state: GameState): number {
+  const conds = state.equip.map(condOf).filter((c): c is number => c !== null && c > 0);
+  return conds.length ? Math.round(Math.min(...conds)) : 100;
+}
+
+export function canMaintain(state: GameState): boolean {
+  return !busy(state) && currentNode(state).camp && state.equip.some((e) => { const c = condOf(e); return c !== null && c > 0 && c < 100; });
+}
+
+export function maintain(state: GameState): boolean {
+  if (!canMaintain(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, MAINTAIN_HOURS, 'work');
+  giveRng(state, rng);
+  if (!res.died) {
+    const gain = MAINTAIN_GAIN + (hasEquip(state, 'tools') ? 20 : 0);
+    const done: string[] = [];
+    for (const e of state.equip) {
+      const c = condOf(e);
+      if (c === null || c <= 0 || c >= 100) continue;
+      e.cond = Math.min(100, c + gain);
+      done.push(EQUIP_INFO[e.kind].label);
+    }
+    state.stats.mind = Math.min(100, state.stats.mind + 4);
+    addLog(state, `두 시간 동안 장비를 손봤다. ${done.join(', ')}. 터진 솔기를 꿰매고 녹을 닦았다. 손을 움직이니 마음이 가라앉았다.`);
+  }
+  afterAction(state);
+  return true;
+}
+
+// 라디오. 거점에 전기가 돌면 그냥, 아니면 지닌 라디오와 건전지로. 여덟 시간에 한 번
+export function radioSource(state: GameState): 'power' | 'battery' | null {
+  const node = currentNode(state);
+  if (facilityRunning(node, 'radio')) return 'power';
+  if (hasEquip(state, 'radio') && batteryCount(state) > 0) return 'battery';
+  return null;
+}
+
+export function canListenRadio(state: GameState): boolean {
+  return !busy(state) && radioSource(state) !== null && absHour(state) - state.radioHour >= 8;
+}
+
+const CLUE_TRAIL = ['seongsamjae', 'yuksimnyeong', 'samdobong', 'beopjusa', 'jungnyeong', 'cheoram', 'manhangjae', 'hangyeryeong'];
+const NEWS = [
+  '"...향로봉 임시 수용소 정상 운영 중. 배급은 하루 두 끼. 남쪽 능선으로 오시는 분은 한계령 검문소에서 선별을 받으십시오..."',
+  '"...비무장지대 동부 산악 측정치 전국 최저. 봄에 수용소를 철책 너머로 옮길 예정입니다. 지뢰 지대는 군이 안내합니다..."',
+  '"...동해안과 서해안 전역 접근 금지. 해안에서 온 비를 맞지 마십시오. 낮은 땅에 오래 머물지 마십시오..."',
+  '"...남하하는 북한군 잔존 병력과 마주치면 무기를 내려놓고 물러서십시오. 그들도 굶고 있습니다..."',
+];
+
+export function listenRadio(state: GameState): boolean {
+  if (!canListenRadio(state)) return false;
+  const src = radioSource(state);
+  if (src === 'battery') useCharge(state, 'battery');
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'rest');
+  giveRng(state, rng);
+  if (res.died) { afterAction(state); return true; }
+  state.radioHour = absHour(state);
+  state.radioCount += 1;
+  const c = state.crisis;
+  const now = absHour(state);
+  let text: string;
+  if (c && crisisActive(state)) {
+    text = `잡음 사이로 긴급 방송. ${CRISIS_INFO[c.kind].radio} ${c.end - now}시간쯤 더 간다고 한다. 버티면 된다.`;
+  } else if (c && c.start - now <= 60) {
+    c.warned = true;
+    text = `긴급 방송이 잡혔다. ${CRISIS_INFO[c.kind].radio} 약 ${c.start - now}시간 뒤라고 한다. 그 전에 지붕과 땔감과 물을 챙겨야 한다.`;
+  } else {
+    const next = CLUE_TRAIL.map((id) => state.nodes.find((n) => n.place === id)).find((n) => n && !n.visited && !state.marked.includes(n.place));
+    const pick = state.radioCount % 3;
+    if (pick === 1 && next) {
+      state.marked.push(next.place);
+      text = `수용소가 가족 찾기 명단을 읽는다. 이름들, 이름들. "...2차 버스 승객 일부 ${next.name} 경유 확인..." 지도에 표시해 두었다: ${next.name}.`;
+    } else if (pick === 2 && !state.flags['drop_coming'] && state.day >= 3) {
+      state.flags['drop_coming'] = true;
+      text = '"...능선 생존자를 위한 보급품을 봉우리와 고개 위에 투하합니다. 붉은 낙하산을 찾으십시오..." 봉우리와 고개. 그것만 기억하면 된다.';
+    } else {
+      text = `방송이 잡혔다. ${NEWS[state.radioCount % NEWS.length]} 사람 목소리를 들은 것만으로 조금 나아졌다.`;
+    }
+  }
+  state.stats.mind = Math.min(100, state.stats.mind + 4);
+  addLog(state, `[라디오] ${text}${src === 'battery' ? ` 건전지 하나를 썼다. 남은 건전지 ${batteryCount(state)}.` : ''}`);
+  state.event = { id: 'radio', result: text };
+  afterAction(state);
+  return true;
+}
+
 // ---------- 끝에 남는 말 ----------
 // 향로봉에 닿았거나 길에서 끝났을 때, 이 여정이 무엇이었는지 몇 줄로 돌아본다
 export function endingNotes(state: GameState): string[] {
@@ -538,6 +640,7 @@ export function scoutHours(state: GameState, to: MapNode): number {
 
 export function scoutBlock(state: GameState, to: MapNode): string | null {
   if (to.visited || to.scouted) return '이미 안다';
+  if (crisisActive(state)) return '고비 중이다';
   if (state.weather === 'rain') return '비가 온다';
   if (isNight(state.hour)) return '밤이다';
   if (state.hour + scoutHours(state, to) > 20) return '해가 모자란다';
@@ -635,6 +738,7 @@ export function repair(state: GameState, where: 'pack' | 'base', idx: number): b
     const chance = repairChance(state);
     if (rng.chance(chance)) {
       item.broken = false;
+      if (condOf(item) !== null) item.cond = 50;
       addLog(state, `${EQUIP_INFO[item.kind].label}를 고쳤다. 두 시간 만에 돌아가는 소리가 났다.`);
     } else {
       addLog(state, `${EQUIP_INFO[item.kind].label} 수리에 실패했다. 부품만 날렸다.`);
@@ -812,6 +916,11 @@ export function routeRisk(state: GameState, to: MapNode): { level: Risk; why: st
   if (state.stats.fatigue < 30 || state.stats.thirst < 25) { score += 1; why.push('몸이 안 됨'); }
   if (to.alt < 0.35) { score += 1; why.push('낮은 땅'); }
   if (!to.visited && !to.scouted) { score += 1; why.push('모르는 길'); }
+  if (crisisActive(state) && state.crisis) { score += 2; why.push(CRISIS_INFO[state.crisis.kind].label); }
+  else {
+    const left = crisisKnownIn(state);
+    if (left !== null && left <= hours && state.crisis) { score += 1; why.push(`${CRISIS_INFO[state.crisis.kind].label}가 온다`); }
+  }
   const level: Risk = score >= 3 ? 'high' : score >= 1 ? 'mid' : 'low';
   return { level, why };
 }
@@ -837,7 +946,10 @@ export function lookPhoto(state: GameState): boolean {
     `헬기가 데려갔다면 지금쯤 거기 있다. 사진을 보며 처음으로 숨을 길게 쉬었다.`,
   ];
   addLog(state, lines[Math.min(n, lines.length - 1)]);
-  state.stats.mind = Math.min(100, state.stats.mind + (n >= 4 ? 6 : 3));
+  // 고비 앞이나 고비 중에 사진을 보면 마음을 다잡는다
+  const hard = crisisActive(state) || crisisKnownIn(state) !== null;
+  if (hard) addLog(state, '고비 앞에서 사진을 오래 보았다. 넘을 이유가 여기 있다.');
+  state.stats.mind = Math.min(100, state.stats.mind + (n >= 4 ? 6 : 3) + (hard ? 6 : 0));
   afterAction(state);
   return true;
 }

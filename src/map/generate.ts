@@ -87,6 +87,8 @@ export function generateMap(rng: Rng): MapNode[] {
     { kind: 'generator', broken: true },
     { kind: 'fridge', broken: false },
     { kind: 'lamp', broken: false },
+    { kind: 'radio', broken: false, cond: 90 },
+    { kind: 'battery', broken: false, charges: 4 },
   ];
 
   // 연결. 자리마다 적힌 길을 잇고, 여정마다 길 하나가 더 열릴 수 있다. 고아 노드는 가장 가까운 노드에서 이어준다

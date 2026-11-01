@@ -3,7 +3,7 @@ import { objectLabel, visibleObjects, hiddenCount } from '../game/objects';
 import { hasEquip } from '../game/equip';
 import { isPowered } from '../game/facilities';
 import { campLabel, hasFire } from '../game/state';
-import { isNight } from '../game/weather';
+import { crisisActive, isNight } from '../game/weather';
 import { darkness, mix } from '../map/render';
 
 // 장면 그림판. 지금 선 자리를 선과 면으로 그린다. 시간·날씨·불·전등이 반영된다.
@@ -209,6 +209,31 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
   } else if (state.weather === 'fog') {
     ctx.fillStyle = 'rgba(200, 205, 210, 0.35)';
     ctx.fillRect(0, 0, w, h);
+  }
+  // 고비. 폭설은 눈송이, 한파는 서리 낀 푸른 빛, 낙진비는 누런 기운
+  if (state.crisis && crisisActive(state)) {
+    if (state.crisis.kind === 'snow') {
+      ctx.fillStyle = 'rgba(240, 244, 250, 0.85)';
+      const drift = (t * 0.03) % h;
+      for (let i = 0; i < 110; i++) {
+        const sx = (i * 71 + Math.sin((t / 900) + i) * 12) % w;
+        const sy = (i * 43 + drift) % h;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1 + (i % 3) * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(230, 236, 245, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+    } else if (state.crisis.kind === 'cold') {
+      const g = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, h * 0.9);
+      g.addColorStop(0, 'rgba(160, 200, 240, 0.05)');
+      g.addColorStop(1, 'rgba(190, 220, 255, 0.35)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    } else {
+      ctx.fillStyle = 'rgba(170, 150, 40, 0.16)';
+      ctx.fillRect(0, 0, w, h);
+    }
   }
 
   // 밤의 비네트

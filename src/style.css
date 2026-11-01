@@ -291,3 +291,5 @@ html[data-text="large"] .stat > i { width: 34px; }
 .end .epilogue { color: var(--ink); font-size: 13px; line-height: 1.8; opacity: 0.9; }
 .choices .mark { color: var(--accent); }
 .end .after { color: var(--muted); font-size: 13px; line-height: 1.8; border-top: 1px dashed var(--line); padding-top: 8px; }
+.hud .crisis { color: #a8c8f0; font-size: 12px; padding: 1px 8px; border: 1px solid rgba(168, 200, 240, 0.5); border-radius: 999px; }
+.hud .crisis.on { color: #111; background: #e07a5f; border-color: #e07a5f; font-weight: 700; }

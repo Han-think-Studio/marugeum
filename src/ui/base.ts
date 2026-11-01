@@ -1,6 +1,6 @@
 import { CAMP_TIERS, EQUIP_INFO, INDOOR, SUPPLY_KEYS, SUPPLY_LABEL, UPGRADES, UPGRADE_IDS, WINDBREAK, type GameState } from '../core/types';
 import {
-  build, buildWindbreak, canBuild, canStrikeTent, canWindbreak, campLabel, storeCap, storeUsed,
+  build, buildWindbreak, canBuild, canStrikeTent, canWindbreak, campLabel, storeCap, storeUsed, canMaintain, maintain, maintainNeed,
   canCarry, canDepart, currentNode, dailyUse, depart, equipLabel, facilityOk, facilityRunning, generatorHoursLeft, hasGenerator,
   heaterHoursLeft, heavyCarried, heavyLimit, isPowered, moveEquip, moveSupply, packCap, repair, repairChance, storeText, timeLabel,
   toggleGenerator, toggleHeater,
@@ -95,6 +95,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
           <section>
             ${camp ? `<h3>저장고 ↔ 배낭 <span class="muted">저장고 ${storeUsed(node)}/${storeCap(node)}</span></h3>
             <table class="store"><thead><tr><th></th><th>저장고</th><th></th><th>배낭</th></tr></thead><tbody>${rows}</tbody></table>` : `<h3>배낭</h3><p>${SUPPLY_KEYS.filter((k) => p[k] > 0).map((k) => `${SUPPLY_LABEL[k]} ${p[k]}`).join(' · ') || '비었다'}</p>`}
+            ${camp ? `<p><button data-maintain="1" ${canMaintain(state) ? '' : 'disabled'}>정비 · 2시간 · 가장 닳은 장비 ${maintainNeed(state)}%</button> <span class="muted">지닌 장비의 닳은 상태를 돌린다. 공구가 있으면 더 많이.</span></p>` : '<p class="muted">정비는 거점에서만 할 수 있다. 텐트 거점도 거점이다.</p>'}
             <p class="muted">무거운 장비 ${heavyCarried(state)}/${heavyLimit(state)} 지고 있음. 수리 성공 ${chance}% · 부품 ${partsHere}개.</p>
             ${camp ? `<h3>시설</h3>${facilities()}<h3>보강</h3>${upgrades()}${INDOOR.has(node.kind) ? '' : `<h3>안식처</h3>${windbreakCard()}`}` : `<p class="muted">거점이 아니라 저장고와 시설은 없다. 장비를 여기 두면 나중에 가지러 올 수 있다.</p><h3>안식처</h3>${windbreakCard()}`}
             ${canDepart(state) ? `<h3>떠나기</h3>
@@ -131,6 +132,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     else if (b.dataset.rep) changed = repair(state, b.dataset.rep as 'pack' | 'base', Number(b.dataset.i));
     else if (b.dataset.build) changed = build(state, b.dataset.build as never);
     else if (b.dataset.windbreak) changed = buildWindbreak(state);
+    else if (b.dataset.maintain) changed = maintain(state);
     else if (b.dataset.fac === 'gen') changed = toggleGenerator(state, node);
     else if (b.dataset.fac === 'heater') changed = toggleHeater(state, node);
     else if (b.dataset.depart) {

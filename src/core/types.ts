@@ -92,18 +92,19 @@ export const FIRE_HOURS = 10; // 땔감 하나로 불이 타는 시간
 export type EquipKind =
   | 'generator' | 'dieselGenerator' | 'fridge' | 'lamp' | 'radio' | 'heater'
   | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent'
-  | 'carrier' | 'rope' | 'flashlight' | 'mask' | 'raincoat' | 'knife'
+  | 'carrier' | 'rope' | 'flashlight' | 'mask' | 'raincoat' | 'knife' | 'battery'
   | 'iodine' | 'medkit' | 'purifier' | 'matches';
 export type GearKey = EquipKind;
 
 export interface Equip {
   kind: EquipKind;
   broken: boolean;
-  charges?: number; // 쓰면 줄어드는 것. 요오드, 구급약, 정수 알약
+  charges?: number; // 쓰면 줄어드는 것. 요오드, 구급낭, 정수 알약, 건전지
+  cond?: number; // 상태 0..100. 지니고 걸으면 닳고, 0 이면 고장. 정비는 거점에서
 }
 
 // 쓰면 줄어드는 물건의 기본 횟수
-export const DEFAULT_CHARGES: Partial<Record<EquipKind, number>> = { iodine: 3, medkit: 2, purifier: 4 };
+export const DEFAULT_CHARGES: Partial<Record<EquipKind, number>> = { iodine: 3, medkit: 2, purifier: 4, battery: 4 };
 
 export interface EquipInfo {
   label: string;
@@ -133,6 +134,59 @@ export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
   medkit: { label: '구급낭', heavy: false, desc: '응급처치로 체력 25 회복. 한 시간' },
   purifier: { label: '정수 알약', heavy: false, desc: '불 없이 오염수 두 통을 깨끗하게' },
   matches: { label: '방수 성냥', heavy: false, desc: '비 오는 바깥에서도 불이 붙는다' },
+  battery: { label: '건전지', heavy: false, desc: '라디오를 한 번 듣거나 손전등으로 밤길을 한 번 간다' },
+};
+
+// 장비 마모. 종주하는 날마다 상태(100)가 이만큼 닳는다. 비 오는 날과 고비 중엔 1.5배. 0 이면 고장. 정비는 거점에서
+export const WEAR_RATE: Partial<Record<EquipKind, number>> = {
+  tent: 11, blanket: 8, raincoat: 11, mask: 9, flashlight: 9, knife: 6, rope: 7, geiger: 7, radio: 7, tools: 4,
+};
+export const MAINTAIN_HOURS = 2;
+export const MAINTAIN_GAIN = 40; // 정비 한 번에 오르는 상태. 공구가 있으면 +20
+
+// ---------- 고비 ----------
+// 사나흘마다 하루쯤 몰아치는 날씨. 반나절 전에 하늘에 징조가 보이고, 라디오로는 이틀 전에 안다
+export type CrisisKind = 'cold' | 'fallout' | 'snow';
+
+export interface Crisis {
+  kind: CrisisKind;
+  start: number; // 시작 시각(첫날 0시부터 센 시간)
+  end: number;
+  warned: boolean; // 라디오로 들었다
+  signed: boolean; // 하늘의 징조를 봤다
+  started: boolean;
+  sheltered: number; // 고비 중 지붕·불·굴·텐트 아래 있던 시간
+  exposed: number;
+}
+
+export const CRISIS_INFO: Record<CrisisKind, { label: string; sign: string; radio: string; start: string; good: string; bad: string; effect: string }> = {
+  cold: {
+    label: '한파',
+    sign: '북쪽 하늘이 쇠처럼 맑다. 바람에서 얼음 냄새가 난다. 반나절 안에 한파가 온다.',
+    radio: '"기상 긴급 방송. 북서쪽에서 한기가 내려옵니다. 능선 체감 영하 십오 도 이하. 노숙하지 마십시오. 불을 준비하십시오."',
+    start: '한파가 왔다. 숨이 얼고 물통이 언다. 지붕과 불 없이는 버틸 수 없다.',
+    good: '한파가 지나갔다. 불 옆에서 몸을 웅크린 채 하루를 버텼다. 손가락을 하나씩 펴 보았다. 다 있다. 이 정도는 넘을 수 있다.',
+    bad: '한파가 지나갔다. 밖에서 맞은 추위는 뼈에 남았다. 다음에는 미리 자리를 잡아야 한다.',
+    effect: '체감 -12',
+  },
+  fallout: {
+    label: '낙진비',
+    sign: '서쪽 하늘이 누렇게 끓는다. 바다 쪽 구름이 낮다. 반나절 안에 낙진비가 온다.',
+    radio: '"방사능 긴급 방송. 해상 낙진이 비구름에 실려 내륙으로 옵니다. 지붕 아래로 대피하십시오. 비를 맞지 마십시오. 낮은 땅을 피하십시오."',
+    start: '낙진비가 내린다. 빗방울이 누렇다. 바깥은 한 시간도 위험하다.',
+    good: '낙진비가 그쳤다. 지붕 아래서 빗소리를 세며 버텼다. 젖은 것은 땅이지 내가 아니다.',
+    bad: '낙진비가 그쳤다. 너무 많이 맞았다. 입안에 쇠맛이 남았다.',
+    effect: '비, 피폭 ×1.8',
+  },
+  snow: {
+    label: '폭설',
+    sign: '하늘이 낮고 하얗다. 공기가 조용해졌다. 반나절 안에 눈이 온다.',
+    radio: '"기상 긴급 방송. 태백 이북 산간에 대설. 능선 통행이 어렵습니다. 이동을 멈추고 대피하십시오."',
+    start: '눈이 퍼붓는다. 발목까지, 무릎까지. 길이 지워졌다.',
+    good: '눈이 그쳤다. 굴 밖으로 나오니 세상이 하얗고 조용하다. 발자국은 내 것뿐이다. 이상하게 마음이 맑다.',
+    bad: '눈이 그쳤다. 눈 속을 헤맨 다리가 말을 듣지 않는다. 젖은 양말이 얼어붙었다.',
+    effect: '체감 -7, 이동 ×1.5',
+  },
 };
 export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
   (Object.keys(EQUIP_INFO) as EquipKind[]).map((k) => [k, EQUIP_INFO[k].label]),
@@ -231,6 +285,9 @@ export interface GameState {
   event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
   seen: string[]; // 이번 여정에서 만난 이벤트 id
   marked: string[]; // 지도에 표시된 자리 id. 흔적이 있을 법한 곳
+  crisis: Crisis | null; // 다가오는 또는 지금의 고비
+  radioHour: number; // 마지막으로 라디오를 들은 시각
+  radioCount: number; // 들은 횟수. 방송이 돌아가며 나온다
   buried: string[]; // 묻어 준 사람들
   view: 'scene' | 'map'; // 위쪽 큰 화면에 무엇을 보여 주나
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
@@ -258,7 +315,7 @@ export function edgeKey(a: number, b: number): string {
 // ---------- 이벤트 ----------
 // 이벤트는 src/data/events.ts 에 데이터로만 적는다. 코드 없이 이야기를 더할 수 있다
 
-export type Trigger = 'arrive' | 'night' | 'start' | 'object' | 'scout';
+export type Trigger = 'arrive' | 'night' | 'start' | 'object' | 'scout' | 'code';
 
 export interface When {
   kinds?: NodeKind[]; // 이런 곳에서만
@@ -333,6 +390,7 @@ export interface EventDef {
   once?: boolean;
   priority?: boolean; // 처음 온 곳에서 조건이 맞으면 확률 없이 반드시 나온다. 가족의 흔적처럼 놓치면 안 되는 것
   marks?: string[]; // 이 사건을 만나면 지도에 표시되는 자리들. 흔적이 다음 흔적을 가리킨다
+  art?: string; // 삽화 이름. 없으면 id
   when?: When;
   choices: Choice[];
 }

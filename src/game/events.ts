@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type PackCap, type Req, type Trigger, type When,
 } from '../core/types';
-import { gainEquip, hasEquip } from './equip';
+import { flashlightLit, gainEquip, hasEquip } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
 import { startStandoff } from './standoff';
 import { EVENTS as EVENTS1 } from '../data/events';
@@ -33,9 +33,17 @@ export function clueCount(state: GameState): number {
 
 // 정찰 결과. 데이터가 아니라 코드가 결과 문장을 만든다. 띠 그림 event-scout 가 뜬다
 export const SCOUT_EVENT: EventDef = { id: 'scout', trigger: 'scout', title: '정찰', text: '', choices: [] };
+// 코드가 결과 문장을 만드는 사건들. 라디오와 고비의 끝
+const CODE_EVENTS: Record<string, EventDef> = {
+  radio: { id: 'radio', trigger: 'code', title: '라디오', text: '', choices: [], art: 'radio_news_camp' },
+  crisis_cold: { id: 'crisis_cold', trigger: 'code', title: '한파를 넘겼다', text: '', choices: [] },
+  crisis_fallout: { id: 'crisis_fallout', trigger: 'code', title: '낙진비를 넘겼다', text: '', choices: [] },
+  crisis_snow: { id: 'crisis_snow', trigger: 'code', title: '폭설을 넘겼다', text: '', choices: [] },
+};
 
 export function eventById(id: string): EventDef | undefined {
   if (id === 'scout') return SCOUT_EVENT;
+  if (CODE_EVENTS[id]) return CODE_EVENTS[id];
   return EVENTS.find((e) => e.id === id) ?? OBJECT_EVENTS.find((e) => e.id === id);
 }
 
@@ -173,7 +181,7 @@ export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   let chance = INDOOR.has(node.kind) ? NIGHT_INDOOR : NIGHT_OUTDOOR;
   if (node.kind === 'start' && state.phase === 'base') chance = 0.4; // 거점기의 밤은 일이 많다
   if (lit) chance *= 0.3;
-  if (!INDOOR.has(node.kind) && hasEquip(state, 'flashlight')) chance *= 0.7;
+  if (!INDOOR.has(node.kind) && flashlightLit(state)) chance *= 0.7;
   if (radio) chance = Math.max(chance, 0.5);
   if (!rng.chance(chance)) return false;
   const ev = pickWeighted(rng, pool(state, node, 'night'));

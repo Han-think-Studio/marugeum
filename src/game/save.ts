@@ -32,6 +32,9 @@ function upgrade(state: GameState): GameState {
   if (!Array.isArray(state.knownPlaces)) state.knownPlaces = [];
   if (!Array.isArray(state.deadAt)) state.deadAt = [];
   if (!Array.isArray(state.marked)) state.marked = [];
+  if (state.crisis === undefined) state.crisis = null;
+  if (state.radioHour === undefined) state.radioHour = -99;
+  if (state.radioCount === undefined) state.radioCount = 0;
   for (const n of state.nodes) {
     if (n.campTier === undefined) n.campTier = n.camp ? (INDOOR.has(n.kind) ? 3 : n.cave ? 2 : 1) : 0;
     if (n.rested === undefined) n.rested = n.camp;
