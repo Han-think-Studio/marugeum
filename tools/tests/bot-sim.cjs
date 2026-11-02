@@ -26,7 +26,7 @@ const bot = MODE === 'ridge' ? ridgeBot : MODE === 'naive' ? naiveBot : trailBot
   const page = await browser.newPage();
   const runs = [];
   for (let seed = 1; seed <= RUNS; seed++) {
-    await page.goto('http://localhost:4174/?seed=' + (1000 + seed), { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:' + (process.env.TEST_PORT || 4174) + '/?seed=' + (1000 + seed), { waitUntil: 'networkidle' });
     const r = await page.evaluate((code) => {
       const g = window.marugeum; const s = g.state; const b = eval(code);
       const m = { actions: 0, travels: 0, blocked: 0, scouts: 0, looks: 0, inspects: 0, sleeps: 0, rests: 0, fires: 0, camps: 0, builds: 0, standoffs: 0, eventChoices: 0, repairs: 0, maintains: 0, radios: 0, crises: 0, crisisGood: 0, broken: 0 };

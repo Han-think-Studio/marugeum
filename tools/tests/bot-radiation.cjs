@@ -8,7 +8,7 @@ const bot = src.match(/const bot = `([\s\S]*?)`;\n/)[1];
   const page = await browser.newPage();
   const total = {}; let runs = 0; const perRun = [];
   for (let seed = 1; seed <= 12; seed++) {
-    await page.goto('http://localhost:4174/?seed=' + (1000 + seed), { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:' + (process.env.TEST_PORT || 4174) + '/?seed=' + (1000 + seed), { waitUntil: 'networkidle' });
     const r = await page.evaluate((code) => {
       const g = window.marugeum; const s = g.state; const b = eval(code);
       const acc = {}; let steps = 0;

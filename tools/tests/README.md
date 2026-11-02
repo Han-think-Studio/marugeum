@@ -46,3 +46,5 @@ npm.cmd run test:bots -- 10
 | run | 위 테스트를 서버와 함께 돌리고 판정하는 실행기 |
 
 서버 없이 도는 것은 `run` 뿐이다. 나머지를 직접 돌릴 때는 먼저 `npx.cmd vite --port 4174 --strictPort` 를 띄운다.
+
+두 버전을 나란히 재려면 다른 포트를 준다. 예: 옛 커밋을 `git worktree` 로 따로 꺼내 `TEST_PORT=4175` 로 돌린다.

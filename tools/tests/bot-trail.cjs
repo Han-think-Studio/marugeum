@@ -45,7 +45,7 @@ const { chromium } = require('playwright');
       g.travelTo(s, pick.id); }`;
   const seenAt = {}; let runs = 0, won = 0, totalEvents = 0, days = 0, cluesSum = 0; const bad = []; const causes = {}; const endings = {};
   for (let seed = 1; seed <= 30; seed++) {
-    await page.goto('http://localhost:4174/?seed=' + seed, { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:' + (process.env.TEST_PORT || 4174) + '/?seed=' + seed, { waitUntil: 'networkidle' });
     const r = await page.evaluate((code) => {
       const b = eval(code); const g = window.marugeum; const s = g.state; let steps = 0; const at = [];
       let lastSeen = 0;
