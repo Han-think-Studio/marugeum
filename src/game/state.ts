@@ -599,8 +599,21 @@ export function endingNotes(state: GameState): string[] {
   if (state.flags['deserter_met']) met.push('탈영병');
   if (state.flags['mine_people']) met.push('폐광 사람들');
   if (state.flags['monk_letter']) met.push('월정사의 승려');
-  if (state.flags['grandma']) met.push('마을의 할머니');
+  if (state.flags['grandma'] || state.flags['grandma_kimchi']) met.push('마을의 할머니');
   if (met.length > 0) out.push(`길에서 만난 사람: ${met.join(', ')}.`);
+  // 길에서 맺은 것들의 끝. 향로봉에 닿았을 때만
+  const end = state.over === 'won' ? state.ending : null;
+  if (end && end !== 'stay') {
+    if (state.flags['ev:survivor_third']) out.push('정우가 수용소 문 앞에서 물통을 내려놓고 손을 흔들었다. 향로봉에서 보자던 약속은 지켜졌다.');
+    else if (state.flags['survivor_friend']) out.push('정우는 보이지 않았다. 향로봉에서 보자던 말은 아직 유효하다.');
+    if (state.flags['family_together']) out.push('헛간의 가족과 같은 줄로 문을 들어갔다. 아이는 안에 들어가서도 한참 내 손을 놓지 않았다.');
+    if (end === 'reunion' && state.flags['deserter_help']) out.push('의무대 왼쪽 세 번째 천막. 탈영병이 알려 준 대로였다.');
+    if (state.flags['grandma_kimchi']) {
+      out.push(end === 'reunion' ? '할머니가 싸 준 김치를 수연과 나눠 먹었다. 애 엄마 만나면 같이 먹으라던 그 김치다.'
+        : end === 'quarantine' ? '할머니의 김치는 간호병 편에 유리창 너머로 보냈다.'
+        : '할머니의 김치 통은 열지 않았다. 같이 먹을 사람을 찾으면 연다.');
+    }
+  }
   const clues = clueCount(state);
   if (clues > 0) out.push(`${FAMILY.spouse}과 ${FAMILY.child}의 흔적 ${clues}개를 따라왔다.`);
   if (state.runNo > 1) out.push(`${state.runNo}번째 여정이었다.`);

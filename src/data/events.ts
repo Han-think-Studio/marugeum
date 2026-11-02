@@ -456,7 +456,7 @@ export const EVENTS: EventDef[] = [
     choices: [
       { text: '먹을 만큼만 가져간다', hint: '먹을 것', outcomes: [{ text: '쌀통에 아직 반이 남아 있었다. 두 끼 분량만 덜었다. 뚜껑을 닫으며 다음 사람을 생각했다.', effects: { food: 2, mind: 5 } }] },
       { text: '있는 대로 챙긴다', hint: '먹을 것 · 정신', outcomes: [{ text: '배낭이 찰 때까지 담았다. 벽의 이름들이 등을 보고 있는 것 같았다.', effects: { food: 4, mind: -8, flag: 'took_all_jikji' } }] },
-      { text: '벽에 이름을 적는다', outcomes: [{ text: '빈자리를 찾아 이름을 적었다. 수백 개의 이름 사이에 내 이름이 있으니 덜 외로웠다.', effects: { mind: 8, flag: 'name_on_wall' } }] },
+      { text: '벽에 이름을 적는다', outcomes: [{ text: '빈자리를 찾다가 손이 멈췄다. "수연, 하율. 2차 버스. 법주사로." {ago:2}의 날짜. 그 바로 옆에 내 이름을 붙여 적었다. 수백 개의 이름 사이에서 세 이름이 나란히 섰다.', effects: { mind: 8, flag: 'name_on_wall' } }] },
     ],
   },
   {
@@ -475,7 +475,7 @@ export const EVENTS: EventDef[] = [
         { text: '천막은 비어 있었다. 바닥에 "소백으로"라고 쓴 글씨만 남아 있었다.', effects: { hours: 1, flag: 'to_sobaek' } },
       ] },
       { text: '불상 앞에 앉는다', hint: '1시간 · 정신', outcomes: [{ text: '한 시간을 앉아 있었다. 믿는 건 없지만 저렇게 큰 것이 아직 서 있다는 게 위로가 됐다.', effects: { hours: 1, mind: 10 } }] },
-      { text: '진료소 천막을 찾는다', hint: '단서', outcomes: [{ text: '적십자 마크가 그려진 천막. 접이식 침대와 빈 약병, 그리고 벽에 붙은 진료 명단. 손가락으로 훑다가 멈췄다. "하율, 7세, 발열, 해열제 3일분. 보호자 수연. 북쪽 이동." 날짜는 아흐레 전. 살아 있었다. 아흐레 전에는.', effects: { mind: 8, clue: 'songni' } }] },
+      { text: '진료소 천막을 찾는다', hint: '단서', outcomes: [{ text: '적십자 마크가 그려진 천막. 접이식 침대와 빈 약병, 그리고 벽에 붙은 진료 명단. 손가락으로 훑다가 멈췄다. "하율, 7세, 발열, 해열제 3일분. 보호자 수연. 북쪽 이동." 날짜는 {ago:2}. 살아 있었다. {ago:2}에는.', effects: { mind: 8, clue: 'songni' } }] },
       { text: '지나간다', outcomes: [{ text: '불상의 눈이 북쪽을 보고 있었다. 나도 그쪽으로 갔다.', effects: { mind: 2 } }] },
     ],
   },
@@ -509,7 +509,7 @@ export const EVENTS: EventDef[] = [
     when: { places: ['cheoram'] },
     choices: [
       { text: '들어가 하룻밤 청한다', hint: '8시간 · 피폭 거의 없음', outcomes: [
-        { chance: 0.7, text: '노인들과 아이들이 대부분이었다. 그들은 자리를 내주고 멀건 죽 한 그릇을 건넸다. 갱도 안은 바위 냄새가 났고 비 소리가 들리지 않았다. 사진을 보여 주자 한 할머니가 말했다. "아이 열 있던 엄마. 하룻밤 자고 갔어. 사흘 전. 북쪽으로." 손이 떨려서 사진을 떨어뜨렸다.', effects: { hours: 8, fatigue: 50, temp: 20, hunger: 15, mind: 12, flag: 'mine_people', clue: 'taebaek' } },
+        { chance: 0.7, text: '노인들과 아이들이 대부분이었다. 그들은 자리를 내주고 멀건 죽 한 그릇을 건넸다. 갱도 안은 바위 냄새가 났고 비 소리가 들리지 않았다. 사진을 보여 주자 한 할머니가 말했다. "아이 열 있던 엄마. 하룻밤 자고 갔어. {ago:6}. 북쪽으로." 손이 떨려서 사진을 떨어뜨렸다.', effects: { hours: 8, fatigue: 50, temp: 20, hunger: 15, mind: 12, flag: 'mine_people', clue: 'taebaek' } },
         { text: '입구에서 남자 둘이 막았다. "자리 없어요." 그들의 눈에 미안함이 있었다. 돌아섰다.', effects: { mind: -5 } },
       ] },
       { text: '먹을 것을 나누고 간다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '아이 손에 봉지를 쥐여 주고 돌아섰다. 아이는 고맙다는 말 대신 "북쪽에 군인 있어요"라고 했다.', effects: { food: -1, mind: 8, flag: 'mine_people' } }] },
@@ -521,7 +521,7 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '남을 것인가',
-    text: '폐광 사람들이 다시 자리를 내준다. 할머니가 말한다. "북쪽은 멀어. 여기는 비도 안 들어오고 사람도 있어. 남아도 돼." 갱도 안은 따뜻하고 조용하다. 사진 속 두 사람은 사흘 먼저 북쪽으로 갔다.',
+    text: '폐광 사람들이 다시 자리를 내준다. 할머니가 말한다. "북쪽은 멀어. 여기는 비도 안 들어오고 사람도 있어. 남아도 돼." 갱도 안은 따뜻하고 조용하다. 사진 속 두 사람은 {ago:6}에 북쪽으로 갔다.',
     once: true,
     weight: 4,
     when: { places: ['cheoram'], flag: 'mine_people', minDay: 6 },
@@ -545,7 +545,7 @@ export const EVENTS: EventDef[] = [
         { chance: 0.6, text: '전투식량 상자 하나가 뜯기지 않은 채 남아 있었다. 그리고 담요. 군인들은 급하게 떠난 것이다.', effects: { food: 2, hours: 1, gear: 'blanket' } },
         { text: '짐칸은 빈 탄약 상자뿐이었다. 바닥에 피 자국이 말라 있었다.', effects: { hours: 1, mind: -4 } },
       ] },
-      { text: '운전석의 무전기를 켠다', hint: '정보', outcomes: [{ text: '잡음 사이로 끊어진 말. "...향로봉 집결... 피폭 선별... 반복한다, 동해안 접근 금지..." 무전기는 곧 죽었다. 운전석 서류판에 수송 일지가 끼워져 있었다. "민간인 14명 향로봉 이송. 아동 2명 포함, 1명 발열." 날짜는 닷새 전.', effects: { mind: 8, flag: 'radio_haero', clue: 'hambaek' } }] },
+      { text: '운전석의 무전기를 켠다', hint: '정보', outcomes: [{ text: '잡음 사이로 끊어진 말. "...향로봉 집결... 피폭 선별... 반복한다, 동해안 접근 금지..." 무전기는 곧 죽었다. 운전석 서류판에 수송 일지가 끼워져 있었다. "민간인 14명 향로봉 이송. 아동 2명 포함, 1명 발열." 날짜는 {ago:8}.', effects: { mind: 8, flag: 'radio_haero', clue: 'hambaek' } }] },
       { text: '지나간다', outcomes: [{ text: '트럭 사이를 빠르게 지났다. 군인이 버린 길을 걷는 기분은 좋지 않다.', effects: {} }] },
     ],
   },
@@ -590,12 +590,12 @@ export const EVENTS: EventDef[] = [
     weight: 4,
     when: { places: ['hangyeryeong'] },
     choices: [
-      { text: '순순히 측정을 받는다', hint: '피폭에 따라 다르다', outcomes: [{ text: '계수기가 몸을 훑었다. 군인은 수치를 적더니 통행증 대신 종이 한 장을 줬다. "향로봉 수용소. 수치 높은 분은 격리동입니다. 그래도 가세요. 거기가 낫습니다." 나는 사진을 내밀었다. 군인은 명단을 넘기더니 손가락을 멈췄다. "수연, 하율. 엿새 전 통과. 아이는 의무대로." 물 한 통을 건넸다.', effects: { water: 1, mind: 10, flag: 'checkpoint_pass', clue: 'seorak' } }] },
+      { text: '순순히 측정을 받는다', hint: '피폭에 따라 다르다', outcomes: [{ text: '계수기가 몸을 훑었다. 군인은 수치를 적더니 통행증 대신 종이 한 장을 줬다. "향로봉 수용소. 수치 높은 분은 격리동입니다. 그래도 가세요. 거기가 낫습니다." 나는 사진을 내밀었다. 군인은 명단을 넘기더니 손가락을 멈췄다. "수연, 하율. {ago:9} 통과. 아이는 의무대로." 물 한 통을 건넸다.', effects: { water: 1, mind: 10, flag: 'checkpoint_pass', clue: 'seorak' } }] },
       { text: '측정을 거부하고 우회한다', hint: '3시간 · 위험', outcomes: [
         { chance: 0.7, text: '산비탈로 돌아 검문소를 피했다. 세 시간을 더 걸었다. 왜 피했는지 나도 모르겠다.', effects: { hours: 3, fatigue: -15, mind: -5, flag: 'checkpoint_evaded' } },
         { text: '비탈에서 미끄러져 돌에 다리를 찧었다. 검문소 군인이 올라와 나를 부축했다. 결국 측정을 받았다.', effects: { hp: -12, hours: 3, flag: 'checkpoint_pass' } },
       ] },
-      { text: '북쪽 사정을 묻는다', hint: '정보', outcomes: [{ text: '"수용소는 있습니다. 배급은 하루 한 끼. 헬기는 사흘에 한 번. 봄이 되면 수용소를 철책 너머로 옮깁니다. 비무장지대요. 칠십 년 동안 아무도 안 들어갔으니 거기가 제일 깨끗해요. 남쪽에서 오신 분은 당신이 이번 주 둘째입니다." 둘째. 그 말이 오래 남았다. 사진을 보이자 군인은 명단을 넘겼다. "수연, 하율. 엿새 전. 아이는 의무대." 그 말도.', effects: { mind: 8, flag: 'checkpoint_info', clue: 'seorak' } }] },
+      { text: '북쪽 사정을 묻는다', hint: '정보', outcomes: [{ text: '"수용소는 있습니다. 배급은 하루 한 끼. 헬기는 사흘에 한 번. 봄이 되면 수용소를 철책 너머로 옮깁니다. 비무장지대요. 칠십 년 동안 아무도 안 들어갔으니 거기가 제일 깨끗해요. 남쪽에서 오신 분은 당신이 이번 주 둘째입니다." 둘째. 그 말이 오래 남았다. 사진을 보이자 군인은 명단을 넘겼다. "수연, 하율. {ago:9}. 아이는 의무대." 그 말도.', effects: { mind: 8, flag: 'checkpoint_info', clue: 'seorak' } }] },
     ],
   },
 
@@ -726,7 +726,7 @@ export const EVENTS: EventDef[] = [
     id: 'intro_morning',
     trigger: 'start',
     title: '엿새째 아침',
-    text: '중산리 야영장. 대피령이 내린 지 엿새째다. 첫날 대피 버스가 왔을 때 하율이 열이 났고 나는 텐트로 해열제를 가지러 뛰었다. 돌아왔을 때 군인들이 버스 문을 막고 있었다. "아이와 여자 먼저. 남자분들은 3차로 오세요." 수연이 내리려 하자 군인이 붙잡았다. "열 있는 아이는 수용소 진료소로 갑니다." 버스가 움직일 때 창문 틈으로 쪽지 한 장이 떨어졌다. 닷새를 기다렸다. 3차 버스는 오지 않았다. 남은 건 텐트 한 동, 시동이 안 걸리는 발전기, 냉장고, 기름통 둘, 사진 한 장, 주머니 속 해열제, 그리고 나.',
+    text: '중산리 야영장. 셋이서 가을 캠핑을 온 지 이틀 만에 대피령이 내렸고, 오늘이 엿새째다. 첫날 대피 버스가 왔을 때 하율이 열이 났고 나는 텐트로 해열제를 가지러 뛰었다. 돌아왔을 때 군인들이 버스 문을 막고 있었다. "아이와 여자 먼저. 남자분들은 3차로 오세요." 수연이 내리려 하자 군인이 붙잡았다. "열 있는 아이는 수용소 진료소로 갑니다." 버스가 움직일 때 창문 틈으로 쪽지 한 장이 떨어졌다. 닷새를 기다렸다. 3차 버스는 오지 않았다. 남은 건 텐트 한 동, 시동이 안 걸리는 발전기, 냉장고, 기름통 둘, 사진 한 장, 주머니 속 해열제, 그리고 나.',
     choices: [
       { text: '쪽지를 다시 읽는다', outcomes: [{ text: '"성삼재 들러서 향로봉 수용소로 간대. 3차 꼭 타. 하율이 약은 당신이 갖고 와. 기다릴게." 글씨가 흔들렸다. 움직이는 버스 안에서 무릎에 대고 쓴 글씨다. 쪽지를 사진 뒤에 끼웠다. 3차는 오지 않는다. 능선을 따라가면 버스가 간 길을 따라가는 것이다.', effects: { mind: 4, clue: 'note' } }] },
       { text: '짐을 살핀다', outcomes: [{ text: '물 네 통, 통조림과 라면 여섯 끼, 휘발유 둘, 부품 하나. 발전기를 고치면 냉장고와 전등이 돈다. 주변을 뒤지며 모아야 한다. 떠날 때 질 수 있는 만큼만 가져갈 수 있다. 쪽지는 사진 뒤에 끼웠다.', effects: { mind: 2, clue: 'note' } }] },
@@ -859,7 +859,7 @@ export const EVENTS: EventDef[] = [
     weight: 6,
     when: { places: ['hwabangjae'] },
     choices: [
-      { text: '글씨를 읽는다', outcomes: [{ text: '"중산리에서 걸어오는 키 큰 남자. 우리 먼저 가. 철암에서 이틀 잤어. 하율이 열 내렸어. 물 끓여 먹어. 양말 말려." 잔소리까지 수연이다. 거울 속 내 얼굴이 웃고 있었다. 오랜만이다.', effects: { mind: 15, flag: 'suyeon:hwabang' } }] },
+      { text: '글씨를 읽는다', outcomes: [{ text: '"중산리에서 걸어오는 키 큰 남자. 우리 먼저 가. 철암에서 하룻밤 잤어. 하율이 열이 좀 내렸어. 물 끓여 먹어. 양말 말려." 잔소리까지 수연이다. 거울 속 내 얼굴이 웃고 있었다. 오랜만이다.', effects: { mind: 15, flag: 'suyeon:hwabang' } }] },
       { text: '그림을 본다', outcomes: [{ text: '동그라미 셋. 제일 큰 것만 멀리 떨어져 있고 화살표가 그쪽을 가리킨다. 하율의 그림에 수연이 글씨를 보탰다. "아빠 여기 와." 양말을 벗어 짜고 배낭 끈에 묶어 말렸다. 시키는 대로 한다.', effects: { mind: 12, fatigue: 5, flag: 'suyeon:hwabang' } }] },
     ],
   },
@@ -867,7 +867,7 @@ export const EVENTS: EventDef[] = [
     id: 'suyeon_noinbong',
     trigger: 'arrive',
     title: '산장지기 사진 옆',
-    text: '노인봉 산장 벽, 오래 산장을 지킨 사람의 사진 옆에 크레파스 그림 한 장이 압정에 꽂혀 있다. 산 셋, 그 위를 걷는 큰 사람. 아래 여백에 어른 글씨가 있다.',
+    text: '노인봉 산장. 문에 분필 글씨. "진고개 트럭 아이들, 산장에서 하룻밤 재움." 안쪽 벽, 오래 산장을 지킨 사람의 사진 옆에 크레파스 그림 한 장이 압정에 꽂혀 있다. 산 셋, 그 위를 걷는 큰 사람. 아래 여백에 어른 글씨가 있다.',
     once: true,
     weight: 6,
     when: { places: ['noinbong'] },
@@ -951,7 +951,7 @@ export const EVENTS: EventDef[] = [
     weight: 6,
     when: { places: ['jungnyeong'] },
     choices: [
-      { text: '버스 안을 본다', hint: '30분', outcomes: [{ text: '좌석마다 두고 간 짐. 열한 번째 줄쯤, 창가에 아이 머리끈이 걸려 있다. 노란 곰. 하율이 것이다. 머리끈을 손목에 묶었다. 두 사람은 여기서부터 걸었다. 엿새 전쯤.', effects: { mind: 8, clue: 'sobaek' } }] },
+      { text: '버스 안을 본다', hint: '30분', outcomes: [{ text: '좌석마다 두고 간 짐. 열한 번째 줄쯤, 창가에 아이 머리끈이 걸려 있다. 노란 곰. 하율이 것이다. 머리끈을 손목에 묶었다. 두 사람은 여기서부터 걸었다. {ago:4}쯤.', effects: { mind: 8, clue: 'sobaek' } }] },
       { text: '트렁크를 연다', hint: '물건', outcomes: [
         { chance: 0.6, text: '생수 묶음과 과자 상자. 사람들이 급해서 두고 간 것이다. 창가의 노란 머리끈도 챙겼다.', effects: { water: 2, food: 1, mind: 4, clue: 'sobaek' } },
         { text: '트렁크는 비어 있었다. 창가에 걸린 노란 머리끈만 챙겼다.', effects: { mind: 4, clue: 'sobaek' } },
@@ -963,13 +963,13 @@ export const EVENTS: EventDef[] = [
     trigger: 'arrive',
     priority: true,
     title: '편지',
-    text: '월정사 요사채에 젊은 승려가 남아 있다. 남쪽에서 왔다고 하자 그는 봉투를 꺼냈다. "지리산 노스님께서 능선으로 오는 사람 편에 보내셨습니다. 남쪽에서 오는 이에게 읽어 주라고."',
+    text: '월정사 요사채에 젊은 승려가 남아 있다. 남쪽에서 왔다고 하자 그는 봉투 두 개를 꺼냈다. "하나는 남쪽 절 노스님께서 능선으로 오는 사람 편에 보내신 겁니다. 다른 하나는 진고개에서 받은 거고요."',
     once: true,
     weight: 6,
     when: { places: ['woljeongsa'] },
     choices: [
       { text: '편지를 듣는다', outcomes: [
-        { text: '"오는 사람은 다 이 길로 온다. 그러니 먼저 간 사람도 이 길로 갔다. 열 있는 아이와 어머니를 사흘 재웠다. 헬기가 와서 둘을 먼저 태웠다. 향로봉으로." 승려는 편지를 접어 내게 주었다. 노스님 글씨 아래 다른 글씨로 "고맙습니다. 수연"이라고 적혀 있었다.', effects: { mind: 14, clue: 'odae', flag: 'monk_letter' } },
+        { text: '노스님의 편지는 짧았다. "오는 사람은 다 이 길로 온다. 먼저 간 사람도 이 길로 갔다. 멈추지만 않으면 닿는다." 두 번째 봉투는 공책을 찢은 종이였다. 승려가 말했다. "{ago:8} 군 트럭이 진고개에서 밤을 났습니다. 절에서 죽을 쒀 날랐지요. 열 있는 아이를 안은 어머니가 이걸 주면서, 중산리에서 걸어오는 사람이 있으면 전해 달라고." 수연의 글씨였다. "트럭 타고 한계령으로 가. 하율이 다시 열나. 의무대 있대. 당신 약 있잖아. 빨리 와."', effects: { mind: 14, clue: 'odae', flag: 'monk_letter' } },
       ] },
     ],
   },
@@ -981,9 +981,9 @@ export const EVENTS: EventDef[] = [
     text: '지붕 아래 세 사람. 헛간에서 만났던 피난민 가족이다. 아이가 먼저 나를 알아봤다. 남자가 일어서며 말했다. "그때 그 봉지 덕에 여기까지 왔어요."',
     once: true,
     weight: 5,
-    when: { flag: 'family_fed', minDay: 5, kinds: ['shelter', 'temple', 'village', 'military'] },
+    when: { flag: 'family_fed', minDay: 5, stages: [8, 9, 10], kinds: ['shelter', 'temple', 'village', 'military'] },
     choices: [
-      { text: '같이 밤을 보낸다', hint: '8시간', outcomes: [{ text: '여자가 죽을 끓였다. 아이는 내 사진을 보더니 "이 언니 봤어요" 했다. 폐광에서. 사흘 전. 남자는 아이 말을 막지 않았다. 아침에 그들은 북쪽으로 먼저 떠났다.', effects: { hours: 8, fatigue: 45, temp: 20, hunger: 20, mind: 14, clue: 'family_again' } }] },
+      { text: '같이 밤을 보낸다', hint: '8시간', outcomes: [{ text: '여자가 죽을 끓였다. 아이는 내 사진을 보더니 "이 언니 봤어요" 했다. 폐광에서. {ago:6}. 남자는 아이 말을 막지 않았다. 아침에 그들은 북쪽으로 먼저 떠났다.', effects: { hours: 8, fatigue: 45, temp: 20, hunger: 20, mind: 14, clue: 'family_again' } }] },
       { text: '먹을 것을 나누고 간다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '"또 주시면 어떡해요." 여자는 받으면서 울었다. 아이가 말했다. "사진 속 언니 봤어요. 폐광에서." 그 한마디를 들고 걸었다.', effects: { food: -1, mind: 10, clue: 'family_again' } }] },
     ],
   },
@@ -1025,7 +1025,7 @@ export const EVENTS: EventDef[] = [
     when: { kinds: ['goal'], minRad: 60 },
     choices: [
       { text: '격리동으로 간다', outcomes: [
-        { text: '침대에 눕자 간호병이 이름을 물었다. 사흘 뒤 유리창 밖에 두 사람이 서 있었다. 수연이 하율을 안아 올렸다. 하율이 유리에 손바닥을 댔다. 나도 댔다. 유리는 차가웠지만 그 너머는 따뜻할 것이다. 시간이 걸릴 뿐이다.', effects: { ending: 'quarantine' } },
+        { text: '침대에 눕자 간호병이 이름을 물었다. 가족 이름도 물었다. 간호병은 수첩을 들고 옆 천막으로 갔다. 격리동 옆은 의무대였다. 사흘 뒤 유리창 밖에 두 사람이 서 있었다. 수연이 하율을 안아 올렸다. 하율이 유리에 손바닥을 댔다. 나도 댔다. 유리는 차가웠지만 그 너머는 따뜻할 것이다. 시간이 걸릴 뿐이다.', effects: { ending: 'quarantine' } },
       ] },
     ],
   },
@@ -1038,7 +1038,7 @@ export const EVENTS: EventDef[] = [
     weight: 10,
     when: { kinds: ['goal'], maxClues: 4, maxRad: 59 },
     choices: [
-      { text: '명단을 찾는다', outcomes: [{ text: '도착 명단에 수연도 하율도 없었다. 찾는 사람 명단에 두 이름을 적었다. 그 아래 묻어 준 사람들의 이름도 적었다. 누군가는 적어야 한다. 종이를 벽에 붙이고 천막 밖으로 나왔다. 헬기는 사흘에 한 번 온다고 했다. 기다릴 것이다.', effects: { ending: 'names' } }] },
+      { text: '명단을 찾는다', outcomes: [{ text: '도착 명단에 수연도 하율도 없었다. 걸어서 온 사람들의 명단이었다. 찾는 사람 명단에 두 이름을 적었다. 그 아래 묻어 준 사람들의 이름도 적었다. 누군가는 적어야 한다. 종이를 벽에 붙이고 천막 밖으로 나왔다. 헬기는 사흘에 한 번 온다고 했다. 기다릴 것이다. 명단 천막 앞으로 들것이 지나갔다. 의무대 쪽이었다. 나는 명단만 보고 있었다.', effects: { ending: 'names' } }] },
     ],
   },
 ];

@@ -123,7 +123,19 @@ export function openObject(state: GameState, node: MapNode, objectId: number): b
 export function fillName(text: string, state: GameState, node: MapNode): string {
   const id = state.event?.objectId;
   const o = id !== undefined ? node.objects.find((x) => x.id === id) : undefined;
-  return text.replace(/\{name\}/g, o ? o.name : '');
+  return text.replace(/\{name\}/g, o ? o.name : '').replace(/\{ago:(\d+)\}/g, (_, d) => familyAgo(state, Number(d)));
+}
+
+// 가족의 일정. 대피 첫날을 1일로 센 날에 두 사람이 그 자리를 지났다. 게임 1일째는 대피 6일째다
+// 1 성삼재·육십령·삼도봉 · 2 직지사·법주사·늘재 · 4 죽령 버스 고장 · 6 철암 폐광 · 7 화방재
+// 8 만항재 군 트럭, 진고개에서 밤 · 9 한계령 검문소, 알프스 리조트에서 밤 · 10 향로봉
+// 흔적 글의 {ago:N} 은 지금 날짜에서 N일째까지 며칠인지로 바뀐다. 언제 닿아도 앞뒤가 맞는다
+export const EVAC_DAY_OFFSET = 5;
+const AGO_WORDS = ['', '하루', '이틀', '사흘', '나흘', '닷새', '엿새', '이레', '여드레', '아흐레', '열흘'];
+
+export function familyAgo(state: GameState, familyDay: number): string {
+  const n = Math.max(1, state.day + EVAC_DAY_OFFSET - familyDay);
+  return `${AGO_WORDS[n] ?? `${n}일`} 전`;
 }
 
 // 도착 이벤트. 처음 온 곳이면 자주, 다시 온 곳이면 가끔

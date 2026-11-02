@@ -268,7 +268,7 @@ export const MORE_EVENTS: EventDef[] = [
     weight: 6,
     when: { flag: 'survivor_map', stages: [11] },
     choices: [
-      { text: '같이 물통을 나른다', hint: '2시간 · 요오드', outcomes: [{ text: '두 시간 물통을 날랐다. 그가 의무대에서 요오드를 받아 왔다. "선별 전에 드세요. 수치가 좀 내려가요." 그리고 사진을 보더니 말했다. "의무대 천막에 아이 열 있던 분들 있었어요. 엿새 전에." 그 말을 들고 걸었다.', effects: { hours: 2, rad: -15, mind: 12, flag: 'survivor_iodine' } }] },
+      { text: '같이 물통을 나른다', hint: '2시간 · 요오드', outcomes: [{ text: '두 시간 물통을 날랐다. 그가 의무대에서 요오드를 받아 왔다. "선별 전에 드세요. 수치가 좀 내려가요." 그리고 사진을 보더니 말했다. "의무대 천막에 아이 열 있던 분들 있었어요. {ago:9}에." 그 말을 들고 걸었다.', effects: { hours: 2, rad: -15, mind: 12, flag: 'survivor_iodine' } }] },
       { text: '인사만 하고 간다', outcomes: [{ text: '"향로봉에서 봐요." 세 번째 인사였다. 그는 물통을 들고 돌아섰다.', effects: { mind: 5 } }] },
     ],
   },
@@ -497,7 +497,7 @@ export const MORE_EVENTS: EventDef[] = [
     weight: 2,
     when: { kinds: ['village'], minDay: 2 },
     choices: [
-      { text: '밥을 먹는다', hint: '1시간 · 허기 · 정신', outcomes: [{ text: '된장국과 김치와 밥. 뜨거운 밥을 넘기다 울 뻔했다. 할머니는 모른 척했다. 떠날 때 김치 한 통을 싸 주었다. "애 엄마 만나면 같이 먹어."', effects: { hunger: 45, food: 1, mind: 12, hours: 1, flag: 'grandma' } }] },
+      { text: '밥을 먹는다', hint: '1시간 · 허기 · 정신', outcomes: [{ text: '된장국과 김치와 밥. 뜨거운 밥을 넘기다 울 뻔했다. 할머니는 모른 척했다. 떠날 때 김치 한 통을 싸 주었다. "애 엄마 만나면 같이 먹어."', effects: { hunger: 45, food: 1, mind: 12, hours: 1, flag: 'grandma_kimchi' } }] },
       { text: '같이 가자고 한다', outcomes: [{ text: '"무릎이 안 돼. 그리고 영감이 여기 있어." 할머니는 뒷산을 가리켰다. 밥만 먹고 가라고 했다. 먹었다.', effects: { hunger: 40, mind: 8, hours: 1, flag: 'grandma' } }] },
     ],
   },
@@ -739,7 +739,7 @@ export const MORE_EVENTS: EventDef[] = [
     marks: ['hyangno'],
     choices: [
       { text: '이름을 훑는다', outcomes: [
-        { chance: 0.5, text: '"수연, 하율(7). 향로봉으로." 날짜는 열흘 전. 수연의 글씨다. 벽에 손을 댔다. 손이 떨렸다.', effects: { mind: 15, clue: 'alps' } },
+        { chance: 0.5, text: '"수연, 하율(7). 트럭으로 향로봉. 내일이면 닿는대." 날짜는 {ago:9}. 수연의 글씨다. 벽에 손을 댔다. 손이 떨렸다.', effects: { mind: 15, clue: 'alps' } },
         { text: '아는 이름은 없었다. 그래도 전부 읽었다. 누군가는 읽어야 한다. 맨 아래에 내 이름을 적었다.', effects: { mind: 5, flag: 'name_on_wall_alps' } },
       ] },
       { text: '로비를 뒤진다', hint: '1시간', outcomes: [{ text: '프런트 뒤에서 생수 두 병과 비상식량. 누가 일부러 남겨 둔 것처럼 종이에 "다음 사람"이라고 적혀 있었다.', effects: { hours: 1, water: 2, food: 1, mind: 4 } }] },

@@ -52,6 +52,28 @@ const { chromium } = require('playwright');
     const clues = Object.keys(s.flags).filter((k) => k.startsWith('clue:')).length;
     s.event = { id: 'suyeon_hwabang', result: null }; g.pickChoice(s, 0); g.dismissEvent(s);
     check('suyeon trace sets its flag, adds no clue', s.flags['suyeon:hwabang'] && Object.keys(s.flags).filter((k) => k.startsWith('clue:')).length === clues);
+
+    // 가족의 일정: 'N일 전'은 지금 날짜에서 계산한다. 뒤의 자리일수록 가까운 날
+    const said = (id, ci, day) => { s.day = day; s.event = { id, result: null }; g.pickChoice(s, ci); const t = s.event.result; g.dismissEvent(s); return t; };
+    const clinic = said('songni_buddha', 2, 6);
+    const truck = said('hambaek_manhangjae', 1, 6);
+    check(`clinic on day 6 says 아흐레 전 (${clinic.slice(clinic.indexOf('날짜'), clinic.indexOf('날짜') + 12)})`, clinic.includes('날짜는 아흐레 전') && !clinic.includes('{'));
+    check(`truck log on day 6 says 사흘 전`, truck.includes('날짜는 사흘 전'));
+    const late = said('hambaek_manhangjae', 1, 14);
+    check('truck log on day 14 says 11일 전', late.includes('날짜는 11일 전'));
+    let wall = '';
+    for (let i = 0; i < 30 && !wall.includes('수연, 하율'); i++) wall = said('alps_wall', 0, 12);
+    check('alps wall on day 12 says 여드레 전', wall.includes('여드레 전'));
+    check('letter tells the truck, not a helicopter', !said('monk_letter', 0, 11).includes('헬기'));
+
+    // 향로봉의 끝: 길에서 맺은 것들이 엔딩 글에 한 줄씩
+    Object.assign(s.flags, { survivor_friend: true, 'ev:survivor_third': true, family_together: true, deserter_help: true, grandma_kimchi: true });
+    s.over = 'won'; s.ending = 'reunion';
+    const notes = g.endingNotes(s).join(' ');
+    check('reunion notes close 정우, the family, the deserter and the kimchi', ['약속은 지켜졌다', '같은 줄로', '세 번째 천막', '수연과 나눠 먹었다'].every((w) => notes.includes(w)));
+    s.ending = 'stay';
+    check('stay ending has no 향로봉 lines', !g.endingNotes(s).join(' ').includes('약속은'));
+    s.over = 'none'; s.ending = null;
     return { log, fail };
   });
 
