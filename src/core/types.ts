@@ -506,7 +506,8 @@ export const CAMP_HOUSE_LABEL: Partial<Record<NodeKind, string>> = { start: '관
 export const WINDBREAK = { label: '바람막이', desc: '이 자리의 추위가 줄어든다', story: '돌과 가지를 허리 높이로 쌓아 바람을 막았다. 등 뒤가 조용해졌다.', hours: 1, wood: 1 };
 
 // ---------- 이야기 ----------
-// 주인공은 중산리에 가족과 왔다가 대피 때 헤어졌다. 아내 수연과 일곱 살 하율은 버스로 북쪽 수용소로 갔다.
+// 주인공은 중산리에 가족과 왔다가 대피 때 헤어졌다. 군이 아이와 여자를 먼저 태우고 남자는 3차로 미뤘다.
+// 아내 수연과 일곱 살 하율은 2차 버스로 향로봉 수용소로 갔고, 3차 버스는 오지 않았다.
 // 단서는 flags 의 'clue:<이름>' 으로 쌓인다. 엔딩은 도착할 때의 단서 수와 피폭, 그리고 선택으로 갈린다
 
 export type EndingId = 'reunion' | 'quarantine' | 'names' | 'stay';

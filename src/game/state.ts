@@ -73,7 +73,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
   };
   const rng = takeRng(state);
   rollWeather(state, rng, true);
-  addLog(state, '중산리 야영장, 대피령 엿새째. 바다는 죽었고 낮은 땅은 비에 젖으면 위험하다. 사람들은 떠났고 두고 간 것들이 남았다.');
+  addLog(state, '중산리 야영장, 대피령 엿새째. 3차 버스는 오지 않았다. 바다는 죽었고 낮은 땅은 비에 젖으면 위험하다. 사람들은 떠났고 두고 간 것들이 남았다.');
   startEvent(state, rng, nodes[0]);
   giveRng(state, rng);
   return state;
