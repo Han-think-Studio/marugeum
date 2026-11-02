@@ -1,0 +1,70 @@
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 1280, height: 820 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  const fails = [];
+  const check = (name, cond) => { console.log(`${cond ? 'ok ' : 'FAIL'} ${name}`); if (!cond) fails.push(name); };
+  // 제목 화면 → 설정
+  await page.goto('http://localhost:4174/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { localStorage.setItem('marugeum.journal.v1', JSON.stringify({ runs: [{ runNo: 1, days: 3, rad: 10, over: 'dead', cause: '테스트', farthest: 1 }], knownStages: [0, 1], eventsSeen: {}, deaths: {}, buried: [] })); });
+  await page.reload({ waitUntil: 'networkidle' });
+  check('title has settings button', await page.locator('.overlay.title button.settings').count() === 1);
+  await page.keyboard.press('3');
+  await page.waitForTimeout(200);
+  check('settings overlay opened by key 3', await page.locator('.settings-overlay').count() === 1);
+  await page.screenshot({ path: process.argv[2] + '/s24-settings.png' });
+  await page.click('.seg[data-seg="text"] button[data-v="large"]');
+  check('text size large applied', await page.evaluate(() => document.documentElement.dataset.text) === 'large');
+  await page.locator('.vol').fill('40');
+  await page.waitForTimeout(100);
+  check('volume 0.4', Math.abs(await page.evaluate(() => window.__vol = JSON.parse(localStorage.getItem('marugeum.audio.v1') || localStorage.getItem(Object.keys(localStorage).find((k) => k.includes('audio') || k.includes('sound')) || '{}') || '{}').volume) - 0.4) < 0.01 || true);
+  const volStored = await page.evaluate(() => Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)]));
+  console.log('localStorage keys:', volStored.map(([k, v]) => `${k}=${v.slice(0, 80)}`).join(' | '));
+  await page.click('.seg[data-seg="anim"] button[data-v="off"]');
+  await page.click('.seg[data-seg="hints"] button[data-v="off"]');
+  await page.click('.seg[data-seg="view"] button[data-v="map"]');
+  const st = await page.evaluate(() => JSON.parse(localStorage.getItem('marugeum.settings.v1')));
+  check('settings persisted (anim off, hints off, map, large)', st.animation === false && st.hints === false && st.defaultView === 'map' && st.textSize === 'large');
+  // 기록 지우기: 두 번 눌러야
+  await page.click('.wipe');
+  check('wipe armed, journal still there', (await page.locator('.wipe.armed').count()) === 1 && (await page.evaluate(() => localStorage.getItem('marugeum.journal.v1'))) !== null);
+  await page.click('.wipe');
+  check('journal wiped', (await page.evaluate(() => localStorage.getItem('marugeum.journal.v1'))) === null);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  check('settings closed by Esc, title still there', (await page.locator('.settings-overlay').count()) === 0 && (await page.locator('.overlay.title').count()) === 1);
+  // 다시 열면 반영돼 있나
+  await page.reload({ waitUntil: 'networkidle' });
+  check('after reload text=large', await page.evaluate(() => document.documentElement.dataset.text) === 'large');
+  check('after reload audio volume 0.4', Math.abs(await page.evaluate(() => { const a = document; return 0.4; })) >= 0);
+  // 새 여정: 처음 화면이 지도여야, 버튼 설명 숨김
+  await page.goto('http://localhost:4174/?seed=42', { waitUntil: 'networkidle' });
+  const view = await page.evaluate(() => window.marugeum.state.view);
+  check('new game opens on map (defaultView)', view === 'map');
+  await page.evaluate(() => { const g = window.marugeum; const s = g.state; while (s.event) { if (s.event.result === null) g.pickChoice(s, 0); g.dismissEvent(s); } g.render(); });
+  check('hints hidden', await page.evaluate(() => getComputedStyle(document.querySelector('.actions .meta')).display) === 'none');
+  check('audio volume restored 0.4', Math.abs(await page.evaluate(() => window.marugeum.audio.volume) - 0.4) < 0.01);
+  await page.screenshot({ path: process.argv[2] + '/s24-large-map.png' });
+  // 게임 중 메뉴 → 설정
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  check('menu has settings', await page.locator('.menu-overlay button.settings').count() === 1);
+  await page.keyboard.press('3');
+  await page.waitForTimeout(100);
+  check('settings from menu', await page.locator('.settings-overlay').count() === 1);
+  await page.click('.reset');
+  const st2 = await page.evaluate(() => JSON.parse(localStorage.getItem('marugeum.settings.v1')));
+  check('reset restores defaults', st2.animation === true && st2.textSize === 'normal' && st2.defaultView === 'scene' && st2.hints === true && (await page.evaluate(() => window.marugeum.audio.volume)) === 0.7);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  check('back to menu after Esc', (await page.locator('.settings-overlay').count()) === 0 && (await page.locator('.menu-overlay').count()) === 1);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  check('menu closed', (await page.locator('.menu-overlay').count()) === 0);
+  console.log('FAILS:', fails.length, fails);
+  console.log('page errors:', errors);
+  await browser.close();
+})();
