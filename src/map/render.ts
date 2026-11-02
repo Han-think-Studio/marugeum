@@ -4,6 +4,28 @@ import { campLabel, clueFoundPlaces, neighbors } from '../game/state';
 import { isNight } from '../game/weather';
 import { REGIONS, STAGES } from './generate';
 import { placeById } from '../data/places';
+import { ribbonKey, ridgeRibbon } from '../game/ribbons';
+
+// 나뭇가지에 묶인 리본 하나. 매듭에서 두 갈래가 늘어진다
+function drawRibbon(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, scale: number): void {
+  const s = 5 * scale;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - s * 0.9, y + s * 1.6);
+  ctx.lineTo(x - s * 0.2, y + s * 1.3);
+  ctx.closePath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + s * 0.9, y + s * 1.6);
+  ctx.lineTo(x + s * 0.2, y + s * 1.3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, s * 0.45, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
 
 export interface View {
   w: number;
@@ -137,6 +159,12 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
       ctx.setLineDash(open && !known ? [6, 4] : known ? [] : [3, 5]);
       ctx.stroke();
       ctx.setLineDash([]);
+      // 리본. 길 가운데 작은 천 조각. 내 리본은 노랑, 마루금의 옛 리본은 바랜 빨강
+      if (n.id < m.id) {
+        const key = ribbonKey(n, m);
+        const mine = state.tied.includes(key) || state.ribbons.includes(key);
+        if (mine || ridgeRibbon(n, m)) drawRibbon(ctx, (x1 + x2) / 2, (y1 + y2) / 2, mine ? 'rgba(240, 200, 90, 0.95)' : 'rgba(200, 90, 80, 0.55)', mine ? 1 : 0.7);
+      }
     }
   }
 
@@ -265,7 +293,14 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   ctx.fillText('북 · 향로봉', w - 10, h - 10);
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.fillText('◆ 흔적 ?   ▣ 찾은 흔적   ● 안정   ⚑ 거점   ▪ 둔 물건   ― 아는 길   ┄ 모르는 길', w / 2, h - 10);
+  const legend = '◆ 흔적 ?   ▣ 찾은 흔적   ● 안정   ⚑ 거점   ▪ 둔 물건   ― 아는 길   ┄ 모르는 길       내 리본       마루금 리본';
+  ctx.fillText(legend, w / 2, h - 10);
+  // 범례 글 사이에 리본 두 개를 그려 넣는다
+  const lw = ctx.measureText(legend).width;
+  const lx = w / 2 - lw / 2;
+  const at = (s: string) => lx + ctx.measureText(legend.slice(0, legend.indexOf(s))).width;
+  drawRibbon(ctx, at('내 리본') - 9, h - 18, 'rgba(240, 200, 90, 0.95)', 0.9);
+  drawRibbon(ctx, at('마루금 리본') - 9, h - 18, 'rgba(200, 90, 80, 0.7)', 0.9);
 
   // 가리킨 자리의 말풍선. 가 봤거나 정찰했거나 표시된 자리면 아는 만큼 보여 준다
   if (hover) drawTip(ctx, state, v, hover, found);

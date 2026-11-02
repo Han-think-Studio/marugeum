@@ -138,6 +138,24 @@ export function familyAgo(state: GameState, familyDay: number): string {
   return `${AGO_WORDS[n] ?? `${n}일`} 전`;
 }
 
+// 흔적 표시와 그 흔적이 가리키는 가족의 날·자리. 위 일정과 같다
+const TRACES: Record<string, { day: number; place: string }> = {
+  'clue:note': { day: 1, place: '중산리' }, 'clue:jiri': { day: 1, place: '성삼재' }, 'clue:deogyu': { day: 1, place: '육십령' },
+  'clue:minjuji': { day: 1, place: '삼도봉' }, name_on_wall: { day: 2, place: '직지사' }, 'clue:songni': { day: 2, place: '법주사' },
+  'suyeon:neuljae': { day: 2, place: '늘재' }, 'clue:sobaek': { day: 4, place: '죽령' }, 'clue:taebaek': { day: 6, place: '철암' },
+  'clue:family_again': { day: 6, place: '철암' }, 'suyeon:hwabang': { day: 7, place: '화방재' }, 'clue:hambaek': { day: 8, place: '만항재' },
+  'clue:odae': { day: 8, place: '진고개' }, 'suyeon:noinbong': { day: 8, place: '노인봉' }, 'clue:seorak': { day: 9, place: '한계령' },
+  'clue:alps': { day: 9, place: '알프스' },
+};
+
+// 가장 새로운 소식. 흔적을 찾을수록 가까워지고, 찾지 못하는 날이 길어지면 멀어진다
+export function latestTrace(state: GameState): { place: string; ago: string; days: number } | null {
+  let best: { day: number; place: string } | null = null;
+  for (const [flag, t] of Object.entries(TRACES)) if (state.flags[flag] && (!best || t.day > best.day)) best = t;
+  if (!best) return null;
+  return { place: best.place, ago: familyAgo(state, best.day), days: Math.max(1, state.day + EVAC_DAY_OFFSET - best.day) };
+}
+
 // 도착 이벤트. 처음 온 곳이면 자주, 다시 온 곳이면 가끔
 export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: boolean): boolean {
   if (state.over !== 'none' || state.event) return false;

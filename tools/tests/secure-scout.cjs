@@ -29,6 +29,8 @@ const { chromium } = require('playwright');
     check('secured log line', s.log.slice(logLen).some((l) => l.includes('안정됐다')));
     // 위험한 길 막기
     const nb = g.neighbors(s).find((n) => n.stage > peak.stage); const altSave = nb.alt; nb.alt = 0.2; nb.visited = false; nb.scouted = false;
+    // 능선끼리 잇는 길은 마루금 리본이 있어 '모르는 길'이 아니다. 이 검사는 사면 쪽 길로 본다
+    const sideSave = nb.side; if (peak.side === 'ridge' && nb.side === 'ridge') nb.side = 'E';
     s.weather = 'rain'; s.wind = nb.side === 'ridge' ? 'E' : nb.side; s.hour = 10; fresh(); s.weather = 'rain'; s.wind = nb.side === 'ridge' ? 'E' : nb.side;
     const rk = g.routeRisk(s, nb);
     check(`route is high (${rk.level}: ${rk.why.join(',')})`, rk.level === 'high' && rk.why.includes('모르는 길'));
@@ -44,9 +46,10 @@ const { chromium } = require('playwright');
     check('secured morning: allowed', g.travelBlock(s, nb) === null);
     s.weather = 'clear'; s.wind = 'calm';
     check('clear weather: risk drops, allowed', g.travelBlock(s, nb) === null);
-    nb.alt = altSave;
+    nb.alt = altSave; nb.side = sideSave;
     // 정찰
     const target = g.neighbors(s).find((n) => !n.visited && n.stage > peak.stage); fresh(); s.hour = 9; s.weather = 'clear';
+    const tSide = target.side; if (peak.side === 'ridge' && target.side === 'ridge') target.side = 'E';
     check('scoutBlock null in good morning', g.scoutBlock(s, target) === null && g.canScout(s, target.id));
     s.weather = 'rain'; check('scout blocked by rain', g.scoutBlock(s, target) === '비가 온다'); s.weather = 'clear';
     s.hour = 22; check('scout blocked at night', g.scoutBlock(s, target) === '밤이다'); s.hour = 9;
@@ -57,6 +60,7 @@ const { chromium } = require('playwright');
     const hAfter = g.travelHours(s, peak, target);
     check(`travel hours drop ${hBefore} -> ${hAfter}`, hAfter < hBefore);
     check('risk no longer 모르는 길', riskBefore && !g.routeRisk(s, target).why.includes('모르는 길'));
+    target.side = tSide;
     check('busy while scout result open', g.busy(s) && !g.canScout(s, target.id));
     g.dismissEvent(s);
     check('cannot scout twice', g.scoutBlock(s, target) === '이미 안다');

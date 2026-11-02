@@ -1,11 +1,11 @@
-import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
+import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, FAMILY, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, edgeKey, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import { REGIONS } from '../map/generate';
 const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
 import {
   WATER_LABEL, atCamp, boil, buildWindbreak, campLabel, campTierHere, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
-  isKnown, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
+  lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
   canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes, hoursTo, equipLabel,
   canMaintain, maintain, maintainNeed, condOf, canListenRadio, listenRadio, radioSource, batteryCount, crisisText, crisisActive,
@@ -15,7 +15,8 @@ import {
 import { showBase } from './base';
 import { drawBuilt, drawObjects, drawScene, hitObject } from './scene';
 import { storeText } from '../game/state';
-import { eventById, fillName, meetsReq } from '../game/events';
+import { eventById, fillName, latestTrace, meetsReq } from '../game/events';
+import { myRibbon, ridgeRibbon } from '../game/ribbons';
 import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
 import { showJournal, showLog, showMenu, showSettings } from './screens';
@@ -300,6 +301,14 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
 
 let firstRender = false;
 
+// 두 사람의 가장 새로운 소식. 오래될수록 색이 바랜다
+function familyChip(state: GameState): string {
+  const t = latestTrace(state);
+  if (!t || state.over !== 'none') return '';
+  const age = t.days <= 3 ? 'near' : t.days >= 8 ? 'far' : '';
+  return `<span class="family ${age}" title="${FAMILY.spouse}과 ${FAMILY.child}의 가장 새로운 흔적. 흔적을 찾을수록 소식이 가까워진다">${FAMILY.spouse}·${FAMILY.child} · ${t.place} ${t.ago}</span>`;
+}
+
 function renderHud(refs: Refs, state: GameState): void {
   const chips = Object.entries(state.stats)
     .map(([k, v]) => {
@@ -319,6 +328,7 @@ function renderHud(refs: Refs, state: GameState): void {
   refs.hud.innerHTML =
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><button class="view-btn" title="장면/지도 (V)">${state.view === 'map' ? '장면' : '지도'}</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
+    familyChip(state) +
     `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
     `<span class="forecast" title="하늘을 읽은 예보">${daylightLeft(state.hour) > 0 ? `해 ${daylightLeft(state.hour)}시간` : '밤'} · ${forecastText(state)}</span>` +
     (crisisText(state) ? `<span class="crisis${crisisActive(state) ? ' on' : ''}" title="고비. 지붕과 불과 땔감과 물을 챙겨 버틴다">${crisisText(state)}</span>` : '') +
@@ -545,7 +555,9 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const hours = travelHours(state, cur, n);
     const dir = n.stage < cur.stage ? '남쪽으로' : n.alt > cur.alt + 0.1 ? '오르막' : n.alt < cur.alt - 0.1 ? '내리막' : '능선길';
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
-    const known = isKnown(state, cur, n) ? ' · 아는 길' : '';
+    const walked = !!state.known[edgeKey(cur.id, n.id)];
+    const mine = myRibbon(state, cur, n);
+    const known = walked ? ' · 아는 길' : mine ? ' · <b class="ribbon mine" title="지난 여정에 내가 묶은 리본. 아는 길처럼 걷는다">내 리본</b>' : ridgeRibbon(cur, n) ? ' · <span class="ribbon" title="마루금의 옛 산악회 리본. 길을 잃지 않는다">마루금 리본</span>' : '';
     const rk = routeRisk(state, n);
     const block = travelBlock(state, n);
     const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>${block ? `<span class="block">${block.replace('위험 높음 · ', '')}</span>` : ''}`;

@@ -18,12 +18,13 @@ import { batteryCount, canCarry, condOf, equipLabel, flashlightLit, hasEquip, he
 import { absHour, crisisActive, crisisKnownIn, isNight, rollWeather } from './weather';
 import { facilityRunning, syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
+import { myRibbon, ridgeRibbon, tieRibbon } from './ribbons';
 
 export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condOf, flashlightLit } from './equip';
 export { crisisActive, crisisKnownIn, crisisText, absHour } from './weather';
 export { addLog } from './log';
 
-export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; deadAt?: string[]; runNo?: number } = {}): GameState {
+export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; deadAt?: string[]; ribbons?: string[]; runNo?: number } = {}): GameState {
   const mapRng = new Rng(seed);
   const nodes = generateMap(mapRng);
   const stats: Stats = { hp: 100, hunger: 90, thirst: 90, temp: 100, fatigue: 100, rad: 0, mind: 100 };
@@ -57,6 +58,8 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
     knownStages: opts.knownStages ?? [],
     knownPlaces: opts.knownPlaces ?? [],
     deadAt: opts.deadAt ?? [],
+    ribbons: opts.ribbons ?? [],
+    tied: [],
     runNo: opts.runNo ?? 1,
     started: Date.now(),
     recorded: false,
@@ -140,8 +143,9 @@ export function reachable(state: GameState): MapNode[] {
   return neighbors(state);
 }
 
+// 걸어 본 길이거나, 지난 여정의 내 리본이 남은 길
 export function isKnown(state: GameState, a: MapNode, b: MapNode): boolean {
-  return !!state.known[edgeKey(a.id, b.id)];
+  return !!state.known[edgeKey(a.id, b.id)] || myRibbon(state, a, b);
 }
 
 // 이동 시간. 기본 5시간에 고도 차이, 안개, 비, 밤, 피로가 더해진다. 아는 길은 30% 빠르고 밤·안개 페널티가 절반
@@ -245,6 +249,11 @@ export function travelTo(state: GameState, id: number): boolean {
     addLog(state, placeById(to.place).desc);
     if (state.deadAt.includes(to.place)) addLog(state, '지난 여정은 여기서 끝났다. 그때 둔 돌무더기가 그대로 있다. 이번에는 지나간다.');
     else if (state.knownPlaces.includes(to.place)) addLog(state, '지난 여정에 와 본 자리다. 길이 눈에 익다.');
+  }
+  if (tieRibbon(state, from, to) && state.tied.length === 1) {
+    addLog(state, state.runNo === 1
+      ? '갈림길 나뭇가지에 노란 리본을 묶었다. 걸은 길마다 묶어 둔다. 다음에 이 길을 걷는 사람은 헤매지 않을 것이다. 그게 나일 수도 있다.'
+      : '걸은 길에 다시 리본을 묶는다. 지난번 리본은 빛이 바래 간다.');
   }
   if (to.kind === 'goal') {
     addLog(state, '안전지대의 불빛이 보인다. 살아서 도착했다.');
@@ -929,7 +938,7 @@ export function routeRisk(state: GameState, to: MapNode): { level: Risk; why: st
   if (isNight(state.hour) || endHour >= 20 || endHour < 5) { score += 1; why.push('밤에 닿음'); }
   if (state.stats.fatigue < 30 || state.stats.thirst < 25) { score += 1; why.push('몸이 안 됨'); }
   if (to.alt < 0.35) { score += 1; why.push('낮은 땅'); }
-  if (!to.visited && !to.scouted) { score += 1; why.push('모르는 길'); }
+  if (!to.visited && !to.scouted && !ridgeRibbon(currentNode(state), to) && !myRibbon(state, currentNode(state), to)) { score += 1; why.push('모르는 길'); }
   if (crisisActive(state) && state.crisis) { score += 2; why.push(CRISIS_INFO[state.crisis.kind].label); }
   else {
     const left = crisisKnownIn(state);

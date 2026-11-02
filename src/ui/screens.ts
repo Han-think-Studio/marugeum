@@ -102,6 +102,7 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
           <h3>아는 지역</h3>
           <p class="muted">가 본 지역은 다음 여정에서도 길과 이름이 기억난다.</p>
           <div class="regions">${regions}</div>
+          <p class="muted">길에 남은 내 리본 ${(j.ribbons ?? []).length}개. 다음 여정의 나는 그 길을 아는 길처럼 걷는다. 리본은 세 여정이 지나면 바랜다.</p>
           <h3>만난 이야기 <span class="muted">${seen.length}편</span></h3>
           ${seen.length ? `<div class="tales">${seen.join('')}</div>` : '<p class="muted">아직 아무도 만나지 않았다.</p>'}
           <h3>배운 것</h3>

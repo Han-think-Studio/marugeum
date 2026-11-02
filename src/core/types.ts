@@ -294,6 +294,8 @@ export interface GameState {
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
   knownPlaces: string[]; // 지난 여정들에서 가 본 자리
   deadAt: string[]; // 지난 여정들이 끝난 자리. 다시 가면 떠오른다
+  ribbons: string[]; // 지난 여정들에서 내가 묶은 리본이 아직 남은 길. 아는 길처럼 걷는다
+  tied: string[]; // 이번 여정에 리본을 묶은 길. 수첩에 남는다
   runNo: number; // 몇 번째 여정인지
   started: number; // 시작 시각(ms)
   recorded: boolean; // 수첩에 적혔는지
@@ -432,6 +434,7 @@ export interface Journal {
   runs: RunRecord[];
   knownStages: number[]; // 가 본 지역
   knownPlaces?: string[]; // 가 본 자리 id
+  ribbons?: { key: string; run: number }[]; // 길에 묶어 둔 리본. 몇 여정이 지나면 바랜다
   eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
   deaths: Record<string, number>; // 사망 원인별 횟수
 }

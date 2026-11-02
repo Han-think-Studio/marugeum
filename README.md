@@ -56,7 +56,7 @@ npm run desktop:build
 
 ```powershell
 npm run check:events   # 사건 데이터만
-npm test               # 사건 검사 + 기능 테스트 10개 (처음 한 번 npx playwright install chromium)
+npm test               # 사건 검사 + 기능 테스트 11개 (처음 한 번 npx playwright install chromium)
 ```
 
 이벤트 데이터의 막다른 선택지, 중복 id, 단계 범위, 엔딩 조건 빈틈을 잡는다.

@@ -3,6 +3,7 @@ import { createGame } from './game/state';
 import * as api from './game/state';
 import { deadPlaces, loadJournal, nextRunNo } from './game/journal';
 import { clearSave, loadGame } from './game/save';
+import { activeRibbons } from './game/ribbons';
 import { mountUI } from './ui/ui';
 import { showJournal, showSettings, showTitle } from './ui/screens';
 import { loadSettings, settings } from './game/settings';
@@ -35,7 +36,7 @@ function start(state: GameState): void {
 
 function startNew(): void {
   clearSave();
-  start(createGame(newSeed(), { knownStages: journal.knownStages, knownPlaces: journal.knownPlaces ?? [], deadAt: deadPlaces(journal), runNo: nextRunNo(journal) }));
+  start(createGame(newSeed(), { knownStages: journal.knownStages, knownPlaces: journal.knownPlaces ?? [], deadAt: deadPlaces(journal), ribbons: activeRibbons(journal, nextRunNo(journal)), runNo: nextRunNo(journal) }));
 }
 
 const saved = loadGame();

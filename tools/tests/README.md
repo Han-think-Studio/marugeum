@@ -37,6 +37,7 @@ npm.cmd run test:bots -- 10
 | trail-marks | 흔적 표시 |
 | map-view | 지도 화면, 말풍선, 거리 |
 | wear-crisis | 장비 마모, 정비, 고비, 라디오, 건전지 |
+| ribbons | 내 리본·마루금 리본, 수첩에 남고 바래는 리본, 두 사람의 소식 |
 | story-fill | 저장고 손실·텐트 상함, 지난 여정의 돌무더기, 수연의 흔적, 수첩의 '그 뒤' |
 | all-events | 모든 사건의 모든 선택지 강제 통과 |
 | bot-trail | 흔적 봇 30판 (bot-sim 과 bot-radiation 이 이 봇을 읽는다) |

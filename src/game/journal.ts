@@ -1,6 +1,7 @@
 import type { GameState, Journal, RunRecord } from '../core/types';
 import { REGIONS } from '../map/generate';
 import { clueCount, eventById } from './events';
+import { recordRibbons } from './ribbons';
 
 // 기록 수첩. 여정이 끝날 때마다 한 줄 적힌다. 죽어도 남는 유일한 것
 const KEY = 'marugeum.journal.v1';
@@ -76,6 +77,7 @@ export function recordRun(state: GameState): Journal {
   for (const n of state.nodes) {
     if (n.visited && !kp.includes(n.place)) kp.push(n.place);
   }
+  recordRibbons(j, state);
   for (const id of state.seen) j.eventsSeen[id] = (j.eventsSeen[id] ?? 0) + 1;
   if (state.over === 'dead') {
     const key = deathKey(state.overText);

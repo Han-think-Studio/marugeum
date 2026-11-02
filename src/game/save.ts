@@ -31,6 +31,8 @@ export function loadGame(): GameState | null {
 function upgrade(state: GameState): GameState {
   if (!Array.isArray(state.knownPlaces)) state.knownPlaces = [];
   if (!Array.isArray(state.deadAt)) state.deadAt = [];
+  if (!Array.isArray(state.ribbons)) state.ribbons = [];
+  if (!Array.isArray(state.tied)) state.tied = [];
   if (!Array.isArray(state.marked)) state.marked = [];
   if (state.crisis === undefined) state.crisis = null;
   if (state.radioHour === undefined) state.radioHour = -99;
