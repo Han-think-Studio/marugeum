@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
   await page.keyboard.press('3');
   await page.waitForTimeout(200);
   check('settings overlay opened by key 3', await page.locator('.settings-overlay').count() === 1);
-  await page.screenshot({ path: process.argv[2] + '/s24-settings.png' });
+  await page.screenshot({ path: process.argv[2] + '/settings-settings.png' });
   await page.click('.seg[data-seg="text"] button[data-v="large"]');
   check('text size large applied', await page.evaluate(() => document.documentElement.dataset.text) === 'large');
   await page.locator('.vol').fill('40');
@@ -47,7 +47,7 @@ const { chromium } = require('playwright');
   await page.evaluate(() => { const g = window.marugeum; const s = g.state; while (s.event) { if (s.event.result === null) g.pickChoice(s, 0); g.dismissEvent(s); } g.render(); });
   check('hints hidden', await page.evaluate(() => getComputedStyle(document.querySelector('.actions .meta')).display) === 'none');
   check('audio volume restored 0.4', Math.abs(await page.evaluate(() => window.marugeum.audio.volume) - 0.4) < 0.01);
-  await page.screenshot({ path: process.argv[2] + '/s24-large-map.png' });
+  await page.screenshot({ path: process.argv[2] + '/settings-large-map.png' });
   // 게임 중 메뉴 → 설정
   await page.keyboard.press('Escape');
   await page.waitForTimeout(100);

@@ -54,7 +54,7 @@ const { chromium } = require('playwright');
   console.log('FAILS:', r.fail.length, r.fail);
   await page.evaluate(() => { const g = window.marugeum; const s = g.state; s.view = 'map'; for (const n of s.nodes) if (n.stage <= 6) n.visited = true; g.render(); });
   await page.waitForTimeout(500);
-  await page.screenshot({ path: process.argv[2] + '/s27-map.png' });
+  await page.screenshot({ path: process.argv[2] + '/places-map.png' });
   console.log('page errors:', errors);
   await browser.close();
 })();

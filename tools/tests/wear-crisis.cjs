@@ -87,7 +87,7 @@ const { chromium } = require('playwright');
   // 화면: 고비 중 장면과 상단
   await page.evaluate(() => { const g = window.marugeum; const s = g.state; s.event = null; s.view = 'scene'; g.render(); });
   await page.waitForTimeout(500);
-  await page.screenshot({ path: process.argv[2] + '/s34-snow.png' });
+  await page.screenshot({ path: process.argv[2] + '/wear-crisis-snow.png' });
   console.log('page errors:', errors);
   await browser.close();
 })();

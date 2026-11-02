@@ -71,13 +71,13 @@ const { chromium } = require('playwright');
     g.render();
   });
   await page.waitForTimeout(600);
-  await page.screenshot({ path: process.argv[2] + '/s26-routes.png' });
+  await page.screenshot({ path: process.argv[2] + '/secure-scout-routes.png' });
   await page.evaluate(() => {
     const g = window.marugeum; const s = g.state; s.weather = 'clear'; s.wind = 'calm'; s.hour = 9; s.stats.fatigue = 100;
     const t = g.neighbors(s).find((n) => !n.visited && !n.scouted); g.scout(s, t.id); g.render();
   });
   await page.waitForTimeout(600);
-  await page.screenshot({ path: process.argv[2] + '/s26-scout.png' });
+  await page.screenshot({ path: process.argv[2] + '/secure-scout-scout.png' });
   console.log('page errors:', errors);
   await browser.close();
 })();

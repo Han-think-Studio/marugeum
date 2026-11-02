@@ -31,7 +31,7 @@ const { chromium } = require('playwright');
   const pos = await page.evaluate(() => { const g = window.marugeum; const s = g.state; const n = s.nodes.find((x) => x.place === 'jangteomok'); const c = document.querySelector('canvas.map'); const rect = c.getBoundingClientRect(); return { x: rect.left + 36 + n.x * (rect.width - 72), y: rect.top + 28 + n.y * (rect.height - 28 - 24) }; });
   await page.mouse.move(pos.x, pos.y);
   await page.waitForTimeout(300);
-  await page.screenshot({ path: process.argv[2] + '/s29-map.png' });
+  await page.screenshot({ path: process.argv[2] + '/map-view-map.png' });
   console.log('page errors:', errors);
   await browser.close();
 })();

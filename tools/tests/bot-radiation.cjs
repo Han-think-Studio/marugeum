@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const S = process.argv[2];
-const src = fs.readFileSync(S + '/stage.cjs', 'utf8');
+const src = fs.readFileSync(__dirname + '/bot-trail.cjs', 'utf8').replace(/\r\n/g, '\n');
 const bot = src.match(/const bot = `([\s\S]*?)`;\n/)[1];
 (async () => {
   const browser = await chromium.launch();

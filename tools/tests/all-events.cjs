@@ -17,7 +17,7 @@ const out = process.argv[2];
   });
   void r;
   // 이벤트 목록은 모듈 내부라 창에 없으므로 state.event 를 직접 세팅해 테스트한다
-  const ids = [...require('fs').readFileSync('/home/user/marugeum/src/data/events.ts', 'utf8').match(/id: '([a-z_]+)'/g), ...require('fs').readFileSync('/home/user/marugeum/src/data/events-more.ts', 'utf8').match(/id: '([a-z_]+)'/g), ...require('fs').readFileSync('/home/user/marugeum/src/data/objects.ts', 'utf8').match(/id: 'obj_[a-z_]+'/g)].map((m) => m.slice(5, -1));
+  const ids = [...require('fs').readFileSync(require('path').join(__dirname, '../../src/data/events.ts'), 'utf8').match(/id: '([a-z_]+)'/g), ...require('fs').readFileSync(require('path').join(__dirname, '../../src/data/events-more.ts'), 'utf8').match(/id: '([a-z_]+)'/g), ...require('fs').readFileSync(require('path').join(__dirname, '../../src/data/objects.ts'), 'utf8').match(/id: 'obj_[a-z_]+'/g)].map((m) => m.slice(5, -1));
   console.log('events:', ids.length);
   const res = await page.evaluate((ids) => {
     const g = window.marugeum; const s = g.state; const problems = []; let picked = 0;
@@ -49,10 +49,10 @@ const out = process.argv[2];
     return { got, blocked, steps, log: s.log.slice(-2) };
   });
   console.log('flow:', JSON.stringify(flow));
-  await page.screenshot({ path: out + '/s5-event.png' });
+  await page.screenshot({ path: out + '/all-events-event.png' });
   if (flow.got) {
     await page.keyboard.press('1');
-    await page.screenshot({ path: out + '/s5-result.png' });
+    await page.screenshot({ path: out + '/all-events-result.png' });
     await page.keyboard.press('Enter');
     console.log('after enter, event =', await page.evaluate(() => window.marugeum.state.event));
   }

@@ -1,8 +1,8 @@
-// 계측 시뮬레이션. node sim2.cjs <scratch> <mode: trail|ridge|naive> [runs]
+// 계측 시뮬레이션. node bot-sim.cjs <scratch> <mode: trail|ridge|naive> [runs]
 const { chromium } = require('playwright');
 const fs = require('fs');
 const S = process.argv[2]; const MODE = process.argv[3] || 'trail'; const RUNS = Number(process.argv[4] || 30);
-const src = fs.readFileSync(S + '/stage.cjs', 'utf8');
+const src = fs.readFileSync(__dirname + '/bot-trail.cjs', 'utf8').replace(/\r\n/g, '\n');
 const trailBot = src.match(/const bot = `([\s\S]*?)`;\n/)[1];
 const ridgeBot = trailBot.replace(/let pick = nb\.find\(\(n\) => marks\.includes\(n\)\)[^\n]*\n/, 'let pick = nb[0]; void marks;\n');
 const naiveBot = `(g, s) => {
@@ -59,5 +59,5 @@ const bot = MODE === 'ridge' ? ridgeBot : MODE === 'naive' ? naiveBot : trailBot
   console.log('per run: ' + keys.map((k) => `${k} ${avg((r) => r.m[k])}`).join(' · '));
   console.log('lowest (avg of per-run minimum): ' + ['temp', 'hunger', 'thirst', 'hp'].map((k) => `${k} ${avg((r) => r.low[k])}`).join(' · '));
   console.log(`decisions per day (choices+travels+scouts+inspects) ${avg((r) => (r.m.eventChoices + r.m.travels + r.m.scouts + r.m.inspects) / Math.max(1, r.day))}`);
-  fs.writeFileSync(`${S}/sim2-${MODE}.json`, JSON.stringify(runs));
+  fs.writeFileSync(`${S}/bot-sim-${MODE}.json`, JSON.stringify(runs));
 })();

@@ -23,7 +23,7 @@ const { chromium } = require('playwright');
   console.log(r.log.join('\n')); console.log('marked:', r.marked); console.log('FAILS:', r.fail.length, r.fail);
   await page.evaluate(() => { const g = window.marugeum; const s = g.state; s.view = 'map'; s.nodeId = s.nodes.find((n) => n.place === 'seongsamjae').id; g.render(); });
   await page.waitForTimeout(500);
-  await page.screenshot({ path: process.argv[2] + '/s28-map.png' });
+  await page.screenshot({ path: process.argv[2] + '/trail-marks-map.png' });
   console.log('page errors:', errors);
   await browser.close();
 })();
