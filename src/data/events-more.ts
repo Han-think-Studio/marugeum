@@ -29,10 +29,10 @@ export const MORE_EVENTS: EventDef[] = [
     when: { kinds: ['start'], phase: 'base', minDay: 3, noFacility: 'lamp' },
     choices: [
       { text: '발자국을 따라가 본다', hint: '1시간', outcomes: [
-        { chance: 0.4, text: '발자국은 계곡 쪽으로 이어지다 끊겼다. 바위 뒤에 통조림 하나가 떨어져 있었다. 급하게 달아난 것이다.', effects: { hours: 1, food: 1, mind: -3 } },
-        { text: '발자국은 길에서 사라졌다. 돌아와서 저장고에 돌을 올려 두었다.', effects: { hours: 1, mind: -5 } },
+        { chance: 0.4, text: '발자국은 계곡 쪽으로 이어지다 끊겼다. 바위 뒤에 통조림 하나가 떨어져 있었다. 급하게 달아난 것이다.', effects: { hours: 1, storeLoss: 2, food: 1, mind: -3 } },
+        { text: '발자국은 길에서 사라졌다. 돌아와서 저장고에 돌을 올려 두었다.', effects: { hours: 1, storeLoss: 2, mind: -5 } },
       ] },
-      { text: '잃은 것을 센다', outcomes: [{ text: '보존식 둘. 그 정도면 양심이 있는 도둑이다. 그래도 밤에는 불을 켜 두기로 했다.', effects: { mind: -4 } }] },
+      { text: '잃은 것을 센다', outcomes: [{ text: '보존식 둘. 그 정도면 양심이 있는 도둑이다. 그래도 밤에는 불을 켜 두기로 했다.', effects: { storeLoss: 2, mind: -4 } }] },
     ],
   },
   {
@@ -47,7 +47,7 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '냄비를 두드리며 나간다', hint: '대치', outcomes: [{ text: '냄비와 숟가락을 들고 텐트 밖으로 나갔다. 녀석이 고개를 들었다.', effects: { standoff: 'boar' } }] },
       { text: '텐트 안에서 기다린다', outcomes: [
         { chance: 0.6, text: '녀석은 쓰레기만 뒤지고 갔다. 아침에 치우는 데 한 시간이 걸렸다.', effects: { hours: 1, mind: -3 } },
-        { text: '저장고 문이 부서졌다. 보존식 둘이 사라졌다. 녀석 발자국 위에 내 발자국을 찍으며 치웠다.', effects: { hours: 1, mind: -6 } },
+        { text: '저장고 문이 부서졌다. 보존식 둘이 사라졌다. 녀석 발자국 위에 내 발자국을 찍으며 치웠다.', effects: { hours: 1, storeLoss: 2, mind: -6 } },
       ] },
     ],
   },
@@ -660,7 +660,7 @@ export const MORE_EVENTS: EventDef[] = [
     choices: [
       { text: '소리를 질러 쫓는다', outcomes: [
         { chance: 0.7, text: '고함을 지르고 텐트 벽을 쳤다. 발소리가 급하게 멀어졌다. 한참 뒤에야 다시 누울 수 있었다.', effects: { mind: -2, fatigue: -5 } },
-        { text: '고함에도 가지 않았다. 천을 긁는 소리가 났다. 그러다 저절로 가 버렸다. 아침에 보니 텐트 한쪽이 찢어졌다. 묶어 두면 쓸 수 있다.', effects: { mind: -6, fatigue: -8 } },
+        { text: '고함에도 가지 않았다. 천을 긁는 소리가 났다. 그러다 저절로 가 버렸다. 아침에 보니 텐트 한쪽이 찢어졌다. 묶어 두면 쓸 수 있다.', effects: { mind: -6, fatigue: -8, wearGear: 'tent' } },
       ] },
       { text: '먹을 것을 멀리 던진다', hint: '먹을 것 1', req: { food: 1 }, outcomes: [{ text: '통조림을 따서 바위 너머로 던졌다. 짐승은 그쪽으로 갔다. 비싼 잠이었다.', effects: { food: -1, mind: 1 } }] },
       { text: '숨을 죽인다', outcomes: [{ text: '움직이지 않았다. 숨소리가 텐트를 한 바퀴 돌고 사라졌다. 저장고의 비닐이 들쳐져 있었다. 다음부터는 먹을 것을 먼 바위틈에 두자.', effects: { food: -1, mind: -3 } }] },

@@ -8,7 +8,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '../..');
 const PORT = 4174;
-const SUITE = ['equip', 'camp', 'settings', 'secure-scout', 'places', 'trail-marks', 'map-view', 'wear-crisis', 'all-events'];
+const SUITE = ['equip', 'camp', 'settings', 'secure-scout', 'places', 'trail-marks', 'map-view', 'wear-crisis', 'story-fill', 'all-events'];
 
 const BOTS = process.argv[2] === '--bots';
 const BOT_RUNS = (BOTS && process.argv[3]) || '30';
@@ -41,6 +41,7 @@ function runOne(name) {
         const f = l.match(/^FAILS: (\d+)/);
         if (f && f[1] !== '0') problems.push(l);
         if (/^(page )?errors:/.test(l) && !/:\s*\[\]\s*$/.test(l)) problems.push(l);
+        if (/problems: \[(?!\])/.test(l)) problems.push(l);
       }
       if (!lines.some((l) => /^(page )?errors:/.test(l))) problems.push('errors 줄이 없다 (끝까지 못 돌았다)');
       fs.writeFileSync(path.join(out, name + '.log'), text);

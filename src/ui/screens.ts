@@ -1,4 +1,4 @@
-import { ENDING_INFO, type Journal } from '../core/types';
+import { ENDING_INFO, type EndingId, type Journal } from '../core/types';
 import { clearJournal, eventTitle, lessons, regionName } from '../game/journal';
 import { clearSave } from '../game/save';
 import { REGIONS } from '../map/generate';
@@ -81,6 +81,12 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
     .sort((a, b) => b[1] - a[1])
     .map(([id, n]) => `<span class="tale">${eventTitle(id)}${n > 1 ? ` ×${n}` : ''}</span>`);
   const deaths = Object.entries(j.deaths).map(([k, n]) => `${k} ${n}`).join(' · ');
+  // 닿아 본 엔딩마다 '그 뒤'가 남는다. 처음 닿은 여정을 적고, 아직인 것은 제목만 감춘다
+  const afters = (Object.keys(ENDING_INFO) as EndingId[]).map((id) => {
+    const first = j.runs.find((r) => r.ending === id);
+    if (!first) return '<li class="muted">아직 닿지 않은 끝.</li>';
+    return `<li><b>${ENDING_INFO[id].title}</b> <span class="muted">${first.runNo}번째 여정</span><p class="after">${ENDING_INFO[id].after}</p></li>`;
+  });
   el.innerHTML = `
     <div class="card wide">
       <div class="head"><h2>기록 수첩</h2><button class="close"><span class="num">Esc</span> 닫기</button></div>
@@ -89,6 +95,8 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
           <h3>여정</h3>
           ${runs.length ? `<ul>${runs.join('')}</ul>` : '<p class="muted">아직 적힌 것이 없다.</p>'}
           ${deaths ? `<p class="muted">죽은 이유: ${deaths}</p>` : ''}
+          <h3>그 뒤</h3>
+          <ul class="afters">${afters.join('')}</ul>
         </section>
         <section>
           <h3>아는 지역</h3>

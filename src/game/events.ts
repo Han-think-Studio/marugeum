@@ -73,6 +73,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.minRad !== undefined && state.stats.rad < when.minRad) return false;
   if (when.maxRad !== undefined && state.stats.rad > when.maxRad) return false;
   if (when.firstRun !== undefined && (state.runNo === 1) !== when.firstRun) return false;
+  if (when.deadHere !== undefined && state.deadAt.includes(node.place) !== when.deadHere) return false;
   return true;
 }
 
@@ -226,6 +227,15 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.gear) gainEquip(state, e.gear, false);
   if (e.gear2) gainEquip(state, e.gear2, false);
   if (e.brokenGear) gainEquip(state, e.brokenGear, true);
+  if (e.wearGear) {
+    const g = [...state.equip, ...node.equip].find((x) => x.kind === e.wearGear && !x.broken);
+    if (g) g.cond = Math.max(1, (g.cond ?? 100) - 35);
+  }
+  if (e.storeLoss && node.store) {
+    const fromFood = Math.min(node.store.food, e.storeLoss);
+    node.store.food -= fromFood;
+    node.store.fresh = Math.max(0, node.store.fresh - (e.storeLoss - fromFood));
+  }
   if (e.flag) state.flags[e.flag] = true;
   if (e.clue && !state.flags[`clue:${e.clue}`]) {
     state.flags[`clue:${e.clue}`] = true;

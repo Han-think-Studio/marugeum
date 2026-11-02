@@ -338,6 +338,7 @@ export interface When {
   secured?: boolean; // 지금 자리가 안정됐어야 / 안 됐어야
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
+  deadHere?: boolean; // 지난 여정이 끝난 자리에서만
   minClues?: number; // 가족 단서를 이만큼 모았어야
   maxClues?: number;
   minRad?: number; // 피폭이 이 이상이어야
@@ -352,6 +353,8 @@ export interface Effect {
   gear?: GearKey; // 장비를 얻는다
   gear2?: GearKey; // 두 번째 장비
   brokenGear?: GearKey; // 고장 난 장비를 얻는다
+  wearGear?: GearKey; // 지녔거나 이 자리에 둔 이 장비가 상한다. 상태 -35, 고장까지는 안 간다
+  storeLoss?: number; // 이 자리 저장고에서 먹을 것을 이만큼 잃는다. 보존식부터
   hours?: number; // 시간이 흐른다
   flag?: string;
   fireOut?: boolean;
