@@ -204,6 +204,7 @@ export function showSettings(root: HTMLElement, onClose: () => void): HTMLElemen
             <div class="row"><span class="label">글자와 칸 크기</span>${seg('text', (['small', 'normal', 'large'] as TextSize[]).map((t) => [t, TEXT_SIZE_LABEL[t]]), settings.textSize)}</div>
             <div class="row"><span class="label">여정을 열 때</span>${seg('view', [['scene', '장면'], ['map', '지도']], settings.defaultView)}</div>
             <div class="row"><span class="label">전환 그림 <span class="muted">이동 · 밤 · 고비</span></span>${seg('slides', [['on', '켬'], ['off', '끔']], settings.slides ? 'on' : 'off')}</div>
+            <div class="row"><span class="label">손 놀이 <span class="muted">수리 · 불 · 요리</span></span>${seg('handwork', [['on', '직접'], ['off', '자동']], settings.handwork ? 'on' : 'off')}</div>
             <div class="row"><span class="label">장면 움직임 <span class="muted">비 · 불 · 별</span></span>${seg('anim', [['on', '켬'], ['off', '끔']], settings.animation ? 'on' : 'off')}</div>
             <div class="row"><span class="label">버튼 설명 <span class="muted">시간 · 재료</span></span>${seg('hints', [['on', '보임'], ['off', '숨김']], settings.hints ? 'on' : 'off')}</div>
             <div class="row"><span class="label">전체화면</span><button class="fs">${isFullscreen() ? '창으로' : '전체화면으로'} <span class="muted">F11</span></button></div>
@@ -257,6 +258,7 @@ export function showSettings(root: HTMLElement, onClose: () => void): HTMLElemen
         case 'hints': settings.hints = v === 'on'; break;
         case 'diff': settings.difficulty = v as Difficulty; break;
         case 'slides': settings.slides = v === 'on'; break;
+        case 'handwork': settings.handwork = v === 'on'; break;
       }
       saveSettings();
       audio.sfx('click');

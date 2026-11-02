@@ -20,11 +20,12 @@ export interface Settings {
   hints: boolean; // 행동 버튼의 설명 글(시간·재료·결과)
   difficulty: Difficulty;
   slides: boolean; // 이동·밤·고비 사이의 전환 그림
+  handwork: boolean; // 수리·불·요리를 손 놀이로 직접 한다. 끄면 예전처럼 확률과 보통 솜씨로
 }
 
 const KEY = 'marugeum.settings.v1';
 
-export const DEFAULT_SETTINGS: Settings = { textSize: 'normal', defaultView: 'scene', animation: true, hints: true, difficulty: 'normal', slides: true };
+export const DEFAULT_SETTINGS: Settings = { textSize: 'normal', defaultView: 'scene', animation: true, hints: true, difficulty: 'normal', slides: true, handwork: true };
 
 export const settings: Settings = { ...DEFAULT_SETTINGS };
 
@@ -39,6 +40,7 @@ export function loadSettings(): Settings {
       if (typeof s.hints === 'boolean') settings.hints = s.hints;
       if (s.difficulty === 'easy' || s.difficulty === 'normal' || s.difficulty === 'hard') settings.difficulty = s.difficulty;
       if (typeof s.slides === 'boolean') settings.slides = s.slides;
+      if (typeof s.handwork === 'boolean') settings.handwork = s.handwork;
     }
   } catch {
     // 저장소가 막혀 있으면 기본값

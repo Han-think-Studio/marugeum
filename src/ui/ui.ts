@@ -5,7 +5,7 @@ const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
 import {
   WATER_LABEL, atCamp, boil, buildWindbreak, campLabel, campTierHere, canBoil, canCamp, canDrink, canEat, canFill, canGatherWood, canLightFire, canLook, canLookPhoto, canWindbreak, clueCount, lookPhoto,
   currentNode, deposit, dismissEvent, drink, eat, fill, gatherWood, gearList, hasEquip, hasFire, hiddenCount, inspectObject,
-  lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
+  canCook, cook, lightFire, lookAround, makeCamp, isPowered, neighbors, packCap, packWeight, pickChoice, rainBlocksFire, rest, sleep, timeLabel,
   canThrow, routeRisk, standoffClose, standoffMove, standoffOdds, weightPenalty,
   canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes, hoursTo, equipLabel,
   canMaintain, maintain, maintainNeed, condOf, canListenRadio, listenRadio, radioSource, batteryCount, crisisText, crisisActive,
@@ -24,6 +24,7 @@ import { toggleFullscreen } from './fullscreen';
 import { TABS, bodyAlert, bodyHtml, packHtml, type Tab } from './dock';
 import { pushSlide } from './slides';
 import { iconHtml } from './art';
+import { playHand, type HandKind } from './handwork';
 import { settings } from '../game/settings';
 import { audio } from '../audio/engine';
 import { sceneTargets } from '../audio/scene';
@@ -271,7 +272,9 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     const map: Record<string, () => boolean> = {
       r: () => rest(state), s: () => { markAction(state, 'sleep'); return sleep(state); }, w: () => drink(state), q: () => fill(state),
       e: () => eat(state), f: () => lookAround(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
-      n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
+      n: () => gatherWood(state), p: () => boil(state),
+      h: () => canLightFire(state) && handThen('match', (sk) => lightFire(state, sk), render),
+      a: () => canCook(state) && handThen('cook', (sk) => cook(state, sk), render),
       c: () => { showBase(root, state, render); return false; },
       k: () => buildWindbreak(state),
       o: () => lookPhoto(state),
@@ -300,6 +303,12 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
 }
 
 let firstRender = false;
+
+// 손 놀이를 띄우고, 솜씨가 나오면 행동을 한다. 그만두면(null) 아무것도 안 한다. 손 놀이 동안은 false 를 돌려 바로 다시 그리지 않는다
+function handThen(kind: HandKind, run: (skill: number | undefined) => boolean, after: () => void): boolean {
+  void playHand(document.getElementById('app') ?? document.body, kind).then((sk) => { if (sk !== null && run(sk)) after(); });
+  return false;
+}
 
 // 두 사람의 가장 새로운 소식. 오래될수록 색이 바랜다
 function familyChip(state: GameState): string {
@@ -518,7 +527,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act('body', 'photo', '影', '사진 보기', 'O', canLookPhoto(state) ? `단서 ${clueCount(state)}개` : '오늘은 봤다', () => lookPhoto(state), canLookPhoto(state));
   act('fw', 'fill', '汲', '물 담기', 'Q', wk === 'none' ? '물이 없다' : p.water + p.dirty >= cap.water ? '배낭이 가득' : WATER_LABEL[wk], () => fill(state), canFill(state));
   act('fw', 'wood', '木', '땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
-  act('fw', 'fire', '火', hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1 · 10시간', () => lightFire(state), canLightFire(state));
+  act('fw', 'fire', '火', hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1 · 10시간', () => handThen('match', (sk) => lightFire(state, sk), rerender), canLightFire(state));
+  act('fw', 'cook', '煮', '국 끓이기', 'A', !hasFire(state) ? '불이 필요하다' : p.water < 1 ? '깨끗한 물이 없다' : p.food + p.fresh < 1 ? '먹을 것이 없다' : '물 1 · 먹을 것 1 · 1시간', () => handThen('cook', (sk) => cook(state, sk), rerender), canCook(state));
   act('fw', 'boil', '沸', '물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
   if (state.equip.some((e) => e.kind === 'purifier')) act('fw', 'purifier', '淨', '정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
   const hid = hiddenCount(cur);

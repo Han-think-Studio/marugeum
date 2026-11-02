@@ -403,3 +403,9 @@ html[data-text="large"] .stat > i { width: 34px; }
 /* 길 목록의 리본 표시 */
 .route .ribbon { color: #d98a7e; font-weight: 400; }
 .route .ribbon.mine { color: #f0c85a; font-weight: 700; }
+
+/* 손 놀이. 수리·불·요리를 손으로 */
+.overlay.hand .card { width: min(580px, 94vw); }
+.overlay.hand .how { margin: 0 0 10px; font-size: 13px; }
+.overlay.hand canvas { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); touch-action: none; cursor: pointer; }
+.overlay.hand .verdict { min-height: 1.4em; margin: 8px 0 0; text-align: center; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; }

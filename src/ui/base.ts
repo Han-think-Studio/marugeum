@@ -6,6 +6,12 @@ import {
   toggleGenerator, toggleHeater,
 } from '../game/state';
 import { audio } from '../audio/engine';
+import { hasEquip } from '../game/equip';
+import { playHand } from './handwork';
+import type { EquipKind } from '../core/types';
+
+// 드라이버로 고치는 기계들. 나머지는 망치
+const MACHINES: ReadonlySet<EquipKind> = new Set(['generator', 'dieselGenerator', 'fridge', 'lamp', 'radio', 'heater', 'geiger', 'flashlight']);
 
 // 거점 화면. 거점이면 저장고와 시설까지, 아니면 짐 정리(두고 가기·가져가기·수리)만
 export function showBase(root: HTMLElement, state: GameState, rerender: () => void): HTMLElement {
@@ -117,6 +123,7 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     rerender();
   };
   const key = (e: KeyboardEvent) => {
+    if (document.querySelector('.overlay.hand')) return; // 손 놀이 중에는 손 놀이가 키를 받는다
     if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
       e.stopPropagation();
       close();
@@ -129,7 +136,18 @@ export function showBase(root: HTMLElement, state: GameState, rerender: () => vo
     let changed = false;
     if (b.dataset.mv) changed = moveSupply(state, b.dataset.k as never, b.dataset.mv as 'toBase' | 'toPack', e.shiftKey ? 0 : 1);
     else if (b.dataset.eq) changed = moveEquip(state, b.dataset.eq as 'toBase' | 'toPack', Number(b.dataset.i));
-    else if (b.dataset.rep) changed = repair(state, b.dataset.rep as 'pack' | 'base', Number(b.dataset.i));
+    else if (b.dataset.rep) {
+      // 수리는 손 놀이로. 기계는 드라이버, 나머지는 망치
+      const where = b.dataset.rep as 'pack' | 'base';
+      const i = Number(b.dataset.i);
+      const item = (where === 'pack' ? state.equip : node.equip)[i];
+      if (!item) return;
+      playHand(root, MACHINES.has(item.kind) ? 'screw' : 'hammer', { tools: hasEquip(state, 'tools') }).then((sk) => {
+        if (sk === null) return;
+        if (repair(state, where, i, sk)) { draw(); rerender(); }
+      });
+      return;
+    }
     else if (b.dataset.build) changed = build(state, b.dataset.build as never);
     else if (b.dataset.windbreak) changed = buildWindbreak(state);
     else if (b.dataset.maintain) changed = maintain(state);

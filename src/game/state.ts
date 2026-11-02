@@ -449,6 +449,35 @@ export function eat(state: GameState): boolean {
   return true;
 }
 
+// 국 끓이기. 불과 깨끗한 물 하나, 먹을 것 하나(신선식부터). 한 시간. 그냥 먹는 것보다 배부르고 몸과 마음이 데워진다
+// skill(0..1)은 불 조절 솜씨. 없으면 보통 솜씨
+export function canCook(state: GameState): boolean {
+  return !busy(state) && hasFire(state) && state.pack.water >= 1 && foodTotal(state.pack) >= 1;
+}
+
+export function cook(state: GameState, skill = 0.6): boolean {
+  if (!canCook(state)) return false;
+  const node = currentNode(state);
+  const fresh = state.pack.fresh > 0;
+  if (fresh) state.pack.fresh -= 1; else state.pack.food -= 1;
+  state.pack.water -= 1;
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  giveRng(state, rng);
+  if (res.died) return true;
+  const s = state.stats;
+  const q = Math.max(0, Math.min(1, skill));
+  s.hunger = Math.min(100, s.hunger + Math.round(FOOD_UNIT * (1 + q) + (fresh ? 5 : 0)));
+  s.thirst = Math.min(100, s.thirst + 10);
+  s.temp = Math.min(100, s.temp + 6);
+  s.mind = Math.min(100, s.mind + Math.round(3 + 9 * q));
+  addLog(state, q >= 0.8 ? '국을 끓였다. 김이 오르고 냄새가 텐트를 채웠다. 하율이 좋아하던 맛이 났다.'
+    : q >= 0.4 ? '국을 끓였다. 싱겁지만 뜨겁다. 뜨거운 건 다 맛있다.'
+    : '냄비 바닥이 탔다. 탄 맛을 참고 다 먹었다. 그래도 배는 부르다.');
+  afterAction(state);
+  return true;
+}
+
 // ---------- 둘러보기와 사물 ----------
 
 export function canLook(state: GameState): boolean {
@@ -746,7 +775,8 @@ export function canRepair(state: GameState): boolean {
 }
 
 // 수리. 두 시간과 부품 하나. where 가 'pack' 이면 지닌 장비, 'base' 면 거점 장비
-export function repair(state: GameState, where: 'pack' | 'base', idx: number): boolean {
+// skill(0..1)은 손 놀이의 솜씨. 있으면 주사위 대신 솜씨로 되고, 잘할수록 상태가 좋게 돌아온다. 없으면 예전처럼 확률
+export function repair(state: GameState, where: 'pack' | 'base', idx: number, skill?: number): boolean {
   if (busy(state)) return false;
   const node = currentNode(state);
   const list = where === 'pack' ? state.equip : node.equip;
@@ -758,11 +788,13 @@ export function repair(state: GameState, where: 'pack' | 'base', idx: number): b
   const res = passHours(state, rng, node, REPAIR_HOURS, 'work');
   if (!res.died) {
     src.parts -= 1;
-    const chance = repairChance(state);
-    if (rng.chance(chance)) {
+    const ok = skill === undefined ? rng.chance(repairChance(state)) : skill >= 0.5;
+    if (ok) {
       item.broken = false;
-      if (condOf(item) !== null) item.cond = 50;
-      addLog(state, `${EQUIP_INFO[item.kind].label}를 고쳤다. 두 시간 만에 돌아가는 소리가 났다.`);
+      if (condOf(item) !== null) item.cond = skill === undefined ? 50 : Math.round(30 + 60 * skill);
+      addLog(state, skill !== undefined && skill >= 0.85
+        ? `${EQUIP_INFO[item.kind].label}를 고쳤다. 손이 기억하는 대로 됐다. 새것 같지는 않아도 단단하다.`
+        : `${EQUIP_INFO[item.kind].label}를 고쳤다. 두 시간 만에 돌아가는 소리가 났다.`);
     } else {
       addLog(state, `${EQUIP_INFO[item.kind].label} 수리에 실패했다. 부품만 날렸다.`);
     }
@@ -808,13 +840,15 @@ export function canLightFire(state: GameState): boolean {
   return !hasFire(state) && state.pack.wood > 0 && !rainBlocksFire(state);
 }
 
-// 불 피우기. 땔감 하나로 열 시간
-export function lightFire(state: GameState): boolean {
+// 불 피우기. 땔감 하나로 열 시간. skill(0..1)은 성냥 긋기 솜씨. 잘 붙은 불은 오래 가고 애먹은 불은 빨리 죽는다
+export function lightFire(state: GameState, skill?: number): boolean {
   if (busy(state) || !canLightFire(state)) return false;
   const node = currentNode(state);
   state.pack.wood -= 1;
   const hearth = node.camp && node.upgrades.includes('hearth');
-  state.fire = { nodeId: node.id, hours: FIRE_HOURS * (hearth ? 2 : 1) };
+  const bonus = skill === undefined ? 0 : Math.round((skill - 0.5) * 8);
+  state.fire = { nodeId: node.id, hours: FIRE_HOURS * (hearth ? 2 : 1) + bonus };
+  if (skill !== undefined && skill < 0.34) addLog(state, '성냥 세 개비 만에 겨우 붙었다. 땔감이 반쯤 그을렸다.');
   addLog(state, hearth ? '화덕에 불을 넣었다. 연통으로 연기가 빠지고 돌이 천천히 달아오른다.' : '불을 피웠다. 손끝이 녹고 어둠이 조금 물러난다.');
   afterAction(state);
   return true;
