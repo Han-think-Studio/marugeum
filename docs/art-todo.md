@@ -37,7 +37,7 @@ Style for the 4 cards (768x512, 3:2) and the 1 band (1536x512, 3:1): Monochrome 
 After saving, list the 16 paths and confirm each file exists.
 ```
 
-## 1-2. 24단계 추가 그림 4장
+## 1-2. 24단계 추가 그림 4장 (2차 목록 `docs/art-list-2.md` 에도 들어 있다. 고비 셋은 그쪽의 1600×900 크기를 따른다)
 
 ```
 Save each image to the EXACT path. Lowercase names, PNG.
