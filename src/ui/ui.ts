@@ -1,4 +1,4 @@
-import { CAMP_HOUSE_LABEL, CAMP_TIERS, ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
+import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import { REGIONS } from '../map/generate';
 const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
@@ -20,11 +20,14 @@ import { loadJournal, recordRun } from '../game/journal';
 import { clearSave, saveGame } from '../game/save';
 import { showJournal, showLog, showMenu, showSettings } from './screens';
 import { toggleFullscreen } from './fullscreen';
+import { TABS, bodyAlert, bodyHtml, packHtml, type Tab } from './dock';
+import { pushSlide } from './slides';
+import { iconHtml } from './art';
 import { settings } from '../game/settings';
 import { audio } from '../audio/engine';
 import { sceneTargets } from '../audio/scene';
 import { radPerHour } from '../game/survival';
-import { daylightLeft, envTemp, forecastText, weatherText } from '../game/weather';
+import { absHour, daylightLeft, envTemp, forecastText, isNight, weatherText } from '../game/weather';
 
 interface Refs {
   canvas: HTMLCanvasElement;
@@ -35,6 +38,12 @@ interface Refs {
   choices: HTMLElement;
   actions: HTMLElement;
   mapSide: HTMLElement;
+  routes: HTMLElement;
+  packView: HTMLElement;
+  bodyView: HTMLElement;
+  tabs: HTMLElement;
+  steps: HTMLElement;
+  top: HTMLElement;
 }
 
 const WOOD_HERE = (k: string) => WOOD_NODES.has(k as never);
@@ -56,9 +65,16 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
       <header class="hud"></header>
       <div class="top"><canvas class="map"></canvas><aside class="map-side"></aside></div>
       <section class="panel">
-        <div class="place"></div>
-        <div class="log"></div>
-        <div class="actions"></div>
+        <div class="feed"><div class="place"></div><div class="steps"></div><div class="log"></div></div>
+        <div class="dock">
+          <nav class="tabs"></nav>
+          <div class="tabbody">
+            <div class="routes tab-go"></div>
+            <div class="actions tab-act"></div>
+            <div class="packview tab-pack"></div>
+            <div class="bodyview tab-body"></div>
+          </div>
+        </div>
         <div class="choices"></div>
       </section>
     </div>`;
@@ -73,7 +89,14 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     choices: root.querySelector('.choices')!,
     actions: root.querySelector('.actions')!,
     mapSide: root.querySelector('.map-side')!,
+    routes: root.querySelector('.routes')!,
+    packView: root.querySelector('.packview')!,
+    bodyView: root.querySelector('.bodyview')!,
+    tabs: root.querySelector('.tabs')!,
+    steps: root.querySelector('.steps')!,
+    top: root.querySelector('.top')!,
   };
+  lastCrisis = state.crisis && state.crisis.started ? state.crisis.start : -1;
 
   let view: View = makeView(1, 1);
   let hover: MapNode | null = null;
@@ -158,6 +181,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     kickScene();
     renderHud(refs, state);
     renderPanel(refs, state, () => render());
+    slidesAfter(refs, state);
   };
 
   let menuOpen = false;
@@ -197,7 +221,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     const py = e.clientY - rect.top;
     if (state.view === 'map') {
       const n = hitTest(state, view, px, py);
-      if (n && travelTo(state, n.id)) render();
+      if (n) { markAction(state, 'travel'); if (travelTo(state, n.id)) render(); }
     } else {
       const o = hitObject(currentNode(state), view.w, view.h, px, py);
       if (o && !o.used && inspectObject(state, o.id)) render();
@@ -209,6 +233,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (e.key.toLowerCase() === 'm') { audio.toggleMuted(); renderHud(refs, state); return; }
     if (e.key.toLowerCase() === 'v' && !root.querySelector('.overlay')) { toggleView(); return; }
     if (root.querySelector('.overlay')) return;
+    if (e.key === 'Tab') { e.preventDefault(); const i = TABS.findIndex(([t]) => t === tab); tab = TABS[(i + (e.shiftKey ? TABS.length - 1 : 1)) % TABS.length][0]; render(); return; }
     if (e.key === 'Escape') { openMenu(); return; }
     if (e.key.toLowerCase() === 'j') { showJournal(root, loadJournal(), () => undefined); return; }
     if (e.key.toLowerCase() === 'l') { showLog(root, state.log, () => undefined); return; }
@@ -239,11 +264,11 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     }
     if (k >= 1 && k <= 6) {
       const target = neighbors(state)[k - 1];
-      if (target && travelTo(state, target.id)) render();
+      if (target) { markAction(state, 'travel'); if (travelTo(state, target.id)) render(); }
       return;
     }
     const map: Record<string, () => boolean> = {
-      r: () => rest(state), s: () => sleep(state), w: () => drink(state), q: () => fill(state),
+      r: () => rest(state), s: () => { markAction(state, 'sleep'); return sleep(state); }, w: () => drink(state), q: () => fill(state),
       e: () => eat(state), f: () => lookAround(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
       n: () => gatherWood(state), h: () => lightFire(state), p: () => boil(state),
       c: () => { showBase(root, state, render); return false; },
@@ -313,6 +338,72 @@ function renderHud(refs: Refs, state: GameState): void {
     `${gear.length ? ' · ' + gear.join(', ') : ''}${hasFire(state) ? ' · <span class="fire">불 ' + state.fire!.hours + '시간</span>' : ''}`;
 }
 
+// 탭과 전환 그림. 행동 전의 몸 상태를 기억해 두었다가 이동과 잠 뒤에 한 장 넘긴다
+let tab: Tab = 'act';
+let lastCrisis = -1;
+let pending: { kind: 'travel' | 'sleep'; stats: GameState['stats']; node: number; day: number; abs: number; logLen: number } | null = null;
+
+function markAction(state: GameState, kind: 'travel' | 'sleep'): void {
+  pending = { kind, stats: { ...state.stats }, node: state.nodeId, day: state.day, abs: absHour(state), logLen: state.log.length };
+}
+
+const TRAVEL_TEXT: Record<string, string> = {
+  day: '능선이 길게 이어졌다.', night: '어둠 속에서 발밑만 보고 걸었다.', rain: '비를 맞으며 걸었다. 바다를 지나온 비다.',
+  fog: '안개 속에서 앞사람도 없는 길을 더듬었다.', snow: '무릎까지 빠지는 눈을 헤치고 왔다.',
+};
+const DELTA_LABEL: [keyof GameState['stats'], string][] = [['hp', '체력'], ['temp', '체온'], ['rad', '피폭'], ['hunger', '허기'], ['thirst', '갈증'], ['fatigue', '피로'], ['mind', '정신']];
+
+function slidesAfter(refs: Refs, state: GameState): void {
+  const p = pending;
+  pending = null;
+  if (!settings.slides || state.over !== 'none') return;
+  const now = absHour(state);
+  if (p) {
+    const deltas = DELTA_LABEL.map(([k, label]) => {
+      const d = state.stats[k] - p.stats[k];
+      return [label, d, k === 'rad' ? d > 0 : d < 0] as [string, number, boolean];
+    });
+    const to = currentNode(state);
+    if (p.kind === 'travel' && state.nodeId !== p.node) {
+      const from = state.nodes[p.node];
+      const hours = now - p.abs;
+      const startHour = (state.hour - hours + 48) % 24;
+      const cond = state.crisis && crisisActive(state) && state.crisis.kind === 'snow' ? 'snow' : state.weather === 'rain' ? 'rain' : state.weather === 'fog' ? 'fog' : isNight(state.hour) || isNight(startHour) ? 'night' : 'day';
+      pushSlide(refs.top.parentElement as HTMLElement, {
+        key: `travel:${cond}:${to.place}`,
+        art: [`./art/travel-${cond}.webp`, './art/travel-day.webp', `./art/scene-place-${to.place}-wide.webp`, `./art/scene-${to.kind}-wide.webp`],
+        title: `${from.name} → ${to.name}`,
+        text: `${hours}시간. ${TRAVEL_TEXT[cond]}`,
+        deltas, tone: 'travel',
+      });
+    } else if (p.kind === 'sleep' && now > p.abs) {
+      const fire = state.fire !== null && state.fire.nodeId === to.id;
+      const where = to.camp && to.campTier === 3 ? 'house' : to.camp || to.cave || hasEquip(state, 'tent') ? 'camp' : INDOOR.has(to.kind) ? 'house' : fire ? 'fire' : 'open';
+      const WHERE_TEXT: Record<string, string> = { house: '벽 안쪽에서 잤다.', camp: '천막과 바위가 바람을 막았다.', fire: '불을 지키며 선잠을 잤다.', open: '바람을 등지고 웅크려 잤다.' };
+      const note = state.log.slice(p.logLen).find((l) => /첫서리|첫눈|겨울이다|쇠맛|누렇|더러워진다|비를 한 번만/.test(l));
+      pushSlide(refs.top.parentElement as HTMLElement, {
+        key: `night:${where}`,
+        art: [`./art/night-${where}.webp`, where === 'house' ? './art/camp-house.webp' : where === 'camp' ? './art/camp-tent.webp' : './art/mark-secured.webp', `./art/scene-${to.kind}-wide.webp`],
+        title: state.day !== p.day ? `${state.day}일째 아침` : '잠에서 깼다',
+        text: `${WHERE_TEXT[where]}${note ? ' ' + note : ''}`,
+        deltas, tone: 'night',
+      });
+    }
+  }
+  const c = state.crisis;
+  if (c && c.started && c.start !== lastCrisis && crisisActive(state)) {
+    lastCrisis = c.start;
+    const info = CRISIS_INFO[c.kind];
+    pushSlide(refs.top.parentElement as HTMLElement, {
+      key: `crisis:${c.kind}`,
+      art: [`./art/event-crisis_${c.kind}.webp`, `./art/scene-${currentNode(state).kind}-wide.webp`],
+      title: `고비 · ${info.label}`,
+      text: `${info.start} ${c.end - now}시간쯤 간다. ${info.effect}.`,
+      deltas: [], tone: 'crisis',
+    });
+  }
+}
+
 function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const cur = currentNode(state);
   const store = cur.camp && cur.store ? ` · 저장고: ${storeText(cur.store)}` : '';
@@ -332,6 +423,18 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
 
   refs.actions.innerHTML = '';
   refs.choices.innerHTML = '';
+  refs.routes.innerHTML = '';
+  // 안정까지 세 걸음
+  refs.steps.innerHTML = sec.secured ? '<span class="step done">안정된 자리</span>' :
+    `<span class="step${sec.looked ? ' done' : ''}">둘러보기</span><span class="step${sec.shelter ? ' done' : ''}">불이나 지붕</span><span class="step${sec.rested ? ' done' : ''}">하룻밤</span><span class="muted">→ 안정</span>`;
+  // 탭
+  const nbCount = neighbors(state).length;
+  refs.tabs.innerHTML = TABS.map(([t, label]) => `<button data-tab="${t}" class="${t === tab ? 'on' : ''}">${label}${t === 'go' ? ` <small>${nbCount}</small>` : t === 'body' && bodyAlert(state) ? ' <i class="dot"></i>' : t === 'pack' && state.equip.some((e) => e.broken || (condOf(e) ?? 100) <= 30) ? ' <i class="dot"></i>' : ''}</button>`).join('') + '<span class="tabhint">Tab</span>';
+  refs.tabs.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab as Tab; rerender(); }));
+  const dock = refs.tabs.parentElement!;
+  for (const [t] of TABS) dock.classList.toggle(`show-${t}`, t === tab);
+  refs.packView.innerHTML = packHtml(state);
+  refs.bodyView.innerHTML = bodyHtml(state);
 
   // 이벤트 중에는 아래 패널을 키워 삽화가 다 보이게 한다
   refs.hud.parentElement!.classList.toggle('has-event', state.event !== null);
@@ -367,54 +470,66 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     return;
   }
 
-  const act = (label: string, key: string, meta: string, fn: () => boolean, enabled = true) => {
+  type Group = 'body' | 'fw' | 'place' | 'items';
+  const cols: Record<Group, HTMLElement> = {} as Record<Group, HTMLElement>;
+  for (const [g, title] of [['body', '몸'], ['fw', '불과 물'], ['place', '자리'], ['items', '물건']] as [Group, string][]) {
+    const col = document.createElement('div');
+    col.className = `agroup g-${g}`;
+    col.innerHTML = `<h4>${title}</h4>`;
+    cols[g] = col;
+    refs.actions.appendChild(col);
+  }
+  const act = (group: Group, icon: string, glyph: string, label: string, key: string, meta: string, fn: () => boolean, enabled = true) => {
     const b = document.createElement('button');
     b.className = 'act';
     b.disabled = !enabled;
-    b.innerHTML = `<span class="key">${key}</span> ${label} <span class="meta">${meta}</span>`;
+    b.title = `${label} (${key}) · ${meta}`;
+    b.innerHTML = `${iconHtml(icon, glyph)}<span class="al"><b>${label}</b><span class="meta">${meta}</span></span><span class="key">${key}</span>`;
     b.addEventListener('click', () => {
       if (fn()) rerender();
     });
-    refs.actions.appendChild(b);
+    cols[group].appendChild(b);
   };
   const wk = waterKind(state);
   const p = state.pack;
   const cap = packCap(state);
-  act('사진 보기', 'O', canLookPhoto(state) ? `단서 ${clueCount(state)}개` : '오늘은 봤다', () => lookPhoto(state), canLookPhoto(state));
-  act('쉬기', 'R', '2시간', () => rest(state));
-  act(cur.camp ? (cur.campTier === 1 ? '텐트에서 자기' : cur.campTier === 2 ? '굴에서 자기' : '거점에서 자기') : INDOOR.has(cur.kind) ? '실내에서 자기' : cur.cave ? '굴에서 자기' : hasEquip(state, 'tent') ? '텐트에서 자기' : '노숙', 'S', '8시간', () => sleep(state));
-  act('마시기', 'W', wk !== 'none' ? WATER_LABEL[wk] + (wk === 'stored' ? ` ${cur.waterLeft}회` : '') : p.water + p.dirty > 0 ? '배낭에서' : '물이 없다', () => drink(state), canDrink(state));
-  act('물 담기', 'Q', wk === 'none' ? '물이 없다' : p.water + p.dirty >= cap.water ? '배낭이 가득' : WATER_LABEL[wk], () => fill(state), canFill(state));
-  act('먹기', 'E', p.food + p.fresh > 0 ? `${p.food + p.fresh}개 있음` : '먹을 것 없음', () => eat(state), canEat(state));
+  const sleepLabel = cur.camp ? (cur.campTier === 1 ? '텐트에서 자기' : cur.campTier === 2 ? '굴에서 자기' : '거점에서 자기') : INDOOR.has(cur.kind) ? '실내에서 자기' : cur.cave ? '굴에서 자기' : hasEquip(state, 'tent') ? '텐트에서 자기' : '노숙';
+  act('body', 'eat', '食', '먹기', 'E', p.food + p.fresh > 0 ? `${p.food + p.fresh}개 있음` : '먹을 것 없음', () => eat(state), canEat(state));
+  act('body', 'drink', '水', '마시기', 'W', wk !== 'none' ? WATER_LABEL[wk] + (wk === 'stored' ? ` ${cur.waterLeft}회` : '') : p.water + p.dirty > 0 ? '배낭에서' : '물이 없다', () => drink(state), canDrink(state));
+  act('body', 'rest', '休', '쉬기', 'R', '2시간', () => rest(state));
+  act('body', 'sleep', '眠', sleepLabel, 'S', '8시간', () => { markAction(state, 'sleep'); return sleep(state); });
+  act('body', 'photo', '影', '사진 보기', 'O', canLookPhoto(state) ? `단서 ${clueCount(state)}개` : '오늘은 봤다', () => lookPhoto(state), canLookPhoto(state));
+  act('fw', 'fill', '汲', '물 담기', 'Q', wk === 'none' ? '물이 없다' : p.water + p.dirty >= cap.water ? '배낭이 가득' : WATER_LABEL[wk], () => fill(state), canFill(state));
+  act('fw', 'wood', '木', '땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
+  act('fw', 'fire', '火', hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1 · 10시간', () => lightFire(state), canLightFire(state));
+  act('fw', 'boil', '沸', '물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
+  if (state.equip.some((e) => e.kind === 'purifier')) act('fw', 'purifier', '淨', '정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
   const hid = hiddenCount(cur);
-  act('둘러보기', 'F', cur.looked ? `다 봤다 · 사물 ${visibleObjects(cur).filter((o) => !o.used).length}` : `1시간${hid ? ' · 뭔가 더 있을지도' : ''}`, () => lookAround(state), canLook(state));
-  act('땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
-  act(hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1개 · 10시간', () => lightFire(state), canLightFire(state));
-  act('물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
-  if (state.equip.some((e) => e.kind === 'iodine')) act('요오드 먹기', 'I', canTakeIodine(state) ? '피폭 -15 · 하루 한 번' : '오늘은 먹었다', () => takeIodine(state), canTakeIodine(state));
-  if (state.equip.some((e) => e.kind === 'medkit')) act('응급처치', 'U', canFirstAid(state) ? '체력 +25 · 1시간' : '다친 데가 없다', () => firstAid(state), canFirstAid(state));
-  if (state.equip.some((e) => condOf(e) !== null)) {
-    const need = maintainNeed(state);
-    act('정비', 'X', !cur.camp ? `거점에서만 · 가장 닳은 것 ${need}%` : canMaintain(state) ? `2시간 · 가장 닳은 것 ${need}%` : '손볼 것이 없다', () => maintain(state), canMaintain(state));
-  }
-  if (state.equip.some((e) => e.kind === 'radio') || radioSource(state) === 'power') {
-    const src = radioSource(state);
-    act('라디오', 'Z', src === null ? (state.equip.some((e) => e.kind === 'radio' && !e.broken) ? '건전지가 없다' : '라디오가 고장') : !canListenRadio(state) ? '방금 들었다 · 여덟 시간에 한 번' : src === 'power' ? '1시간 · 거점 전기' : `1시간 · 건전지 ${batteryCount(state)}`, () => listenRadio(state), canListenRadio(state));
-  }
-  if (state.equip.some((e) => e.kind === 'purifier')) act('정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
+  act('place', 'look', '見', '둘러보기', 'F', cur.looked ? `다 봤다 · 사물 ${visibleObjects(cur).filter((o) => !o.used).length}` : `1시간${hid ? ' · 뭔가 더 있을지도' : ''}`, () => lookAround(state), canLook(state));
   if (!cur.camp) {
     const tier = campTierHere(state, cur);
     if (tier !== 0) {
       const info = CAMP_TIERS[tier];
-      act(`거점 세우기 · ${tier === 3 ? (CAMP_HOUSE_LABEL[cur.kind] ?? info.label) : info.label}`, 'B', `${info.hours}시간 · 저장고 ${info.storeCap}`, () => makeCamp(state), canCamp(state));
-    } else act('거점 세우기', 'B', '텐트나 바위굴, 지붕이 필요하다', () => false, false);
+      act('place', 'camp', '營', `거점 세우기`, 'B', `${tier === 3 ? (CAMP_HOUSE_LABEL[cur.kind] ?? info.label) : info.label} · ${info.hours}시간`, () => makeCamp(state), canCamp(state));
+    } else act('place', 'camp', '營', '거점 세우기', 'B', '텐트·바위굴·지붕이 필요하다', () => false, false);
   }
-  if (!INDOOR.has(cur.kind) && !cur.windbreak) act('바람막이 쌓기', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
-  act(atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 장비 · 수리' : `장비 두고 가져가기 · 수리${cur.equip.length ? ` · 여기 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
+  if (!INDOOR.has(cur.kind) && !cur.windbreak) act('place', 'windbreak', '壁', '바람막이', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
+  act('place', 'base', '庫', atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 수리' : `두고 가져가기${cur.equip.length ? ` · 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });
+  if (state.equip.some((e) => condOf(e) !== null)) {
+    const need = maintainNeed(state);
+    act('place', 'maintain', '整', '정비', 'X', !cur.camp ? `거점에서만 · 최저 ${need}%` : canMaintain(state) ? `2시간 · 최저 ${need}%` : '손볼 것이 없다', () => maintain(state), canMaintain(state));
+  }
   if (atCamp(state)) {
-    act('맡기기', 'G', '배낭을 저장고에', () => deposit(state), Object.values(p).some((v) => v > 0));
-    act('챙기기', 'T', '저장고에서 배낭에', () => withdraw(state), !!cur.store && Object.values(cur.store).some((v) => v > 0));
+    act('place', 'deposit', '入', '맡기기', 'G', '배낭을 저장고에', () => deposit(state), Object.values(p).some((v) => v > 0));
+    act('place', 'withdraw', '出', '챙기기', 'T', '저장고에서 배낭에', () => withdraw(state), !!cur.store && Object.values(cur.store).some((v) => v > 0));
   }
+  if (state.equip.some((e) => e.kind === 'iodine')) act('items', 'iodine', '碘', '요오드', 'I', canTakeIodine(state) ? '피폭 -15 · 하루 한 번' : '오늘은 먹었다', () => takeIodine(state), canTakeIodine(state));
+  if (state.equip.some((e) => e.kind === 'medkit')) act('items', 'medkit', '救', '응급처치', 'U', canFirstAid(state) ? '체력 +25 · 1시간' : '다친 데가 없다', () => firstAid(state), canFirstAid(state));
+  if (state.equip.some((e) => e.kind === 'radio') || radioSource(state) === 'power') {
+    const src = radioSource(state);
+    act('items', 'radio', '波', '라디오', 'Z', src === null ? (state.equip.some((e) => e.kind === 'radio' && !e.broken) ? '건전지가 없다' : '라디오가 고장') : !canListenRadio(state) ? '방금 들었다' : src === 'power' ? '1시간 · 거점 전기' : `1시간 · 건전지 ${batteryCount(state)}`, () => listenRadio(state), canListenRadio(state));
+  }
+  if (cols.items.children.length === 1) cols.items.insertAdjacentHTML('beforeend', '<p class="muted">쓸 물건이 없다. 요오드·구급낭·라디오를 찾으면 여기 생긴다.</p>');
 
   neighbors(state).forEach((n, i) => {
     const wrap = document.createElement('div');
@@ -438,6 +553,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     btn.disabled = !!block;
     btn.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${n.name}</span> <span class="meta">${KIND_LABEL[n.kind]} · ${dir} · 약 ${hours}시간${known}${risk}${info}${mark}</span><span class="meta">${riskTxt}</span>`;
     btn.addEventListener('click', () => {
+      markAction(state, 'travel');
       if (travelTo(state, n.id)) rerender();
     });
     wrap.appendChild(btn);
@@ -453,7 +569,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
       });
       wrap.appendChild(sc);
     }
-    refs.choices.appendChild(wrap);
+    refs.routes.appendChild(wrap);
   });
 }
 

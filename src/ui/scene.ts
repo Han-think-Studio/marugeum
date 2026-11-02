@@ -13,13 +13,16 @@ interface Art {
   img: HTMLImageElement;
   wide: boolean;
 }
-const images: Partial<Record<NodeKind, Art | null>> = {};
+const images: Record<string, Art | null> = {};
 
-// 16:9 그림을 먼저 찾고, 없으면 정사각형, 그것도 없으면 코드가 그린다
-function artFor(kind: NodeKind, onload: () => void): Art | null {
-  if (images[kind] !== undefined) return images[kind] ?? null;
-  images[kind] = null;
+// 자리 고유 그림(scene-place-<자리>-wide)을 먼저, 없으면 종류의 16:9, 정사각형, 그것도 없으면 코드가 그린다
+function artFor(node: MapNode, onload: () => void): Art | null {
+  const key = node.place;
+  const kind: NodeKind = node.kind;
+  if (images[key] !== undefined) return images[key] ?? null;
+  images[key] = null;
   const candidates: [string, boolean][] = [
+    [`./art/scene-place-${node.place}-wide.webp`, true],
     [`./art/scene-${kind}-wide.webp`, true], [`./art/scene-${kind}-wide.png`, true],
     [`./art/scene-${kind}.webp`, false], [`./art/scene-${kind}.png`, false],
   ];
@@ -28,7 +31,7 @@ function artFor(kind: NodeKind, onload: () => void): Art | null {
     const [src, wide] = candidates[i];
     const img = new Image();
     img.onload = () => {
-      images[kind] = { img, wide };
+      images[key] = { img, wide };
       onload();
     };
     img.onerror = () => tryLoad(i + 1);
@@ -122,7 +125,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
   ctx.fillRect(0, h * 0.72, w, h * 0.28);
 
   // 그림 파일이 있으면 그것을 깐다
-  const art = artFor(node.kind, onArt);
+  const art = artFor(node, onArt);
   if (art) {
     if (art.wide || w / h < 1.3) {
       // 화면을 덮도록 가운데를 잘라 그린다
@@ -242,6 +245,20 @@ export function drawScene(ctx: CanvasRenderingContext2D, state: GameState, w: nu
   v.addColorStop(1, `rgba(0,0,0,${0.25 + dark * 0.35})`);
   ctx.fillStyle = v;
   ctx.fillRect(0, 0, w, h);
+
+  // 몸이 보는 세상. 추우면 가장자리에 서리, 피폭이 높으면 누런 테, 정신이 흐리면 빛이 바래고, 다치면 붉게 맥이 뛴다
+  const st = state.stats;
+  const edge = (r: number, g: number, b: number, a: number) => {
+    const e = ctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, h * 0.95);
+    e.addColorStop(0, `rgba(${r},${g},${b},0)`);
+    e.addColorStop(1, `rgba(${r},${g},${b},${a})`);
+    ctx.fillStyle = e;
+    ctx.fillRect(0, 0, w, h);
+  };
+  if (st.temp < 60) edge(170, 210, 255, Math.min(0.55, (60 - st.temp) / 70));
+  if (st.rad > 40) edge(170, 190, 50, Math.min(0.5, (st.rad - 40) / 80));
+  if (st.mind < 35) { ctx.fillStyle = `rgba(120, 120, 120, ${Math.min(0.35, (35 - st.mind) / 80)})`; ctx.fillRect(0, 0, w, h); }
+  if (st.hp < 35) edge(200, 40, 30, Math.min(0.5, (35 - st.hp) / 60) * (0.75 + 0.25 * Math.sin(t / 300)));
 }
 
 // 자리 종류별 앞 그림

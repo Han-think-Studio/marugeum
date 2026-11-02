@@ -130,6 +130,12 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 거점 시설은 내가 어디 있든 돈다
   tickFacilities(state, rng);
 
+  // 몸의 기록. 몸 탭의 선이 된다
+  const st = state.stats;
+  if (!state.history) state.history = [];
+  state.history.push([absHour(state), Math.round(st.hp), Math.round(st.hunger), Math.round(st.thirst), Math.round(st.temp), Math.round(st.fatigue), Math.round(st.rad), Math.round(st.mind)]);
+  if (state.history.length > 72) state.history.shift();
+
   // 시계
   state.hour += 1;
   if (state.hour >= 24) {

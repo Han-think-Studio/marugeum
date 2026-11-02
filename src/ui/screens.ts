@@ -165,7 +165,7 @@ export function showMenu(root: HTMLElement, o: MenuOpts): HTMLElement {
 
 // 설정 화면. 소리, 글자 크기, 처음 화면, 장면 움직임, 전체화면, 기록 지우기, 그리고 키 안내
 const KEYS: [string, string][] = [
-  ['1 ~ 4', '길 고르기 · 사건의 선택'], ['⇧ 1 ~ 6', '정찰 (그 길을 보고 돌아온다)'], ['V', '장면과 지도 전환'], ['C', '거점 화면 · 짐 정리'], ['F', '둘러보기'],
+  ['1 ~ 4', '길 고르기 · 사건의 선택'], ['Tab', '아래 탭 넘기기 (길 · 행동 · 짐 · 몸)'], ['⇧ 1 ~ 6', '정찰 (그 길을 보고 돌아온다)'], ['V', '장면과 지도 전환'], ['C', '거점 화면 · 짐 정리'], ['F', '둘러보기'],
   ['S / R', '자기 / 쉬기'], ['W / Q', '마시기 / 물 담기'], ['E', '먹기'], ['N / H / P', '땔감 / 불 / 물 끓이기'],
   ['B', '거점 세우기'], ['K', '바람막이'], ['G / T', '맡기기 / 챙기기'], ['O', '사진 보기'],
   ['I / U / Y', '요오드 / 응급처치 / 정수 알약'], ['X', '정비 (거점에서)'], ['Z', '라디오 듣기'], ['L', '지나온 기록'], ['M', '소리 끄기'], ['F11', '전체화면'], ['Esc', '메뉴'],
@@ -194,6 +194,7 @@ export function showSettings(root: HTMLElement, onClose: () => void): HTMLElemen
             <h3>화면</h3>
             <div class="row"><span class="label">글자와 칸 크기</span>${seg('text', (['small', 'normal', 'large'] as TextSize[]).map((t) => [t, TEXT_SIZE_LABEL[t]]), settings.textSize)}</div>
             <div class="row"><span class="label">여정을 열 때</span>${seg('view', [['scene', '장면'], ['map', '지도']], settings.defaultView)}</div>
+            <div class="row"><span class="label">전환 그림 <span class="muted">이동 · 밤 · 고비</span></span>${seg('slides', [['on', '켬'], ['off', '끔']], settings.slides ? 'on' : 'off')}</div>
             <div class="row"><span class="label">장면 움직임 <span class="muted">비 · 불 · 별</span></span>${seg('anim', [['on', '켬'], ['off', '끔']], settings.animation ? 'on' : 'off')}</div>
             <div class="row"><span class="label">버튼 설명 <span class="muted">시간 · 재료</span></span>${seg('hints', [['on', '보임'], ['off', '숨김']], settings.hints ? 'on' : 'off')}</div>
             <div class="row"><span class="label">전체화면</span><button class="fs">${isFullscreen() ? '창으로' : '전체화면으로'} <span class="muted">F11</span></button></div>
@@ -246,6 +247,7 @@ export function showSettings(root: HTMLElement, onClose: () => void): HTMLElemen
         case 'anim': settings.animation = v === 'on'; break;
         case 'hints': settings.hints = v === 'on'; break;
         case 'diff': settings.difficulty = v as Difficulty; break;
+        case 'slides': settings.slides = v === 'on'; break;
       }
       saveSettings();
       audio.sfx('click');

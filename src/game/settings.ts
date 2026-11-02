@@ -19,11 +19,12 @@ export interface Settings {
   animation: boolean; // 장면의 비·불·별 움직임. 끄면 멈춘 그림
   hints: boolean; // 행동 버튼의 설명 글(시간·재료·결과)
   difficulty: Difficulty;
+  slides: boolean; // 이동·밤·고비 사이의 전환 그림
 }
 
 const KEY = 'marugeum.settings.v1';
 
-export const DEFAULT_SETTINGS: Settings = { textSize: 'normal', defaultView: 'scene', animation: true, hints: true, difficulty: 'normal' };
+export const DEFAULT_SETTINGS: Settings = { textSize: 'normal', defaultView: 'scene', animation: true, hints: true, difficulty: 'normal', slides: true };
 
 export const settings: Settings = { ...DEFAULT_SETTINGS };
 
@@ -37,6 +38,7 @@ export function loadSettings(): Settings {
       if (typeof s.animation === 'boolean') settings.animation = s.animation;
       if (typeof s.hints === 'boolean') settings.hints = s.hints;
       if (s.difficulty === 'easy' || s.difficulty === 'normal' || s.difficulty === 'hard') settings.difficulty = s.difficulty;
+      if (typeof s.slides === 'boolean') settings.slides = s.slides;
     }
   } catch {
     // 저장소가 막혀 있으면 기본값

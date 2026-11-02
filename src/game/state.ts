@@ -51,6 +51,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
     crisis: null,
     radioHour: -99,
     radioCount: 0,
+    history: [],
     buried: [],
     view: 'scene',
     knownStages: opts.knownStages ?? [],

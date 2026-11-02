@@ -288,6 +288,7 @@ export interface GameState {
   crisis: Crisis | null; // 다가오는 또는 지금의 고비
   radioHour: number; // 마지막으로 라디오를 들은 시각
   radioCount: number; // 들은 횟수. 방송이 돌아가며 나온다
+  history: number[][]; // 시간마다 [시각, 체력, 허기, 갈증, 체온, 피로, 피폭, 정신]. 몸 탭의 선
   buried: string[]; // 묻어 준 사람들
   view: 'scene' | 'map'; // 위쪽 큰 화면에 무엇을 보여 주나
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
