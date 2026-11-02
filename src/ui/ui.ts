@@ -341,6 +341,7 @@ function renderHud(refs: Refs, state: GameState): void {
 // 탭과 전환 그림. 행동 전의 몸 상태를 기억해 두었다가 이동과 잠 뒤에 한 장 넘긴다
 let tab: Tab = 'act';
 let lastCrisis = -1;
+let iconRedraw = false;
 let pending: { kind: 'travel' | 'sleep'; stats: GameState['stats']; node: number; day: number; abs: number; logLen: number } | null = null;
 
 function markAction(state: GameState, kind: 'travel' | 'sleep'): void {
@@ -479,12 +480,18 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     cols[g] = col;
     refs.actions.appendChild(col);
   }
+  // 아이콘 그림이 처음 열리면 한 번만 다시 그린다. 그 전에는 글자 하나로 보인다
+  const iconReady = () => {
+    if (iconRedraw) return;
+    iconRedraw = true;
+    requestAnimationFrame(() => { iconRedraw = false; rerender(); });
+  };
   const act = (group: Group, icon: string, glyph: string, label: string, key: string, meta: string, fn: () => boolean, enabled = true) => {
     const b = document.createElement('button');
     b.className = 'act';
     b.disabled = !enabled;
     b.title = `${label} (${key}) · ${meta}`;
-    b.innerHTML = `${iconHtml(icon, glyph)}<span class="al"><b>${label}</b><span class="meta">${meta}</span></span><span class="key">${key}</span>`;
+    b.innerHTML = `${iconHtml(icon, glyph, iconReady)}<span class="al"><b>${label}</b><span class="meta">${meta}</span></span><span class="key">${key}</span>`;
     b.addEventListener('click', () => {
       if (fn()) rerender();
     });
@@ -580,7 +587,10 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   const box = document.createElement('div');
   box.className = 'event appear';
   // public/art/event-<id>.png 가 있으면 본문 위에 삽화가 뜬다. 없으면 조용히 사라진다
-  const art = `<img class="event-art" src="./art/event-${ev.art ?? ev.id}.webp" alt="" data-fallback="./art/event-${ev.art ?? ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
+  // 사물 이벤트는 띠 그림 대신 그 사물의 그림(obj-<종류>)을 본문 옆에 작게 둔다
+  const art = ev.trigger === 'object'
+    ? `<img class="event-obj" src="./art/obj-${ev.id.slice(4)}.webp" alt="" onerror="this.remove()">`
+    : `<img class="event-art" src="./art/event-${ev.art ?? ev.id}.webp" alt="" data-fallback="./art/event-${ev.art ?? ev.id}.png" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;delete this.dataset.fallback}else{this.remove()}">`;
   if (state.event.result === null) {
     box.innerHTML = `${art}<h3>${ev.title}</h3><p>${fillName(ev.text, state, currentNode(state))}</p>`;
     const list = document.createElement('div');

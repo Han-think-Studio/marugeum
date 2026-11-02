@@ -205,14 +205,24 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .hud .phase { color: var(--accent); font-size: 12px; padding-left: 10px; border-left: 1px solid var(--line); }
 .hud .forecast { color: var(--muted); font-size: 12px; padding-left: 10px; border-left: 1px solid var(--line); margin-right: auto; }
 .hud .weather { margin-right: 0; }
+/* 좁은 화면에서는 예보 글이 먼저 줄어 수치 막대(정신까지)가 잘리지 않게 한다 */
+.hud .forecast { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.hud .stat { flex-shrink: 0; }
+@media (max-width: 1400px) { .stat > i { width: 32px; } }
+@media (max-width: 1100px) { .stat > i { display: none; } }
 .overlay .depart { margin-top: 6px; background: var(--panel-2); color: var(--ink); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; cursor: pointer; font: inherit; font-size: 13px; }
 .overlay .depart.armed { background: var(--accent); color: #111; font-weight: 700; }
+.overlay [data-maintain] { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+.overlay [data-maintain]:hover:not(:disabled) { border-color: var(--accent); }
+.overlay [data-maintain]:disabled { opacity: 0.45; cursor: default; }
 
 @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .event.appear { animation: appear 0.35s ease-out; }
 .log p.latest { animation: appear 0.3s ease-out; }
 
-.event-art { display: block; width: 100%; aspect-ratio: 3 / 1; height: auto; max-height: 300px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--line); }
+.event-obj { float: left; width: 88px; height: 88px; object-fit: cover; border-radius: 6px; margin: 0 12px 6px 0; border: 1px solid var(--line); }
+.event-choices, .event .ok { clear: both; }
+.event-art { display: block; width: 100%; aspect-ratio: 3 / 1; height: auto; max-height: min(300px, 26vh); object-fit: cover; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--line); }
 .game.has-event { grid-template-rows: 44px minmax(0, 1fr) min(560px, 72vh); }
 .game.has-event .panel { overflow-y: auto; }
 
@@ -235,7 +245,7 @@ canvas.map { width: 100%; height: 100%; min-height: 0; display: block; }
 .ucard button:hover:not(:disabled) { border-color: var(--accent); }
 .ucard button:disabled { opacity: 0.35; cursor: default; }
 
-.end .ending-art { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; max-height: 340px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.end .ending-art { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; max-height: min(340px, 28vh); object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
 .end h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: 0.2em; }
 
 .packline .heavy { color: var(--warn); }
