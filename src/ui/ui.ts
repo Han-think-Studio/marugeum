@@ -1,4 +1,4 @@
-import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, FAMILY, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, edgeKey, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
+import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, FAMILY, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, edgeKey, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import { REGIONS } from '../map/generate';
 const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
@@ -248,7 +248,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     if (state.event) {
       if (state.event.result !== null) {
         if (e.key === 'Enter' || e.key === ' ' || k === 1) { if (dismissEvent(state)) render(); }
-      } else if (k >= 1 && k <= 4 && pickChoice(state, k - 1)) render();
+      } else if (k >= 1 && k <= 4 && pickWithDelta(state, k - 1)) render();
       return;
     }
     if (state.standoff) {
@@ -469,6 +469,16 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   const dock = refs.tabs.parentElement!;
   for (const [t] of TABS) dock.classList.toggle(`show-${t}`, t === tab);
   refs.packView.innerHTML = packHtml(state);
+  // 장비 칸을 누르면 쓴다. 지금 쓸 수 있는 것은 밝은 테두리, 쓸 수 있는 물건이지만 지금은 안 되는 것은 흐리게
+  refs.packView.querySelectorAll<HTMLElement>('.gtile').forEach((el) => {
+    const e = state.equip[Number(el.dataset.i)];
+    const u = e && !e.broken ? gearUse(state, e.kind, rerender) : null;
+    if (!u) return;
+    el.classList.add('use');
+    if (!u.ok) el.classList.add('off');
+    el.title += ` · ${u.ok ? '누르면 ' : '지금은 못 한다: '}${u.what}`;
+    el.addEventListener('click', () => { if (u.ok && u.run()) rerender(); });
+  });
   refs.bodyView.innerHTML = bodyHtml(state);
 
   // 이벤트 중에는 아래 패널을 키워 삽화가 다 보이게 한다
@@ -622,6 +632,61 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
 }
 
 // 이벤트 화면. 본문과 선택지, 선택 뒤에는 결과와 확인 버튼
+// 짐 탭에서 눌러 쓰는 장비. 행동 탭의 같은 행동을 부른다
+function gearUse(state: GameState, kind: string, rerender: () => void): { ok: boolean; run: () => boolean; what: string } | null {
+  if (state.event || state.standoff || state.over !== 'none') return null;
+  switch (kind) {
+    case 'iodine': return { ok: canTakeIodine(state), run: () => takeIodine(state), what: '요오드를 먹는다' };
+    case 'medkit': return { ok: canFirstAid(state), run: () => firstAid(state), what: '응급처치' };
+    case 'purifier': return { ok: canPurify(state), run: () => purify(state), what: '오염수를 정수한다' };
+    case 'radio': return { ok: canListenRadio(state), run: () => listenRadio(state), what: '라디오를 듣는다' };
+    case 'matches': return { ok: canLightFire(state), run: () => handThen('match', (sk) => lightFire(state, sk), rerender), what: '불을 피운다' };
+    default: return null;
+  }
+}
+
+// 사건 결과의 변화 칩. 고르기 전의 몸과 배낭과 장비를 찍어 두었다가 결과 아래에 바뀐 것만 보인다
+interface Snap { stats: GameState['stats']; pack: GameState['pack']; equip: string[]; abs: number; clues: number }
+let eventDelta: { id: string; chips: string } | null = null;
+
+function snap(state: GameState): Snap {
+  return { stats: { ...state.stats }, pack: { ...state.pack }, equip: state.equip.map((e) => e.kind), abs: absHour(state), clues: clueCount(state) };
+}
+
+function deltaChips(a: Snap, state: GameState): string {
+  const chip = (text: string, tone: 'good' | 'bad' | '') => `<span class="d${tone ? ' ' + tone : ''}">${text}</span>`;
+  const num = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v)}`;
+  const out: string[] = [];
+  const hours = absHour(state) - a.abs;
+  if (hours > 0) out.push(chip(`${hours}시간`, ''));
+  for (const [k, label] of DELTA_LABEL) {
+    const d = state.stats[k] - a.stats[k];
+    if (Math.abs(d) >= 1) out.push(chip(`${label} ${num(d)}`, (k === 'rad' ? d > 0 : d < 0) ? 'bad' : 'good'));
+  }
+  // 보존식과 신선식은 '먹을 것' 하나로 센다
+  const pack = (p: GameState['pack']) => ({ ...p, food: p.food + p.fresh, fresh: 0 });
+  const pa = pack(a.pack); const pb = pack(state.pack);
+  for (const k of SUPPLY_KEYS) {
+    const d = pb[k] - pa[k];
+    if (d !== 0) out.push(chip(`${k === 'food' ? '먹을 것' : SUPPLY_LABEL[k]} ${num(d)}`, (k === 'dirty' ? d > 0 : d < 0) ? 'bad' : 'good'));
+  }
+  const now = state.equip.map((e) => e.kind);
+  const left = [...a.equip];
+  for (const kind of now) { const i = left.indexOf(kind); if (i >= 0) left.splice(i, 1); else out.push(chip(`+ ${EQUIP_INFO[kind].label}`, 'good')); }
+  for (const kind of left) out.push(chip(`− ${EQUIP_INFO[kind as keyof typeof EQUIP_INFO].label}`, 'bad'));
+  const clues = clueCount(state) - a.clues;
+  if (clues > 0) out.push(chip(`흔적 +${clues}`, 'good'));
+  return out.join('');
+}
+
+function pickWithDelta(state: GameState, idx: number): boolean {
+  const id = state.event?.id;
+  const before = snap(state);
+  if (!pickChoice(state, idx)) return false;
+  eventDelta = id ? { id, chips: deltaChips(before, state) } : null;
+  return true;
+}
+
 function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
   const ev = state.event && eventById(state.event.id);
   if (!ev || !state.event) return;
@@ -642,13 +707,14 @@ function renderEvent(refs: Refs, state: GameState, rerender: () => void): void {
       b.disabled = !ok;
       b.innerHTML = `<span class="num">${i + 1}</span> <span class="to">${c.text}</span>${c.hint ? `<span class="meta">${c.hint}</span>` : ''}`;
       b.addEventListener('click', () => {
-        if (pickChoice(state, i)) rerender();
+        if (pickWithDelta(state, i)) rerender();
       });
       list.appendChild(b);
     });
     box.appendChild(list);
   } else {
-    box.innerHTML = `${art}<h3>${ev.title}</h3><p class="result">${state.event.result}</p>`;
+    const chips = eventDelta && eventDelta.id === state.event.id ? eventDelta.chips : '';
+    box.innerHTML = `${art}<h3>${ev.title}</h3><p class="result">${state.event.result}</p>${chips ? `<div class="deltas">${chips}</div>` : ''}`;
     const b = document.createElement('button');
     b.className = 'ok';
     b.innerHTML = `<span class="num">1</span> 계속`;

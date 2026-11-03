@@ -37,10 +37,10 @@ export function packHtml(state: GameState): string {
   const pen = weightPenalty(state);
   const wpct = Math.min(100, Math.round((wt / (lim * 1.5)) * 100));
   const limPct = Math.round((lim / (lim * 1.5)) * 100);
-  const gear = state.equip.map((e) => {
+  const gear = state.equip.map((e, i) => {
     const c = condOf(e);
     const ring = c === null ? '' : ` style="--c:${Math.round(c)}"`;
-    return `<div class="gtile${e.broken ? ' broken' : ''}${c !== null ? ' worn' : ''}"${ring} title="${equipLabel(e)} · ${EQUIP_INFO[e.kind].desc}">` +
+    return `<div class="gtile${e.broken ? ' broken' : ''}${c !== null ? ' worn' : ''}" data-i="${i}"${ring} title="${equipLabel(e)} · ${EQUIP_INFO[e.kind].desc}">` +
       `<img src="./art/equip-${e.kind}.webp" alt="" onerror="this.remove()">` +
       `${e.charges !== undefined ? `<b class="ch">×${e.charges}</b>` : ''}${c !== null && !e.broken ? `<b class="cd">${Math.round(c)}%</b>` : ''}${e.broken ? '<b class="bk">고장</b>' : ''}` +
       `<span>${EQUIP_INFO[e.kind].label}</span></div>`;
@@ -53,7 +53,7 @@ export function packHtml(state: GameState): string {
     row('부품', cap.parts, [['parts', p.parts]]) +
     `<div class="prow"><span class="pl">무게 <small>${wt}/${lim}${pen ? ` · 이동 +${pen}시간` : ''}</small></span><span class="wbar"><i style="width:${wpct}%" class="${pen ? 'over' : ''}"></i><b style="left:${limPct}%"></b></span></div>` +
     `</div><div class="gcol">${gear || '<p class="muted">지닌 장비가 없다.</p>'}</div></div>` +
-    `<p class="muted packfoot">C 짐 정리 · 거점 화면. 고리는 장비 상태, ×는 남은 횟수.</p>`;
+    `<p class="muted packfoot">C 짐 정리 · 거점 화면. 고리는 장비 상태, ×는 남은 횟수. 밝은 테두리는 눌러서 쓸 수 있는 것.</p>`;
 }
 
 // 몸: 사람 그림의 색과 지난 이틀의 선
