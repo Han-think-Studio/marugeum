@@ -116,7 +116,8 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 정신
   if (act === 'sleep') add(state, 'mind', (camp ? (tier >= 3 ? 3.5 : 3) : node.kind === 'temple' ? 4 : 2.5) + (fire ? 1 : 0) + (lamp ? 0.5 : 0));
   else if (act === 'rest') add(state, 'mind', 1);
-  else if (night) add(state, 'mind', lamp ? 0 : -1);
+  else if (night) add(state, 'mind', lamp || hasEquip(state, 'beads') ? 0 : -1);
+  if (act === 'sleep' && hasEquip(state, 'beads')) add(state, 'mind', 1);
   const s = state.stats;
   if (s.hunger < 20 || s.thirst < 20 || s.temp < 30) add(state, 'mind', -1);
   if (s.rad >= 60) add(state, 'mind', -0.8);

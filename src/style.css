@@ -409,3 +409,9 @@ html[data-text="large"] .stat > i { width: 34px; }
 .overlay.hand .how { margin: 0 0 10px; font-size: 13px; }
 .overlay.hand canvas { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); touch-action: none; cursor: pointer; }
 .overlay.hand .verdict { min-height: 1.4em; margin: 8px 0 0; text-align: center; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; }
+
+/* 숨은 것. 수첩의 목록과 엔딩의 숨은 그 뒤 */
+.overlay .hiddens li { font-size: 12px; }
+.overlay .hiddens .diff { font-size: 11px; color: var(--muted); }
+.overlay .diff.hard { color: #f0c85a; font-weight: 700; }
+.end .after.secret { color: #f0d9a8; border-top-style: solid; border-top-color: rgba(240, 217, 168, 0.5); }

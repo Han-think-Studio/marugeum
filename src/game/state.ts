@@ -19,6 +19,7 @@ import { absHour, crisisActive, crisisKnownIn, isNight, rollWeather } from './we
 import { facilityRunning, syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 import { myRibbon, ridgeRibbon, tieRibbon } from './ribbons';
+import { kindness } from './hidden';
 
 export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condOf, flashlightLit } from './equip';
 export { crisisActive, crisisKnownIn, crisisText, absHour } from './weather';
@@ -154,7 +155,7 @@ export function travelHours(state: GameState, from: MapNode, to: MapNode): numbe
   const diff = Math.abs(from.alt - to.alt);
   let h = (5 + diff * 8) * (known ? 0.7 : 1);
   const pen = known ? 0.5 : 1;
-  if (state.weather === 'fog') h += 1 * pen;
+  if (state.weather === 'fog' && !hasEquip(state, 'compass')) h += 1 * pen;
   if (state.weather === 'rain') h += 1;
   if (isNight(state.hour)) h += 2 * pen * (flashlightLit(state) ? 0.5 : 1);
   if (state.crisis && state.crisis.kind === 'snow' && crisisActive(state)) h *= 1.5; // 폭설
@@ -651,6 +652,9 @@ export function endingNotes(state: GameState): string[] {
         : end === 'quarantine' ? '할머니의 김치는 간호병 편에 유리창 너머로 보냈다.'
         : '할머니의 김치 통은 열지 않았다. 같이 먹을 사람을 찾으면 연다.');
     }
+    // 숨은 장면: 길 위의 사람들. 넷 이상을 도왔으면 그들이 향로봉에 있다
+    const kind = kindness(state);
+    if (kind.length >= 4) out.push('길 위의 사람들.', ...kind);
   }
   const clues = clueCount(state);
   if (clues > 0) out.push(`${FAMILY.spouse}과 ${FAMILY.child}의 흔적 ${clues}개를 따라왔다.`);
@@ -972,7 +976,7 @@ export function routeRisk(state: GameState, to: MapNode): { level: Risk; why: st
   if (isNight(state.hour) || endHour >= 20 || endHour < 5) { score += 1; why.push('밤에 닿음'); }
   if (state.stats.fatigue < 30 || state.stats.thirst < 25) { score += 1; why.push('몸이 안 됨'); }
   if (to.alt < 0.35) { score += 1; why.push('낮은 땅'); }
-  if (!to.visited && !to.scouted && !ridgeRibbon(currentNode(state), to) && !myRibbon(state, currentNode(state), to)) { score += 1; why.push('모르는 길'); }
+  if (!to.visited && !to.scouted && !hasEquip(state, 'compass') && !ridgeRibbon(currentNode(state), to) && !myRibbon(state, currentNode(state), to)) { score += 1; why.push('모르는 길'); }
   if (crisisActive(state) && state.crisis) { score += 2; why.push(CRISIS_INFO[state.crisis.kind].label); }
   else {
     const left = crisisKnownIn(state);

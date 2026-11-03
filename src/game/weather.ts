@@ -1,6 +1,7 @@
 import { Rng } from '../core/rng';
 import { WEATHER_LABEL, WIND_LABEL, type GameState, type Weather, type Wind, CRISIS_INFO } from '../core/types';
 import { addLog } from './log';
+import { hasEquip } from './equip';
 
 const NEXT: Record<Weather, [Weather, number][]> = {
   clear: [['clear', 0.5], ['cloud', 0.35], ['fog', 0.15]],
@@ -76,7 +77,7 @@ export function crisisKnownIn(state: GameState): number | null {
   if (!c || crisisActive(state)) return null;
   const left = c.start - absHour(state);
   if (left <= 0) return null;
-  if (c.warned || c.signed) return left;
+  if (c.warned || c.signed || hasEquip(state, 'codebook')) return left; // 주파수 수첩이 있으면 군 방송으로 미리 안다
   return null;
 }
 
@@ -88,7 +89,7 @@ export function crisisText(state: GameState): string {
   if (crisisActive(state)) return `${label} · ${c.end - absHour(state)}시간 남음`;
   const left = crisisKnownIn(state);
   if (left === null) return '';
-  return c.warned ? `${label} · 약 ${left}시간 뒤` : `${label}의 징조 · 반나절 안`;
+  return c.warned || hasEquip(state, 'codebook') ? `${label} · 약 ${left}시간 뒤` : `${label}의 징조 · 반나절 안`;
 }
 
 export function isNight(hour: number): boolean {

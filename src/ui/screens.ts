@@ -1,5 +1,6 @@
 import { ENDING_INFO, type EndingId, type Journal } from '../core/types';
 import { clearJournal, eventTitle, lessons, regionName } from '../game/journal';
+import { HIDDEN } from '../game/hidden';
 import { clearSave } from '../game/save';
 import { REGIONS } from '../map/generate';
 import { audio } from '../audio/engine';
@@ -74,7 +75,8 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
     const where = r.place ?? regionName(r.farthest);
     const what = r.over === 'won' ? (r.ending ? `${ENDING_INFO[r.ending].title} · ${ENDING_INFO[r.ending].short}` : '향로봉 도착') : `${where}에서 ${r.cause.replace(/^\d+일째, /, '')}`;
     const left = r.departedDay ? ` · ${r.departedDay}일째 출발` : ' · 야영장에서';
-    return `<li><b>${r.runNo}번째</b> · ${r.days}일${left} · 피폭 ${r.rad}${r.clues !== undefined ? ` · 단서 ${r.clues}` : ''}${r.buried && r.buried.length ? ` · 묻어 준 ${r.buried.length}명` : ''} · ${what}</li>`;
+    const star = r.difficulty === 'hard' ? ' <span class="diff hard">★</span>' : r.difficulty === 'easy' ? ' <span class="muted">(쉬움)</span>' : '';
+    return `<li><b>${r.runNo}번째</b>${star} · ${r.days}일${left} · 피폭 ${r.rad}${r.clues !== undefined ? ` · 단서 ${r.clues}` : ''}${r.buried && r.buried.length ? ` · 묻어 준 ${r.buried.length}명` : ''} · ${what}</li>`;
   });
   const regions = REGIONS.map((name, i) => `<span class="region${j.knownStages.includes(i) ? ' known' : ''}">${name}</span>`).join('');
   const seen = Object.entries(j.eventsSeen)
@@ -95,6 +97,8 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
           <h3>여정</h3>
           ${runs.length ? `<ul>${runs.join('')}</ul>` : '<p class="muted">아직 적힌 것이 없다.</p>'}
           ${deaths ? `<p class="muted">죽은 이유: ${deaths}</p>` : ''}
+          <h3>숨은 것 <span class="muted">${HIDDEN.filter((h) => j.hidden?.[h.id]).length}/${HIDDEN.length}</span></h3>
+          <ul class="hiddens">${HIDDEN.map((h) => { const d = j.hidden?.[h.id]; return d ? `<li><b>${h.name}</b> <span class="diff ${d}">${d === 'hard' ? '★ 어려움' : d === 'normal' ? '보통' : '쉬움'}</span></li>` : `<li class="muted">??? · ${h.hint}${h.minDifficulty ? ` · ${h.minDifficulty === 'hard' ? '어려움' : '보통 이상'}` : ''}</li>`; }).join('')}</ul>
           <h3>그 뒤</h3>
           <ul class="afters">${afters.join('')}</ul>
         </section>

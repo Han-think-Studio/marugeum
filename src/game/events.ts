@@ -13,6 +13,9 @@ const EVENTS: EventDef[] = [...EVENTS1, ...MORE_EVENTS];
 import { addLog } from './log';
 import { passHours } from './survival';
 import { isNight } from './weather';
+import { settings } from './settings';
+
+const DIFF_RANK = { easy: 0, normal: 1, hard: 2 } as const;
 
 // 도착했을 때 이벤트가 날 확률. 처음 온 곳이 훨씬 높다
 const ARRIVE_FIRST = 0.6;
@@ -74,6 +77,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.maxRad !== undefined && state.stats.rad > when.maxRad) return false;
   if (when.firstRun !== undefined && (state.runNo === 1) !== when.firstRun) return false;
   if (when.deadHere !== undefined && state.deadAt.includes(node.place) !== when.deadHere) return false;
+  if (when.minDifficulty && DIFF_RANK[settings.difficulty] < DIFF_RANK[when.minDifficulty]) return false;
   return true;
 }
 
@@ -146,6 +150,7 @@ const TRACES: Record<string, { day: number; place: string }> = {
   'clue:family_again': { day: 6, place: '철암' }, 'suyeon:hwabang': { day: 7, place: '화방재' }, 'clue:hambaek': { day: 8, place: '만항재' },
   'clue:odae': { day: 8, place: '진고개' }, 'suyeon:noinbong': { day: 8, place: '노인봉' }, 'clue:seorak': { day: 9, place: '한계령' },
   'clue:alps': { day: 9, place: '알프스' },
+  'clue:numbers': { day: 10, place: '의무대 3동' },
 };
 
 // 가장 새로운 소식. 흔적을 찾을수록 가까워지고, 찾지 못하는 날이 길어지면 멀어진다

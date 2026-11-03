@@ -759,4 +759,55 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '멀리 돌아간다', hint: '2시간', outcomes: [{ text: '비탈로 내려가 크게 돌았다. 두 시간. 발소리가 한참 따라오다 끊겼다.', effects: { hours: 2, fatigue: -10, mind: -3 } }] },
     ],
   },
+  // ---------- 숨은 것. 앞의 작은 선택이 재료가 되어 뒤의 자리에서 열린다 (src/game/hidden.ts) ----------
+  {
+    id: 'hidden_compass',
+    trigger: 'arrive',
+    priority: true,
+    title: '서랍 안쪽의 글씨',
+    text: '노인봉 산장 책상 서랍이 반쯤 열려 있다. 서랍 안쪽 판자에 낯익은 글씨. 바람 방향과 날짜. 대피소에 일지를 남기고 "내려가 본다"던 그 사람의 글씨다. 여기까지 왔던 것이다.',
+    once: true,
+    when: { places: ['noinbong'], flag: 'journal_read' },
+    choices: [
+      { text: '서랍을 연다', outcomes: [{ text: '종이에 싼 놋쇠 나침반과 쪽지 한 장. "안개 낀 날 이걸 들고 북쪽으로. 나는 여기까지다. 다음 사람에게." 바늘이 떨리다 북쪽에서 멎었다. 일지를 끝까지 읽어 둔 덕이다.', effects: { gear: 'compass', flag: 'hidden:compass', mind: 8 } }] },
+    ],
+  },
+  {
+    id: 'hidden_codebook',
+    trigger: 'arrive',
+    priority: true,
+    title: '같은 부대 번호',
+    text: '함백산 통신기지 막사. 책상에 무전 일지가 있다. 챙겨 온 벙커의 작전 일지와 같은 부대 번호가 찍혀 있다. "D+9 향로봉 집결지로 이동." 그 뒤를 이어 쓴 사람이 여기 있었다.',
+    once: true,
+    when: { places: ['hambaek'], flag: 'war_log', minDifficulty: 'normal' },
+    choices: [
+      { text: '두 일지를 나란히 놓고 책상을 뒤진다', hint: '1시간', outcomes: [{ text: '서랍 맨 밑에 손바닥만 한 수첩. 주파수와 호출 부호, 숫자 방송을 푸는 표. 군 기상 방송을 읽을 수 있다. 다가오는 고비를 라디오 없이도 미리 안다.', effects: { hours: 1, gear: 'codebook', flag: 'hidden:codebook', mind: 6 } }] },
+      { text: '일지만 덮고 나온다', outcomes: [{ text: '남의 부대 일이다. 막사 문을 닫았다.', effects: {} }] },
+    ],
+  },
+  {
+    id: 'hidden_beads',
+    trigger: 'arrive',
+    priority: true,
+    title: '종소리를 들은 스님',
+    text: '정암사 수마노탑 아래 노스님 한 분이 앉아 있다. "며칠 전 남쪽에서 종소리가 넘어왔소. 지금 같은 때에 종을 치는 사람이 있구나 했지." 스님이 나를 오래 본다.',
+    once: true,
+    when: { places: ['jeongamsa'], flag: 'bell_rung', minDifficulty: 'hard' },
+    choices: [
+      { text: '내가 쳤다고 말한다', outcomes: [{ text: '"그랬구려." 스님이 손목의 염주를 풀어 내 손에 감았다. "밤이 길 게요. 하나씩 넘기면 아침이 오오." 나무 알이 손에 따뜻했다.', effects: { gear: 'beads', flag: 'hidden:beads', mind: 10 } }] },
+      { text: '말하지 않는다', outcomes: [{ text: '스님은 더 묻지 않았다. 탑을 한 바퀴 돌고 나왔다. 종소리는 누가 쳤든 넘어왔다.', effects: { mind: 3 } }] },
+    ],
+  },
+  {
+    id: 'hidden_numbers',
+    trigger: 'arrive',
+    priority: true,
+    title: '숫자를 읽는 목소리',
+    text: '진부령 초소 통신 천막. 무전기에서 그 여자 목소리가 숫자를 읽고 있다. "칠, 삼, 영, 일, 육." 라디오로 밤새 받아 적던 그 방송이다. 주파수 수첩을 펼쳤다.',
+    once: true,
+    when: { places: ['jinbu'], flag: 'numbers', gear: 'codebook' },
+    choices: [
+      { text: '표에 맞춰 읽는다', outcomes: [{ text: '숫자는 암호가 아니었다. 대피자 번호였다. 수용소가 도착한 사람의 번호를 밤마다 읽어 남쪽에 알리고 있었다. 받아 적은 쪽지를 넘기다 손이 멈췄다. 73016. 표의 칸을 따라가니 "의무대 3동, 성인 1 아동 1, 중산리". 통신병이 고개를 끄덕였다. "그 번호, 살아 있다는 뜻입니다."', effects: { flag: 'hidden:numbers', clue: 'numbers', mind: 20 } }] },
+    ],
+  },
 ];

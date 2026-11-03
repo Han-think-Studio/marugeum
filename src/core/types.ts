@@ -93,7 +93,8 @@ export type EquipKind =
   | 'generator' | 'dieselGenerator' | 'fridge' | 'lamp' | 'radio' | 'heater'
   | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent'
   | 'carrier' | 'rope' | 'flashlight' | 'mask' | 'raincoat' | 'knife' | 'battery'
-  | 'iodine' | 'medkit' | 'purifier' | 'matches';
+  | 'iodine' | 'medkit' | 'purifier' | 'matches'
+  | 'compass' | 'codebook' | 'beads'; // 숨은 물건. 재료가 되는 선택을 한 사람만 찾는다 (src/game/hidden.ts)
 export type GearKey = EquipKind;
 
 export interface Equip {
@@ -135,6 +136,9 @@ export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
   purifier: { label: '정수 알약', heavy: false, desc: '불 없이 오염수 두 통을 깨끗하게' },
   matches: { label: '방수 성냥', heavy: false, desc: '비 오는 바깥에서도 불이 붙는다' },
   battery: { label: '건전지', heavy: false, desc: '라디오를 한 번 듣거나 손전등으로 밤길을 한 번 간다' },
+  compass: { label: '산장지기의 나침반', heavy: false, desc: '숨은 물건. 안개 속에서도 길이 느려지지 않고, 처음 가는 길도 모르는 길이 아니다' },
+  codebook: { label: '주파수 수첩', heavy: false, desc: '숨은 물건. 군 방송을 읽는다. 다가오는 고비를 라디오 없이도 미리 안다' },
+  beads: { label: '노스님의 염주', heavy: false, desc: '숨은 물건. 밤에 마음이 깎이지 않고, 잠이 마음을 더 채운다' },
 };
 
 // 장비 마모. 종주하는 날마다 상태(100)가 이만큼 닳는다. 비 오는 날과 고비 중엔 1.5배. 0 이면 고장. 정비는 거점에서
@@ -341,6 +345,7 @@ export interface When {
   phase?: 'base' | 'trek'; // 거점기에만 / 종주기에만
   firstRun?: boolean; // 첫 여정에만 (안내용)
   deadHere?: boolean; // 지난 여정이 끝난 자리에서만
+  minDifficulty?: 'normal' | 'hard'; // 이 난이도 이상에서만. 숨은 것들
   minClues?: number; // 가족 단서를 이만큼 모았어야
   maxClues?: number;
   minRad?: number; // 피폭이 이 이상이어야
@@ -426,6 +431,7 @@ export interface RunRecord {
   clues?: number;
   place?: string; // 여정이 끝난 자리 이름
   placeId?: string;
+  difficulty?: 'easy' | 'normal' | 'hard'; // 어떤 난이도로 걸었나. 어려움이면 수첩에 ★
   endedAt: number;
 }
 
@@ -435,6 +441,7 @@ export interface Journal {
   knownStages: number[]; // 가 본 지역
   knownPlaces?: string[]; // 가 본 자리 id
   ribbons?: { key: string; run: number }[]; // 길에 묶어 둔 리본. 몇 여정이 지나면 바랜다
+  hidden?: Record<string, 'easy' | 'normal' | 'hard'>; // 찾은 숨은 것과 찾은 가장 어려운 난이도
   eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
   deaths: Record<string, number>; // 사망 원인별 횟수
 }
