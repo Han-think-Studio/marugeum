@@ -517,6 +517,25 @@ export const EVENTS: EventDef[] = [
     ],
   },
   {
+    id: 'branch_mine_child',
+    trigger: 'arrive',
+    priority: true,
+    title: '갱도 안쪽의 기침',
+    text: '갱도 안쪽에서 아이가 기침을 한다. 다섯 살쯤. 이마가 불덩이다. 엄마가 물수건을 짜다가 고개를 든다. "약... 혹시 약 있어요?" 주머니 속에서 해열제 봉지가 손끝에 닿는다. 하율에게 주려고 닷새를 기다리고 능선을 넘는 내내 들고 온 것이다.',
+    once: true,
+    weight: 4,
+    when: { places: ['cheoram'], flag: 'mine_people' },
+    choices: [
+      { text: '해열제를 준다', hint: '하율의 약', outcomes: [{ text: '봉지를 뜯어 반을 물에 타 먹였다. 남은 반도 엄마 손에 쥐여 주었다. 새벽에 아이의 숨이 고르게 바뀌었다. 엄마는 아무 말 없이 내 손을 잡았다. 하율의 약은 이제 없다. 하율 곁에는 수연이 있다. 그렇게 믿기로 했다.', effects: { mind: 6, flag: 'branch:child_med' } }] },
+      { text: '구급낭을 연다', hint: '구급낭 한 번', req: { gear: 'medkit' }, outcomes: [{ text: '구급낭에 해열 진통제 두 알이 있었다. 반으로 쪼개 먹였다. 열은 밤새 오르내리다가 새벽녘에 꺾였다. 아이가 물을 찾았다. 해열제 봉지는 주머니에 그대로 있다.', effects: { useCharge: 'medkit', mind: 8, flag: 'branch:child_kit' } }] },
+      { text: '밤새 곁을 지킨다', hint: '12시간 · 물 2 · 잠 못 잠', req: { water: 2 }, outcomes: [
+        { chance: 0.6, text: '물수건을 갈고 또 갈았다. 엄마와 번갈아 아이를 안았다. 동틀 무렵 아이가 땀을 흘리기 시작했다. 열이 꺾였다. 엄마가 처음으로 웃었다.', effects: { hours: 12, water: -2, fatigue: -20, mind: 10, flag: 'branch:child_watch' } },
+        { text: '물수건을 갈고 또 갈았다. 아침이 되어도 열은 내리지 않았다. 엄마가 이제 됐다고, 가야 할 사람은 가라고 했다. 그 목소리가 너무 담담해서 오래 남았다.', effects: { hours: 12, water: -2, fatigue: -20, mind: -6, flag: 'branch:child_watch_lost' } },
+      ] },
+      { text: '모른 척한다', outcomes: [{ text: '"없어요." 해열제 봉지를 주머니 깊이 밀어 넣었다. 하율의 것이다. 갱도 안에서 기침 소리가 오래 따라왔다.', effects: { mind: -10, flag: 'branch:child_left' } }] },
+    ],
+  },
+  {
     id: 'taebaek_stay',
     trigger: 'arrive',
     priority: true,
@@ -596,6 +615,24 @@ export const EVENTS: EventDef[] = [
         { text: '비탈에서 미끄러져 돌에 다리를 찧었다. 검문소 군인이 올라와 나를 부축했다. 결국 측정을 받았다.', effects: { hp: -12, hours: 3, flag: 'checkpoint_pass' } },
       ] },
       { text: '북쪽 사정을 묻는다', hint: '정보', outcomes: [{ text: '"수용소는 있습니다. 배급은 하루 한 끼. 헬기는 사흘에 한 번. 봄이 되면 수용소를 철책 너머로 옮깁니다. 비무장지대요. 칠십 년 동안 아무도 안 들어갔으니 거기가 제일 깨끗해요. 남쪽에서 오신 분은 당신이 이번 주 둘째입니다." 둘째. 그 말이 오래 남았다. 사진을 보이자 군인은 명단을 넘겼다. "수연, 하율. {ago:9}. 아이는 의무대." 그 말도.', effects: { mind: 8, flag: 'checkpoint_info', clue: 'seorak' } }] },
+    ],
+  },
+  {
+    id: 'branch_heli_seat',
+    trigger: 'arrive',
+    priority: true,
+    title: '헬기 한 자리',
+    text: '검문소 뒤 공터로 헬기가 내려앉는다. 사흘에 한 번 온다던 그 헬기다. 들것과 노인들이 먼저 오르고, 군인이 손가락 하나를 든다. "한 자리 남았습니다." 군인이 나를 본다. 그 옆에 열이 오른 아이를 업은 남자가 서 있다. 아이는 무릎에 앉으면 되지만, 자리는 하나다.',
+    once: true,
+    weight: 4,
+    when: { places: ['hangyeryeong'], flag: 'clue:seorak' },
+    choices: [
+      { text: '헬기에 오른다', hint: '바로 향로봉 · 알프스와 진부령을 건너뛴다', outcomes: [{ text: '자리에 앉자 문이 닫혔다. 창밖에서 남자가 아이를 고쳐 업고 능선 쪽으로 걷기 시작했다. 고개를 돌렸다. 헬기는 한 시간 만에 이틀 길을 넘었다.', effects: { hours: 1, mind: -8, flag: 'branch:seat_took', jump: 'hyangno' } }] },
+      { text: '자리를 내준다', hint: '남은 길은 걸어서', outcomes: [{ text: '남자는 고맙다는 말도 못 하고 아이를 안고 올랐다. 헬기가 뜨자 흙바람이 일었다. 아이가 창에 손바닥을 대고 있었다. 하율도 저렇게 손을 댔을 것이다. 남은 길은 걸어서 간다.', effects: { mind: 12, flag: 'branch:seat_gave' } }] },
+      { text: '둘 다 태워 달라고 한다', hint: '운에 맡긴다', outcomes: [
+        { chance: 0.35, text: '군인이 한숨을 쉬더니 짐칸의 상자 두 개를 내렸다. "아이는 아빠 무릎. 당신은 바닥. 내릴 때까지 아무것도 만지지 마세요." 셋이 함께 올랐다. 아이가 내 소매를 잡고 잠들었다.', effects: { hours: 1, mind: 10, flag: 'branch:seat_both', jump: 'hyangno' } },
+        { text: '"규정입니다." 군인은 고개를 저었다. 실랑이하는 사이 다른 사람이 마지막 자리에 올랐다. 남자와 나는 흙바람 속에 나란히 서 있었다. 남자가 먼저 웃었다. 같이 걷기로 했다.', effects: { mind: -2, flag: 'branch:seat_lost' } },
+      ] },
     ],
   },
 
@@ -1010,9 +1047,22 @@ export const EVENTS: EventDef[] = [
     text: '철책 문. 군인이 계수기를 들이댔다가 고개를 끄덕였다. "들어가세요. 이름은요?" 이름을 말했다. 군인이 명단을 넘기다 무전기를 들었다. "의무대, 남쪽에서 한 분 더. 가족 찾으십니다." 무전기 너머에서 누군가 뛰는 소리가 났다.',
     once: true,
     weight: 10,
-    when: { kinds: ['goal'], minClues: 5, maxRad: 59 },
+    when: { kinds: ['goal'], minClues: 5, maxRad: 59, noFlag: 'branch:child_med' },
     choices: [
       { text: '문 안으로 들어간다', outcomes: [{ text: '천막 사이로 작은 사람이 먼저 뛰어왔다. 그 뒤로 수연. 하율은 내 무릎에 부딪히듯 안겼다. 열은 없었다. 주머니에서 해열제 봉지를 꺼냈다. 닷새를 기다리고 능선을 넘는 내내 들고 온 것이다. 수연이 그걸 보고 처음으로 울었다. 배낭이 어깨에서 흘러내렸다. 더는 질 것이 없었다.', effects: { ending: 'reunion' } }] },
+    ],
+  },
+  {
+    id: 'goal_reunion_med',
+    trigger: 'arrive',
+    title: '향로봉',
+    art: 'goal_reunion',
+    text: '철책 문. 군인이 계수기를 들이댔다가 고개를 끄덕였다. "들어가세요. 이름은요?" 이름을 말했다. 군인이 명단을 넘기다 무전기를 들었다. "의무대, 남쪽에서 한 분 더. 가족 찾으십니다." 무전기 너머에서 누군가 뛰는 소리가 났다.',
+    once: true,
+    weight: 10,
+    when: { kinds: ['goal'], minClues: 5, maxRad: 59, flag: 'branch:child_med' },
+    choices: [
+      { text: '문 안으로 들어간다', outcomes: [{ text: '천막 사이로 작은 사람이 먼저 뛰어왔다. 그 뒤로 수연. 하율은 내 무릎에 부딪히듯 안겼다. 열은 없었다. 버릇처럼 주머니를 뒤졌다. 해열제 봉지는 없었다. 철암의 아이에게 주고 왔다. 그 이야기를 하자 수연이 하율의 머리를 쓸며 말했다. "잘했어. 우리도 길에서 누가 나눠 줬어." 배낭이 어깨에서 흘러내렸다. 더는 질 것이 없었다.', effects: { ending: 'reunion' } }] },
     ],
   },
   {

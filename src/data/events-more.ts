@@ -228,6 +228,25 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '가이거를 켠다', hint: '계수기 필요', req: { gear: 'geiger' }, outcomes: [{ text: '동쪽을 향하자 바늘이 뛰었다. 서쪽을 향하자 내려갔다. 바다는 정말 죽었다. 숫자로 보니 더 확실했다.', effects: { mind: -4, flag: 'sea_measured' } }] },
     ],
   },
+  // ---------- 갈림길. 어려운 선택이 이야기를 가른다. 고른 것은 수첩의 '갈림길'에 남는다 ----------
+  {
+    id: 'branch_highway',
+    trigger: 'arrive',
+    title: '고속도로',
+    text: '댓재 아래로 동해고속도로가 내려다보인다. 멈춘 차들이 줄지어 있고, 북쪽으로 뻗은 아스팔트는 비어 있다. 표지판 하나가 아직 서 있다. "양양 71km." 고속도로를 타고 양양에서 44번 국도로 꺾으면 한계령이다. 능선으로 사흘 길을 하루에 간다. 대신 바닷바람을 정면으로 맞는다. 만항재의 군 트럭은 이 길로 가지 않았다. 진고개 쪽으로 갔다.',
+    once: true,
+    priority: true,
+    weight: 3,
+    when: { places: ['daetjae'] },
+    choices: [
+      { text: '고속도로로 내려간다', hint: '14시간 · 피폭 큼 · 바로 한계령 · 오대산의 흔적을 놓친다', outcomes: [
+        { chance: 0.7, text: '갓길을 따라 하루 종일 걸었다. 차 안에는 사람들이 그대로 앉아 있었고 나는 창문을 보지 않았다. 바다 쪽에서 비린 바람이 쉬지 않고 불었다. 해 질 녘 양양에서 서쪽으로 꺾었다. 한계령 고갯길의 굽이가 어둠 속에 보였다.', effects: { hours: 14, rad: 18, fatigue: -35, thirst: -25, mind: -8, flag: 'branch:highway', jump: 'hangyeryeong' } },
+        { text: '오후에 바람이 바다 쪽에서 곧장 불어왔다. 비가 섞여 있었다. 지하차도에 숨었다가 다시 걸었다. 입안에서 쇠맛이 났다. 한밤중에야 한계령 고갯길에 닿았다.', effects: { hours: 16, rad: 30, hp: -10, fatigue: -40, thirst: -25, mind: -12, flag: 'branch:highway', jump: 'hangyeryeong' } },
+      ] },
+      { text: '계수기로 바람을 재며 내려간다', hint: '계수기 필요 · 14시간 · 피폭 덜함 · 바로 한계령', req: { gear: 'geiger' }, outcomes: [{ text: '바늘이 뛰면 차 그늘이나 방음벽 뒤에 섰다가, 바람이 잦아들면 걸었다. 느렸지만 바늘이 나를 지켰다. 밤이 되어 한계령 고갯길에 닿았다.', effects: { hours: 15, rad: 6, fatigue: -35, thirst: -20, mind: -4, flag: 'branch:highway', jump: 'hangyeryeong' } }] },
+      { text: '능선을 지킨다', hint: '두 사람이 간 길', outcomes: [{ text: '고속도로에서는 수연이 남긴 것을 찾을 수 없다. 트럭은 진고개로 갔다. 나도 능선으로 간다. 등 뒤에서 바다가 계속 바람을 보냈다.', effects: { mind: 4, flag: 'branch:highway_no' } }] },
+    ],
+  },
   {
     id: 'odae_birobong',
     trigger: 'arrive',

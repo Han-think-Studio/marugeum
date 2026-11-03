@@ -8,7 +8,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '../..');
 const PORT = Number(process.env.TEST_PORT || 4174); // 두 판을 나란히 돌릴 때는 TEST_PORT 로 바꾼다
-const SUITE = ['equip', 'camp', 'settings', 'secure-scout', 'places', 'trail-marks', 'map-view', 'wear-crisis', 'story-fill', 'ribbons', 'handwork', 'hidden', 'all-events'];
+const SUITE = ['equip', 'camp', 'settings', 'secure-scout', 'places', 'trail-marks', 'map-view', 'wear-crisis', 'story-fill', 'ribbons', 'handwork', 'hidden', 'branches', 'all-events'];
 
 const BOTS = process.argv[2] === '--bots';
 const BOT_RUNS = (BOTS && process.argv[3]) || '30';

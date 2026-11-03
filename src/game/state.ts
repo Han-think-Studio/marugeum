@@ -20,6 +20,7 @@ import { facilityRunning, syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 import { myRibbon, ridgeRibbon, tieRibbon } from './ribbons';
 import { kindness } from './hidden';
+import { branchNotes } from './branches';
 
 export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condOf, flashlightLit } from './equip';
 export { crisisActive, crisisKnownIn, crisisText, absHour } from './weather';
@@ -48,6 +49,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
     known: {},
     flags: {},
     event: null,
+    jump: null,
     seen: [],
     marked: ['seongsamjae'], // 쪽지가 가리키는 첫 자리
     crisis: null,
@@ -257,15 +259,7 @@ export function travelTo(state: GameState, id: number): boolean {
       : '걸은 길에 다시 리본을 묶는다. 지난번 리본은 빛이 바래 간다.');
   }
   if (to.kind === 'goal') {
-    addLog(state, '안전지대의 불빛이 보인다. 살아서 도착했다.');
-    const rng3 = takeRng(state);
-    const opened = openGoal(state, rng3, to);
-    giveRng(state, rng3);
-    if (!opened) {
-      state.over = 'won';
-      state.ending = 'names';
-      state.overText = `${state.day}일 만에 향로봉 안전지대에 닿았다. 누적 피폭 ${Math.round(state.stats.rad)}.`;
-    }
+    arriveGoal(state, to);
     return true;
   }
   afterAction(state);
@@ -273,6 +267,39 @@ export function travelTo(state: GameState, id: number): boolean {
   maybeArrive(state, rng2, to, first);
   giveRng(state, rng2);
   return true;
+}
+
+// 향로봉에 닿았다. 조건에 맞는 엔딩 장면 하나가 열린다
+function arriveGoal(state: GameState, to: MapNode): void {
+  addLog(state, '안전지대의 불빛이 보인다. 살아서 도착했다.');
+  const rng = takeRng(state);
+  const opened = openGoal(state, rng, to);
+  giveRng(state, rng);
+  if (!opened) {
+    state.over = 'won';
+    state.ending = 'names';
+    state.overText = `${state.day}일 만에 향로봉 안전지대에 닿았다. 누적 피폭 ${Math.round(state.stats.rad)}.`;
+  }
+}
+
+// 건너뛰기. 고속도로나 헬기로 여러 자리를 한 번에 지난다. 걸린 시간과 피폭은 사건의 효과가 이미 치렀다
+// 건너뛴 자리는 가 보지 않은 채로 남는다. 그 사이의 흔적도 함께 놓친다
+function jumpTo(state: GameState, place: string): void {
+  state.jump = null;
+  const to = state.nodes.find((n) => n.place === place);
+  if (!to || state.over !== 'none') return;
+  state.fire = null;
+  state.nodeId = to.id;
+  state.view = 'scene';
+  const first = !to.visited;
+  to.visited = true;
+  addLog(state, `능선을 걷지 않고 ${to.name}에 닿았다.`);
+  if (to.kind === 'goal') { arriveGoal(state, to); return; }
+  if (first) addLog(state, placeById(to.place).desc);
+  afterAction(state);
+  const rng = takeRng(state);
+  maybeArrive(state, rng, to, first);
+  giveRng(state, rng);
 }
 
 // 이벤트 선택지 고르기. 결과가 나오면 확인(dismissEvent)으로 닫는다
@@ -286,6 +313,11 @@ export function pickChoice(state: GameState, idx: number): boolean {
 }
 
 export function dismissEvent(state: GameState): boolean {
+  if (state.jump && state.event && state.event.result !== null) {
+    state.event = null;
+    jumpTo(state, state.jump);
+    return true;
+  }
   return closeEvent(state);
 }
 
@@ -652,6 +684,7 @@ export function endingNotes(state: GameState): string[] {
         : end === 'quarantine' ? '할머니의 김치는 간호병 편에 유리창 너머로 보냈다.'
         : '할머니의 김치 통은 열지 않았다. 같이 먹을 사람을 찾으면 연다.');
     }
+    out.push(...branchNotes(state));
     // 숨은 장면: 길 위의 사람들. 넷 이상을 도왔으면 그들이 향로봉에 있다
     const kind = kindness(state);
     if (kind.length >= 4) out.push('길 위의 사람들.', ...kind);

@@ -1,6 +1,7 @@
 import { ENDING_INFO, type EndingId, type Journal } from '../core/types';
 import { clearJournal, eventTitle, lessons, regionName } from '../game/journal';
 import { HIDDEN } from '../game/hidden';
+import { JUNCTIONS } from '../game/branches';
 import { clearSave } from '../game/save';
 import { REGIONS } from '../map/generate';
 import { audio } from '../audio/engine';
@@ -102,6 +103,8 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
           ${deaths ? `<p class="muted">죽은 이유: ${deaths}</p>` : ''}
           <h3>숨은 것 <span class="muted">${HIDDEN.filter((h) => j.hidden?.[h.id]).length}/${HIDDEN.length}</span></h3>
           <ul class="hiddens">${HIDDEN.map((h) => { const d = j.hidden?.[h.id]; return d ? `<li>${uiIcon('hidden')}<b>${h.name}</b> <span class="diff ${d}">${d === 'hard' ? `${uiIcon('star-hard', '', '★')} 어려움` : d === 'normal' ? '보통' : '쉬움'}</span></li>` : `<li class="muted">??? · ${h.hint}${h.minDifficulty ? ` · ${h.minDifficulty === 'hard' ? '어려움' : '보통 이상'}` : ''}</li>`; }).join('')}</ul>
+          <h3>갈림길 <span class="muted">${JUNCTIONS.flatMap((x) => x.choices).filter(([f]) => j.branches?.includes(f)).length}/${JUNCTIONS.flatMap((x) => x.choices).length}</span></h3>
+          <ul class="branches">${JUNCTIONS.map((x) => { const got = x.choices.filter(([f]) => j.branches?.includes(f)); return got.length ? `<li><b>${x.name}</b> · ${got.map(([, t]) => t).join(' / ')}${got.length < x.choices.length ? ` <span class="muted">· 다른 길 ${x.choices.length - got.length}</span>` : ''}</li>` : `<li class="muted">??? · ${x.hint}</li>`; }).join('')}</ul>
           <h3>그 뒤</h3>
           <ul class="afters">${afters.join('')}</ul>
         </section>

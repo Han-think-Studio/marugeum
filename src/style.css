@@ -440,3 +440,4 @@ html[data-text="large"] .stat > i { width: 34px; }
 .end .ending-art.extra { max-height: min(220px, 20vh); margin: 10px 0; opacity: 0.95; }
 /* 좁은 화면에서는 날씨 글과 두 사람 이름을 아이콘이 대신한다(글은 title 에 남는다) */
 @media (max-width: 1400px) { .hud .weather .wtxt, .hud .family .who { display: none; } }
+.overlay .branches li { font-size: 12px; }

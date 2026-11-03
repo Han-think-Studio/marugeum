@@ -3,6 +3,7 @@ import { REGIONS } from '../map/generate';
 import { clueCount, eventById } from './events';
 import { recordRibbons } from './ribbons';
 import { recordHidden } from './hidden';
+import { recordBranches } from './branches';
 import { settings } from './settings';
 
 // 기록 수첩. 여정이 끝날 때마다 한 줄 적힌다. 죽어도 남는 유일한 것
@@ -82,6 +83,7 @@ export function recordRun(state: GameState): Journal {
   }
   recordRibbons(j, state);
   recordHidden(j, state);
+  recordBranches(j, state);
   for (const id of state.seen) j.eventsSeen[id] = (j.eventsSeen[id] ?? 0) + 1;
   if (state.over === 'dead') {
     const key = deathKey(state.overText);

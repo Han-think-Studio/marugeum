@@ -21,9 +21,12 @@ const out = process.argv[2];
   console.log('events:', ids.length);
   const res = await page.evaluate((ids) => {
     const g = window.marugeum; const s = g.state; const problems = []; let picked = 0;
+    const home = s.nodeId;
     for (const id of ids) {
       for (let ci = 0; ci < 4; ci++) {
         // 상태 초기화
+        // 건너뛰기(지름길·헬기)가 자리를 옮겨 놓았으면 되돌린다
+        s.nodeId = home; s.jump = null;
         s.over = 'none'; s.standoff = null; s.stats.hp = 100; s.stats.mind = 60; s.stats.rad = 20; s.stats.temp = 80;
         s.pack = { water: 2, dirty: 1, food: 2, fresh: 0, wood: 2, gasoline: 0, diesel: 0, parts: 1 }; s.equip = [{ kind: "knife", broken: false }, { kind: "rope", broken: false }];
         s.fire = { nodeId: s.nodeId, hours: 5 };
@@ -33,7 +36,9 @@ const out = process.argv[2];
         if (!s.event || s.event.result === null) { problems.push(id + ' choice ' + ci + ': no result'); s.event = null; continue; }
         picked++;
         if (!g.dismissEvent(s)) problems.push(id + ': dismiss failed');
-        if (s.event !== null) problems.push(id + ': event not closed');
+        // 건너뛴 자리에서 그 자리의 사건이 새로 열리는 것은 괜찮다. 같은 사건이 남아 있으면 문제
+        if (s.event !== null && s.event.id === id) problems.push(id + ': event not closed');
+        s.event = null;
       }
     }
     return { problems, picked, day: s.day };

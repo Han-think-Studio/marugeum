@@ -287,6 +287,7 @@ export interface GameState {
   known: Record<string, boolean>; // 걸어 본 길. "작은id-큰id"
   flags: Record<string, boolean>; // 한 번뿐인 이벤트와 이야기 분기 표시
   event: ActiveEvent | null; // 지금 선택을 기다리는 이벤트
+  jump: string | null; // 사건이 닫히면 건너뛸 자리 (Effect.jump)
   seen: string[]; // 이번 여정에서 만난 이벤트 id
   marked: string[]; // 지도에 표시된 자리 id. 흔적이 있을 법한 곳
   crisis: Crisis | null; // 다가오는 또는 지금의 고비
@@ -373,6 +374,8 @@ export interface Effect {
   objRemove?: boolean; // 이 사물이 사라진다
   bury?: boolean; // 묻어 준다. 두 시간, 수첩에 이름
   cave?: boolean; // 이 자리에 바위굴이 생긴다
+  useCharge?: EquipKind; // 지닌 이것을 한 번 쓴다 (구급낭 등)
+  jump?: string; // 사건을 닫으면 이 자리로 건너뛴다. 지름길·헬기. 걸린 시간과 피폭은 같은 효과의 hours·rad 로 치른다
 }
 
 export interface Outcome {
@@ -442,6 +445,7 @@ export interface Journal {
   knownPlaces?: string[]; // 가 본 자리 id
   ribbons?: { key: string; run: number }[]; // 길에 묶어 둔 리본. 몇 여정이 지나면 바랜다
   hidden?: Record<string, 'easy' | 'normal' | 'hard'>; // 찾은 숨은 것과 찾은 가장 어려운 난이도
+  branches?: string[]; // 지금까지 고른 갈림길 표시 (branch:*)
   eventsSeen: Record<string, number>; // 이벤트별 만난 횟수
   deaths: Record<string, number>; // 사망 원인별 횟수
 }

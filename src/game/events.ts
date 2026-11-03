@@ -2,7 +2,7 @@ import { Rng } from '../core/rng';
 import {
   INDOOR, type Choice, type Effect, type EventDef, type GameState, type MapNode, type PackCap, type Req, type Trigger, type When,
 } from '../core/types';
-import { flashlightLit, gainEquip, hasEquip } from './equip';
+import { flashlightLit, gainEquip, hasEquip, useCharge } from './equip';
 import { facilityRunning, syncFresh } from './facilities';
 import { startStandoff } from './standoff';
 import { EVENTS as EVENTS1 } from '../data/events';
@@ -284,6 +284,8 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
   if (e.fireOut) state.fire = null;
   if (e.poisonWell) node.waterLeft = 0;
   if (e.cave) node.cave = true;
+  if (e.useCharge) useCharge(state, e.useCharge);
+  if (e.jump) state.jump = e.jump;
   if (e.standoff) startStandoff(state, e.standoff);
   const obj = state.event?.objectId !== undefined ? node.objects.find((x) => x.id === state.event!.objectId) : undefined;
   if (e.bury && obj) {
