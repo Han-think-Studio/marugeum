@@ -6,7 +6,7 @@
 - `event-<이벤트 id>.webp` (또는 png) 가로 띠(3:1, 1536×512). id 는 `src/data/events.ts` 의 id
 - `title.webp` (또는 png) 제목 화면 배경(16:9, 1920×1080)
 
-전체 목록과 프롬프트는 `docs/art-list.md`.
+전체 목록과 프롬프트는 `docs/art-list.md`, `docs/art-list-2.md`, 지금 빠진 것과 새로 필요한 것은 `docs/art-list-3.md`. 빠진 그림 세기: `node tools/art-missing.cjs`
 
 아이콘: `obj-<사물>`, `equip-<장비>`, `supply-<보급품>` (512×512). 보강 카드: `upgrade-<이름>` (768×512). 엔딩: `ending-<이름>` (16:9).
 스토어용 이미지는 번들에 넣지 않으므로 저장소 루트의 `store/` 에 둔다.
