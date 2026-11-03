@@ -78,3 +78,17 @@ itch 의 올리기 도구. 버전을 자주 올릴 때 편하다. 처음 한 번
 ```bash
 butler push release/marugeum-web-0.1.0.zip <itch 사용자 이름>/marugeum:html5
 ```
+
+## 6. 윈도우 설치 파일도 함께 (선택)
+
+웹 판 옆에 내려받는 판을 하나 더 둘 수 있다.
+
+```bash
+npm run desktop:build
+```
+
+- `src-tauri\target\release\bundle\nsis\Marugeum_<버전>_x64-setup.exe` (지금 102MB). 그림이 실행 파일 안에 들어 있다
+- itch 의 Uploads 에 이 파일을 더 올리고 **Windows** 표시. "played in the browser" 는 체크하지 않는다
+- 코드 서명을 하지 않은 설치 파일이라, 처음 실행하면 윈도우가 "Windows의 PC 보호" 창을 띄운다. 페이지 글에 "추가 정보 → 실행"을 눌러 달라고 한 줄 적는다. 서명 인증서는 해마다 돈이 들어 지금은 하지 않는다
+- 저장은 웹 판과 따로다(실행 파일 안의 저장소)
+- 앱 아이콘은 `store/app-icon.png` 에서 `npx tauri icon store/app-icon.png` 로 만든다
