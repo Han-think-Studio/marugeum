@@ -1,4 +1,4 @@
-# 마루금 그림 4차 목록 — 갈림길 삽화 3장과 거점 손일 4장
+# 마루금 그림 4차 목록 — 갈림길 3장, 거점 손일 4장, 숨은 것 3장
 
 2026-11-03 기준. 갈림길 셋(`src/game/branches.ts`)이 새로 들어와 코드가 찾는 사건 삽화가 3장 늘었다. 넣기만 하면 바로 뜬다. 거점 손일(올무·훈연·정수기)의 보강 카드 1장과 행동 아이콘 3장도 아래에 있다. 아이콘은 없으면 비슷한 그림으로 대신 뜬다.
 
@@ -28,4 +28,19 @@ Bold simplified icon in carved linocut style, black ink with one muted gold acce
 5. E:\Game_project\marugeum\public\art\icon-snare.png — A wire snare loop tied to a low forked branch, the noose open above a small animal track.
 6. E:\Game_project\marugeum\public\art\icon-smoke.png — Strips of meat and bundles of greens hanging on a stick over a smoking fire, curls of smoke rising, gold on the embers.
 7. E:\Game_project\marugeum\public\art\icon-filter.png — A bucket with layered gravel, sand and charcoal, a single clean water drop falling from its bottom in gold.
+```
+
+## 숨은 것 3장
+
+```text
+Monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains, no text, no letters, no logo, no watermark. People only as silhouettes or seen from behind, no faces. Wide 3:1 banner, 1536x512.
+
+8. E:\Game_project\marugeum\public\art\event-hidden_names.png — Inside a military tent at a mountain checkpoint, a thick handwritten ledger lies open on a field table under a lamp, columns of names (rendered as illegible ink strokes, not readable letters), a soldier's hand pointing at one line marked with a tiny gold star.
+9. E:\Game_project\marugeum\public\art\event-hidden_mirror.png — A mountain summit stone among rocks at Odaesan; from a crack between the rocks a small square signal mirror on a cord flashes a sharp gold glint of sunlight; distant ridges and a tiny helicopter far in the sky.
+```
+
+```text
+Single object icon, centered, filling most of the frame, monochrome linocut woodblock print style, bold black ink on warm aged paper, high contrast, simplified shapes, one muted gold accent used sparingly, plain uniform aged paper background with no scenery, no text, no border, square 512x512.
+
+10. E:\Game_project\marugeum\public\art\equip-mirror.png — A small square military signal mirror with a round sighting hole in the center, on a looped cord, a gold glint on its face.
 ```

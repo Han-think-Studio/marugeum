@@ -19,7 +19,7 @@ import { absHour, crisisActive, crisisKnownIn, isNight, rollWeather } from './we
 import { facilityRunning, syncFresh } from './facilities';
 import { endStandoff, standoffAct } from './standoff';
 import { myRibbon, ridgeRibbon, tieRibbon } from './ribbons';
-import { kindness } from './hidden';
+import { LIGHTS, kindness, lightsEarned } from './hidden';
 import { branchNotes } from './branches';
 
 export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condOf, flashlightLit } from './equip';
@@ -701,6 +701,7 @@ export function endingNotes(state: GameState): string[] {
     if (state.flags['family_together']) out.push('헛간의 가족과 같은 줄로 문을 들어갔다. 아이는 안에 들어가서도 한참 내 손을 놓지 않았다.');
     if (end === 'reunion' && state.flags['deserter_help']) out.push('의무대 왼쪽 세 번째 천막. 탈영병이 알려 준 대로였다.');
     out.push(...suyeonNotes(state, end));
+    if (end === 'reunion' && lightsEarned(state)) out.push(LIGHTS);
     if (state.flags['grandma_kimchi']) {
       out.push(end === 'reunion' ? '할머니가 싸 준 김치를 수연과 나눠 먹었다. 애 엄마 만나면 같이 먹으라던 그 김치다.'
         : end === 'quarantine' ? '할머니의 김치는 간호병 편에 유리창 너머로 보냈다.'

@@ -19,7 +19,7 @@ export const JUNCTIONS: Junction[] = [
   ] },
   { id: 'seat', name: '한계령의 헬기 한 자리', hint: '한계령 검문소를 지난 사람이', choices: [
     ['branch:seat_took', '헬기에 올랐다'], ['branch:seat_gave', '자리를 내주었다'],
-    ['branch:seat_both', '둘 다 태웠다'], ['branch:seat_lost', '둘 다 태워 달라다 자리를 잃었다'],
+    ['branch:seat_both', '둘 다 태웠다'], ['branch:seat_lost', '둘 다 태워 달라다 자리를 잃었다'], ['branch:seat_mirror', '거울로 헬기를 하나 더 불렀다'],
   ] },
 ];
 
@@ -41,6 +41,7 @@ export function branchNotes(state: GameState): string[] {
   if (f['branch:seat_gave']) out.push('의무대 앞에서 그 남자가 나를 알아보았다. 아이는 열이 내렸다. 그는 내 손을 오래 놓지 않았다.');
   else if (f['branch:seat_took']) out.push('헬기에서 내리고 이틀 뒤, 아이를 업은 남자가 걸어서 철책 문을 들어왔다. 나는 그가 나를 보기 전에 천막 뒤로 갔다.');
   else if (f['branch:seat_both']) out.push('헬기에서 내 소매를 잡고 잠들었던 아이는 아직도 나를 보면 소매부터 잡는다.');
+  else if (f['branch:seat_mirror']) out.push('의무대 앞에서 그 남자와 아이를 다시 만났다. 아이가 거울을 빌려 달라더니 해를 향해 들고 한참 놀았다.');
   else if (f['branch:seat_lost']) out.push('한계령에서 같이 걷기 시작한 남자와 아이도 같은 날 문을 들어왔다. 걸어서 온 것이 이상하게 자랑스러웠다.');
   return out;
 }

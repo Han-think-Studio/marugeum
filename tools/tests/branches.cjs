@@ -79,6 +79,10 @@ const PORT = Number(process.env.TEST_PORT || 4174);
   await start();
   r = await arrive('hangyeryeong', {}, { seorak_checkpoint: 0, branch_heli_seat: 1 });
   check(`seat given → walk on from Hangyeryeong (${r.at})`, r.at === 'hangyeryeong' && r.over === 'none' && r.flags.includes('branch:seat_gave'));
+  // 숨은 길: 신호 거울이 있으면 헬기를 하나 더 부른다
+  await start();
+  r = await arrive('hangyeryeong', {}, { seorak_checkpoint: 0, branch_heli_seat: 3 }, "s.equip.push({ kind: 'mirror', broken: false })");
+  check(`mirror calls a second helicopter (${r.ids.join(',')} → ${r.at})`, r.flags.includes('branch:seat_mirror') && r.over === 'won');
   await page.evaluate(() => localStorage.clear());
 
   console.log(log.join('\n'));

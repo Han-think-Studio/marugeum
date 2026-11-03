@@ -78,6 +78,7 @@ function matches(when: When | undefined, state: GameState, node: MapNode, trigge
   if (when.firstRun !== undefined && (state.runNo === 1) !== when.firstRun) return false;
   if (when.deadHere !== undefined && state.deadAt.includes(node.place) !== when.deadHere) return false;
   if (when.minDifficulty && DIFF_RANK[settings.difficulty] < DIFF_RANK[when.minDifficulty]) return false;
+  if (when.minFlags && when.minFlags.flags.filter((f) => state.flags[f]).length < when.minFlags.n) return false;
   return true;
 }
 

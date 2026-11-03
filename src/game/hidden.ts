@@ -17,6 +17,9 @@ export const HIDDEN: HiddenDef[] = [
   { id: 'beads', name: '노스님의 염주', hint: '범종을 친 사람이 사리를 모신 절에서', minDifficulty: 'hard' },
   { id: 'numbers', name: '숫자 방송의 정체', hint: '밤새 숫자를 받아 적고, 그 숫자를 읽을 줄 아는 사람이 진부령에서' },
   { id: 'people', name: '길 위의 사람들', hint: '길에서 넷 이상을 도운 사람이 향로봉에서' },
+  { id: 'lights', name: '불빛을 센 사람', hint: '능선에서 밤 불빛을 세고, 대청봉에서도 센 사람이 가족을 만나면' },
+  { id: 'names', name: '능선 명부', hint: '세 군데 벽 가운데 두 곳에 이름을 남긴 사람이 진부령에서', minDifficulty: 'normal' },
+  { id: 'mirror', name: '신호 거울', hint: '헬기를 두 번 넘게 지켜본 사람이 오대산 꼭대기에서', minDifficulty: 'hard' },
   { id: 'afterword', name: '숨은 그 뒤', hint: '어려움에서 흔적 아홉을 모아 가족을 만난 사람만', minDifficulty: 'hard' },
 ];
 
@@ -43,9 +46,17 @@ export function hiddenFound(state: GameState): string[] {
   const out = HIDDEN.filter((h) => state.flags[`hidden:${h.id}`]).map((h) => h.id);
   const reached = state.over === 'won' && state.ending !== null && state.ending !== 'stay';
   if (reached && kindness(state).length >= 4 && !out.includes('people')) out.push('people');
+  if (state.over === 'won' && state.ending === 'reunion' && lightsEarned(state) && !out.includes('lights')) out.push('lights');
   if (reached && afterwordEarned(state) && !out.includes('afterword')) out.push('afterword');
   return out;
 }
+
+// 불빛을 센 사람. 능선의 밤 불빛과 대청봉의 수용소 불빛을 둘 다 셌다
+export function lightsEarned(state: GameState): boolean {
+  return !!(state.flags['saw_lights'] && state.flags['saw_haero']);
+}
+
+export const LIGHTS = '수연이 말했다. 밤마다 천막 앞에 손전등을 남쪽으로 켜 두었다고. 하율이 아빠는 불빛을 세는 사람이라 그랬다고. 대청봉에서 스물까지 세다 만 그 불빛들 가운데 하나였다.';
 
 export function afterwordEarned(state: GameState): boolean {
   return state.ending === 'reunion' && clueCount(state) >= 9 && settings.difficulty === 'hard';

@@ -95,7 +95,7 @@ export type EquipKind =
   | 'tools' | 'geiger' | 'blanket' | 'bigPack' | 'tent'
   | 'carrier' | 'rope' | 'flashlight' | 'mask' | 'raincoat' | 'knife' | 'battery'
   | 'iodine' | 'medkit' | 'purifier' | 'matches'
-  | 'compass' | 'codebook' | 'beads'; // 숨은 물건. 재료가 되는 선택을 한 사람만 찾는다 (src/game/hidden.ts)
+  | 'compass' | 'codebook' | 'beads' | 'mirror'; // 숨은 물건. 재료가 되는 선택을 한 사람만 찾는다 (src/game/hidden.ts)
 export type GearKey = EquipKind;
 
 export interface Equip {
@@ -140,6 +140,7 @@ export const EQUIP_INFO: Record<EquipKind, EquipInfo> = {
   compass: { label: '산장지기의 나침반', heavy: false, desc: '숨은 물건. 안개 속에서도 길이 느려지지 않고, 처음 가는 길도 모르는 길이 아니다' },
   codebook: { label: '주파수 수첩', heavy: false, desc: '숨은 물건. 군 방송을 읽는다. 다가오는 고비를 라디오 없이도 미리 안다' },
   beads: { label: '노스님의 염주', heavy: false, desc: '숨은 물건. 밤에 마음이 깎이지 않고, 잠이 마음을 더 채운다' },
+  mirror: { label: '신호 거울', heavy: false, desc: '숨은 물건. 헬기에 빛으로 신호를 보낸다. 한계령에서 쓸 데가 있다' },
 };
 
 // 장비 마모. 종주하는 날마다 상태(100)가 이만큼 닳는다. 비 오는 날과 고비 중엔 1.5배. 0 이면 고장. 정비는 거점에서
@@ -350,6 +351,7 @@ export interface When {
   firstRun?: boolean; // 첫 여정에만 (안내용)
   deadHere?: boolean; // 지난 여정이 끝난 자리에서만
   minDifficulty?: 'normal' | 'hard'; // 이 난이도 이상에서만. 숨은 것들
+  minFlags?: { flags: string[]; n: number }; // 이 표시들 가운데 n 개 이상. 여러 자리에 흩어진 재료를 모을 때
   minClues?: number; // 가족 단서를 이만큼 모았어야
   maxClues?: number;
   minRad?: number; // 피폭이 이 이상이어야

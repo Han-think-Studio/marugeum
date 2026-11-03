@@ -633,6 +633,7 @@ export const EVENTS: EventDef[] = [
         { chance: 0.35, text: '군인이 한숨을 쉬더니 짐칸의 상자 두 개를 내렸다. "아이는 아빠 무릎. 당신은 바닥. 내릴 때까지 아무것도 만지지 마세요." 셋이 함께 올랐다. 아이가 내 소매를 잡고 잠들었다.', effects: { hours: 1, mind: 10, flag: 'branch:seat_both', jump: 'hyangno' } },
         { text: '"규정입니다." 군인은 고개를 저었다. 실랑이하는 사이 다른 사람이 마지막 자리에 올랐다. 남자와 나는 흙바람 속에 나란히 서 있었다. 남자가 먼저 웃었다. 같이 걷기로 했다.', effects: { mind: -2, flag: 'branch:seat_lost' } },
       ] },
+      { text: '거울로 저 헬기를 부른다', hint: '신호 거울 · 숨은 길', req: { gear: 'mirror' }, outcomes: [{ text: '능선 너머로 두 번째 헬기가 지나가고 있었다. 거울 구멍으로 겨누고 햇빛을 튕겼다. 세 번. 헬기가 기수를 돌렸다. 남자와 아이가 첫 헬기에, 나는 두 번째 헬기에 올랐다. 이륙하면서 창밖으로 서로 손을 흔들었다.', effects: { hours: 1, mind: 14, flag: 'branch:seat_mirror', jump: 'hyangno' } }] },
     ],
   },
 

@@ -829,4 +829,30 @@ export const MORE_EVENTS: EventDef[] = [
       { text: '표에 맞춰 읽는다', outcomes: [{ text: '숫자는 암호가 아니었다. 대피자 번호였다. 수용소가 도착한 사람의 번호를 밤마다 읽어 남쪽에 알리고 있었다. 받아 적은 쪽지를 넘기다 손이 멈췄다. 73016. 표의 칸을 따라가니 "의무대 3동, 성인 1 아동 1, 중산리". 통신병이 고개를 끄덕였다. "그 번호, 살아 있다는 뜻입니다."', effects: { flag: 'hidden:numbers', clue: 'numbers', mind: 20 } }] },
     ],
   },
+  {
+    id: 'hidden_names',
+    // 벽의 이름: 직지사 벽, 바위굴 벽, 알프스 벽 가운데 두 곳 이상에 이름을 남겼으면
+    trigger: 'arrive',
+    priority: true,
+    title: '능선 명부',
+    text: '진부령 초소의 행정병이 두꺼운 공책을 들고 다가온다. "남쪽에서 오신 분이죠. 이름 좀 여쭤도 될까요." 공책 표지에 볼펜으로 적힌 제목. "능선 명부." 정찰조가 대간을 따라 내려가며 벽과 바위에 적힌 이름을 옮겨 적은 것이라고 한다.',
+    once: true,
+    when: { places: ['jinbu'], minFlags: { flags: ['name_on_wall', 'cave_names', 'name_on_wall_alps'], n: 2 }, minDifficulty: 'normal' },
+    choices: [
+      { text: '이름을 말한다', outcomes: [{ text: '행정병이 공책을 넘기다 웃었다. "여기 계시네요. 직지사, 바위굴, 알프스." 내가 벽에 적은 이름들이 남의 글씨로 한 줄에 모여 있었다. 그 옆에 수연과 하율의 이름도. "이름을 남기신 분들은 먼저 찾습니다. 벽이 사람을 데려와요." 그가 내 이름 옆에 작은 별을 그렸다. 도착.', effects: { flag: 'hidden:names', mind: 20 } }] },
+    ],
+  },
+  {
+    id: 'hidden_mirror',
+    // 신호 거울: 헬기를 두 번 이상 지켜본 사람이 오대산 비로봉에서. 어려움에서만
+    trigger: 'arrive',
+    priority: true,
+    title: '바위틈의 거울',
+    text: '비로봉 정상석 아래 바위틈에서 무언가 햇빛을 튕긴다. 손바닥만 한 군용 신호 거울. 가운데 작은 구멍이 뚫려 있다. 끈에 꼬리표가 묶여 있다. "헬기 보이면 구멍으로 겨눠서 비출 것. 조종사는 본다."',
+    once: true,
+    when: { places: ['odae_biro'], minFlags: { flags: ['heli_seen', 'heli_drop', 'heli_far', 'heli_seen2'], n: 2 }, minDifficulty: 'hard' },
+    choices: [
+      { text: '거울을 챙긴다', outcomes: [{ text: '거울을 셔츠에 닦아 목에 걸었다. 지나가는 헬기를 몇 번이나 올려다만 보았다. 다음에는 비출 것이다.', effects: { gear: 'mirror', flag: 'hidden:mirror', mind: 8 } }] },
+    ],
+  },
 ];
