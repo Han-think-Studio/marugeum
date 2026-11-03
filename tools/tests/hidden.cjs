@@ -77,8 +77,8 @@ const { chromium } = require('playwright');
   check('run records its difficulty', end.journal.runs.slice(-1)[0].difficulty === 'hard');
   await page.click('.book-btn');
   await page.waitForTimeout(200);
-  const book = await page.$$eval('.hiddens li', (els) => els.map((e) => e.textContent));
-  check(`journal lists 3/6 found with ★ and hints for the rest (${book.length})`, book.length === 6 && book.filter((t) => t.includes('★')).length === 3 && book.filter((t) => t.startsWith('???')).length === 3);
+  const book = await page.$$eval('.hiddens li', (els) => els.map((e) => ({ text: e.textContent, hard: !!e.querySelector('.diff.hard') })));
+  check(`journal lists 3/6 found with ★ and hints for the rest (${book.length})`, book.length === 6 && book.filter((b) => b.hard).length === 3 && book.filter((b) => b.text.startsWith('???')).length === 3);
   await page.screenshot({ path: process.argv[2] + '/hidden-journal.png' });
   await page.evaluate(() => localStorage.clear());
 

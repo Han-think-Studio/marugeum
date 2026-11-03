@@ -6,6 +6,9 @@ import { REGIONS, STAGES } from './generate';
 import { placeById } from '../data/places';
 import { ribbonKey, ridgeRibbon } from '../game/ribbons';
 
+// 지도 뒤에 까는 백두대간 파노라마(public/art/ui-map.webp). 다 오기 전에는 하늘만 그린다
+const panorama = typeof Image === 'undefined' ? null : Object.assign(new Image(), { src: './art/ui-map.webp' });
+
 // 나뭇가지에 묶인 리본 하나. 매듭에서 두 갈래가 늘어진다
 function drawRibbon(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, scale: number): void {
   const s = 5 * scale;
@@ -96,6 +99,13 @@ export function drawMap(ctx: CanvasRenderingContext2D, state: GameState, v: View
   sky.addColorStop(1, mix('#2a2f33', '#9fb3c8', 1 - dark));
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
+  if (panorama && panorama.complete && panorama.naturalWidth > 0) {
+    // 아래쪽에 붙여 가로로 채운다. 낮에는 하늘이 밝아 더 옅게
+    const ph = (w / panorama.naturalWidth) * panorama.naturalHeight;
+    ctx.globalAlpha = 0.35 + dark * 0.4;
+    ctx.drawImage(panorama, 0, h - ph, w, ph);
+    ctx.globalAlpha = 1;
+  }
   if (state.weather === 'cloud' || state.weather === 'rain') {
     ctx.fillStyle = `rgba(40, 45, 55, ${state.weather === 'rain' ? 0.45 : 0.3})`;
     ctx.fillRect(0, 0, w, h);

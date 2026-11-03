@@ -6,6 +6,7 @@ import { REGIONS } from '../map/generate';
 import { audio } from '../audio/engine';
 import { DIFFICULTY, TEXT_SIZE_LABEL, resetSettings, saveSettings, settings, type Difficulty, type TextSize } from '../game/settings';
 import { isFullscreen, toggleFullscreen } from './fullscreen';
+import { uiIcon } from './art';
 
 // 제목 화면, 기록 수첩, 메뉴. 전부 게임 위에 얹는 덮개다
 
@@ -36,7 +37,7 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
   tryBg('webp');
   el.innerHTML = `
     <div class="card">
-      <h1>마루금</h1>
+      <h1 class="logo" style="background-image:url(./art/ui-paper.webp)"><img src="./art/ui-logo.webp" alt="마루금" onerror="this.parentElement.classList.remove('logo');this.replaceWith('마루금')"></h1>
       <p class="sub">백두대간 생존기</p>
       <p class="intro">바다는 죽었고 낮은 땅은 비에 젖으면 위험하다.<br>칠십 년 동안 아무도 밟지 않은 땅만이 깨끗하다.<br>지리산에서 향로봉까지, 능선을 따라 북쪽으로.</p>
       <div class="menu">
@@ -71,11 +72,13 @@ export function showTitle(root: HTMLElement, o: TitleOpts): HTMLElement {
 export function showJournal(root: HTMLElement, j: Journal, onClose: () => void): HTMLElement {
   const el = document.createElement('div');
   el.className = 'overlay book';
+  // 펼친 수첩 그림을 어둡게 깔아 둔다. 글은 그 위의 카드에
+  el.style.backgroundImage = 'linear-gradient(rgba(6,9,13,0.7), rgba(6,9,13,0.85)), url(./art/ui-journal.webp)';
   const runs = [...j.runs].reverse().slice(0, 20).map((r) => {
     const where = r.place ?? regionName(r.farthest);
     const what = r.over === 'won' ? (r.ending ? `${ENDING_INFO[r.ending].title} · ${ENDING_INFO[r.ending].short}` : '향로봉 도착') : `${where}에서 ${r.cause.replace(/^\d+일째, /, '')}`;
     const left = r.departedDay ? ` · ${r.departedDay}일째 출발` : ' · 야영장에서';
-    const star = r.difficulty === 'hard' ? ' <span class="diff hard">★</span>' : r.difficulty === 'easy' ? ' <span class="muted">(쉬움)</span>' : '';
+    const star = r.difficulty === 'hard' ? ` <span class="diff hard">${uiIcon('star-hard', '', '★')}</span>` : r.difficulty === 'easy' ? ' <span class="muted">(쉬움)</span>' : '';
     return `<li><b>${r.runNo}번째</b>${star} · ${r.days}일${left} · 피폭 ${r.rad}${r.clues !== undefined ? ` · 단서 ${r.clues}` : ''}${r.buried && r.buried.length ? ` · 묻어 준 ${r.buried.length}명` : ''} · ${what}</li>`;
   });
   const regions = REGIONS.map((name, i) => `<span class="region${j.knownStages.includes(i) ? ' known' : ''}">${name}</span>`).join('');
@@ -98,7 +101,7 @@ export function showJournal(root: HTMLElement, j: Journal, onClose: () => void):
           ${runs.length ? `<ul>${runs.join('')}</ul>` : '<p class="muted">아직 적힌 것이 없다.</p>'}
           ${deaths ? `<p class="muted">죽은 이유: ${deaths}</p>` : ''}
           <h3>숨은 것 <span class="muted">${HIDDEN.filter((h) => j.hidden?.[h.id]).length}/${HIDDEN.length}</span></h3>
-          <ul class="hiddens">${HIDDEN.map((h) => { const d = j.hidden?.[h.id]; return d ? `<li><b>${h.name}</b> <span class="diff ${d}">${d === 'hard' ? '★ 어려움' : d === 'normal' ? '보통' : '쉬움'}</span></li>` : `<li class="muted">??? · ${h.hint}${h.minDifficulty ? ` · ${h.minDifficulty === 'hard' ? '어려움' : '보통 이상'}` : ''}</li>`; }).join('')}</ul>
+          <ul class="hiddens">${HIDDEN.map((h) => { const d = j.hidden?.[h.id]; return d ? `<li>${uiIcon('hidden')}<b>${h.name}</b> <span class="diff ${d}">${d === 'hard' ? `${uiIcon('star-hard', '', '★')} 어려움` : d === 'normal' ? '보통' : '쉬움'}</span></li>` : `<li class="muted">??? · ${h.hint}${h.minDifficulty ? ` · ${h.minDifficulty === 'hard' ? '어려움' : '보통 이상'}` : ''}</li>`; }).join('')}</ul>
           <h3>그 뒤</h3>
           <ul class="afters">${afters.join('')}</ul>
         </section>

@@ -23,9 +23,9 @@ import { showJournal, showLog, showMenu, showSettings } from './screens';
 import { toggleFullscreen } from './fullscreen';
 import { TABS, bodyAlert, bodyHtml, packHtml, type Tab } from './dock';
 import { pushSlide } from './slides';
-import { iconHtml } from './art';
+import { iconHtml, uiIcon } from './art';
 import { playHand, type HandKind } from './handwork';
-import { AFTERWORD, afterwordEarned } from '../game/hidden';
+import { AFTERWORD, afterwordEarned, hiddenFound } from '../game/hidden';
 import { settings } from '../game/settings';
 import { audio } from '../audio/engine';
 import { sceneTargets } from '../audio/scene';
@@ -311,12 +311,26 @@ function handThen(kind: HandKind, run: (skill: number | undefined) => boolean, a
   return false;
 }
 
+// 죽음 그림. 대치에서 죽었으면 상대로, 아니면 바닥난 수치로 고른다. 사건으로 죽었으면 가장 나빴던 수치
+function deathArt(state: GameState): string {
+  const t = state.overText;
+  if (t.includes(STANDOFF_INFO.deserter.name)) return 'gun';
+  if (t.includes(STANDOFF_INFO.boar.name) || t.includes(STANDOFF_INFO.dogs.name)) return 'beast';
+  const s = state.stats;
+  if (s.thirst <= 0) return 'thirst';
+  if (s.temp < 20) return 'cold';
+  if (s.rad >= 60) return 'rad';
+  if (s.hunger <= 0) return 'hunger';
+  const worst: [string, number][] = [['thirst', s.thirst], ['cold', s.temp], ['hunger', s.hunger], ['rad', 100 - s.rad]];
+  return worst.sort((a, b) => a[1] - b[1])[0][0];
+}
+
 // 두 사람의 가장 새로운 소식. 오래될수록 색이 바랜다
 function familyChip(state: GameState): string {
   const t = latestTrace(state);
   if (!t || state.over !== 'none') return '';
   const age = t.days <= 3 ? 'near' : t.days >= 8 ? 'far' : '';
-  return `<span class="family ${age}" title="${FAMILY.spouse}과 ${FAMILY.child}의 가장 새로운 흔적. 흔적을 찾을수록 소식이 가까워진다">${FAMILY.spouse}·${FAMILY.child} · ${t.place} ${t.ago}</span>`;
+  return `<span class="family ${age}" title="${FAMILY.spouse}과 ${FAMILY.child}의 가장 새로운 흔적. 흔적을 찾을수록 소식이 가까워진다">${uiIcon('family')}<span class="who">${FAMILY.spouse}·${FAMILY.child} · </span>${t.place} ${t.ago}</span>`;
 }
 
 function renderHud(refs: Refs, state: GameState): void {
@@ -325,7 +339,7 @@ function renderHud(refs: Refs, state: GameState): void {
       const warn = k === 'rad' ? v >= 40 : v <= 35;
       const bad = k === 'rad' ? v >= 60 : v <= 15;
       const fill = k === 'rad' ? v : v;
-      return `<span class="stat${bad ? ' bad' : warn ? ' warn' : ''}${k === 'rad' ? ' rad' : ''}" title="${STAT_LABEL[k]} ${Math.round(v)}"><b>${STAT_LABEL[k]}</b><i><i style="width:${Math.round(fill)}%"></i></i><small>${Math.round(v)}</small></span>`;
+      return `<span class="stat${bad ? ' bad' : warn ? ' warn' : ''}${k === 'rad' ? ' rad' : ''}" title="${STAT_LABEL[k]} ${Math.round(v)}"><img class="uic" src="./art/ui-stat-${k}.webp" alt="" onerror="this.nextElementSibling.hidden=false;this.remove()"><b hidden>${STAT_LABEL[k]}</b><i><i style="width:${Math.round(fill)}%"></i></i><small>${Math.round(v)}</small></span>`;
     })
     .join('');
   const cur = currentNode(state);
@@ -339,9 +353,9 @@ function renderHud(refs: Refs, state: GameState): void {
     `<button class="menu-btn" title="메뉴 (Esc)">≡</button><button class="sound-btn${audio.muted ? ' off' : ''}" title="소리 (M)">♪</button><button class="view-btn" title="장면/지도 (V)">${state.view === 'map' ? '장면' : '지도'}</button><span class="title">마루금</span><span class="time">${timeLabel(state)}</span>` +
     `<span class="phase">${state.phase === 'base' ? '거점기' : `종주 ${state.day - state.departedDay + 1}일째`}</span>` +
     familyChip(state) +
-    `<span class="weather">${weatherText(state)} · 체감 ${t}°${geiger}</span>` +
+    `<span class="weather" title="${weatherText(state)}">${uiIcon(`weather-${state.weather}`)}${state.wind !== 'calm' ? uiIcon('wind') : ''}<span class="wtxt">${weatherText(state)} · </span>체감 ${t}°${geiger}</span>` +
     `<span class="forecast" title="하늘을 읽은 예보">${daylightLeft(state.hour) > 0 ? `해 ${daylightLeft(state.hour)}시간` : '밤'} · ${forecastText(state)}</span>` +
-    (crisisText(state) ? `<span class="crisis${crisisActive(state) ? ' on' : ''}" title="고비. 지붕과 불과 땔감과 물을 챙겨 버틴다">${crisisText(state)}</span>` : '') +
+    (crisisText(state) ? `<span class="crisis${crisisActive(state) ? ' on' : ''}" title="고비. 지붕과 불과 땔감과 물을 챙겨 버틴다">${state.crisis ? uiIcon(`crisis-${state.crisis.kind}`) : ''}${crisisText(state)}</span>` : '') +
     chips;
   // 배낭은 장소 줄 아래에
   const packLine = refs.place.parentElement!.querySelector<HTMLElement>('.packline') ?? (() => {
@@ -450,7 +464,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     `<span class="step${sec.looked ? ' done' : ''}">둘러보기</span><span class="step${sec.shelter ? ' done' : ''}">불이나 지붕</span><span class="step${sec.rested ? ' done' : ''}">하룻밤</span><span class="muted">→ 안정</span>`;
   // 탭
   const nbCount = neighbors(state).length;
-  refs.tabs.innerHTML = TABS.map(([t, label]) => `<button data-tab="${t}" class="${t === tab ? 'on' : ''}">${label}${t === 'go' ? ` <small>${nbCount}</small>` : t === 'body' && bodyAlert(state) ? ' <i class="dot"></i>' : t === 'pack' && state.equip.some((e) => e.broken || (condOf(e) ?? 100) <= 30) ? ' <i class="dot"></i>' : ''}</button>`).join('') + '<span class="tabhint">Tab</span>';
+  refs.tabs.innerHTML = TABS.map(([t, label]) => `<button data-tab="${t}" class="${t === tab ? 'on' : ''}">${uiIcon(`tab-${t}`)}${label}${t === 'go' ? ` <small>${nbCount}</small>` : t === 'body' && bodyAlert(state) ? ' <i class="dot"></i>' : t === 'pack' && state.equip.some((e) => e.broken || (condOf(e) ?? 100) <= 30) ? ' <i class="dot"></i>' : ''}</button>`).join('') + '<span class="tabhint">Tab</span>';
   refs.tabs.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab as Tab; rerender(); }));
   const dock = refs.tabs.parentElement!;
   for (const [t] of TABS) dock.classList.toggle(`show-${t}`, t === tab);
@@ -474,12 +488,15 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   if (state.over !== 'none') {
     const won = state.over === 'won';
     const ending = won && state.ending ? ENDING_INFO[state.ending] : null;
-    const art = ending ? `<img class="ending-art" src="./art/ending-${state.ending}.webp" alt="" onerror="this.remove()">` : '';
+    const art = `<img class="ending-art" src="./art/ending-${ending ? state.ending : `dead-${deathArt(state)}`}.webp" alt="" onerror="this.remove()">`;
+    const extra = (id: string) => `<img class="ending-art extra" src="./art/ending-${id}.webp" alt="" onerror="this.remove()">`;
+    const people = won && hiddenFound(state).includes('people');
     refs.choices.innerHTML =
       `<div class="end ${won ? 'won' : 'dead'}">${art}${ending ? `<h3>${ending.title}</h3>` : ''}<p>${state.overText}</p>` +
+      (people ? extra('people') : '') +
       `<p class="epilogue">${endingNotes(state).join('<br>')}</p>` +
       (ending ? `<p class="after">${ending.after}</p>` : '') +
-      (afterwordEarned(state) ? `<p class="after secret">${AFTERWORD}</p>` : '') +
+      (afterwordEarned(state) ? `${extra('afterword')}<p class="after secret">${AFTERWORD}</p>` : '') +
       `<p class="muted">${ending ? ending.short + ' · ' : ''}기록 수첩에 적혔다. ${state.runNo}번째 여정.</p>` +
       `<button class="restart"><span class="num">1</span> 새 여정</button> <button class="book-btn"><span class="num">J</span> 기록 수첩</button></div>`;
     refs.hud.parentElement!.classList.add('has-event');
@@ -569,7 +586,7 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const risk = state.wind !== 'calm' && n.side === state.wind ? ' · 바람받이' : '';
     const walked = !!state.known[edgeKey(cur.id, n.id)];
     const mine = myRibbon(state, cur, n);
-    const known = walked ? ' · 아는 길' : mine ? ' · <b class="ribbon mine" title="지난 여정에 내가 묶은 리본. 아는 길처럼 걷는다">내 리본</b>' : ridgeRibbon(cur, n) ? ' · <span class="ribbon" title="마루금의 옛 산악회 리본. 길을 잃지 않는다">마루금 리본</span>' : '';
+    const known = walked ? ' · 아는 길' : mine ? ` · <b class="ribbon mine" title="지난 여정에 내가 묶은 리본. 아는 길처럼 걷는다">${uiIcon('ribbon-mine')}내 리본</b>` : ridgeRibbon(cur, n) ? ` · <span class="ribbon" title="마루금의 옛 산악회 리본. 길을 잃지 않는다">${uiIcon('ribbon-ridge')}마루금 리본</span>` : '';
     const rk = routeRisk(state, n);
     const block = travelBlock(state, n);
     const riskTxt = `<span class="risk ${rk.level}">${rk.level === 'high' ? '위험 높음' : rk.level === 'mid' ? '위험 보통' : '위험 낮음'}${rk.why.length ? ' · ' + rk.why.join(', ') : ''}</span>${block ? `<span class="block">${block.replace('위험 높음 · ', '')}</span>` : ''}`;

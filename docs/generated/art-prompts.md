@@ -2303,3 +2303,902 @@ Target size: 1600×900
 Use case: stylized-concept. Asset type: full-screen 16:9 Korean mountain-survival game scene. Input images: Image 1: style reference only; match rough black linocut carving, warm aged-paper texture, muted-gold accent, quiet post-apocalyptic mountain atmosphere; do not copy campsite. Primary request: An abandoned ski resort hotel with idle chairlifts, empty parking lot, mountains behind. Style/medium: monochrome woodblock print, high contrast, coarse carved texture. Composition: wide 16:9, preserve important subjects within frame. Constraints: people as silhouettes or from behind, no faces; no readable text, letters, logos, or watermark.
 ```
 
+
+
+# Art list 3 — generated prompt archive
+
+Source brief: `E:\Game_project\marugeum\docs\art-list-3.md`  
+Generated: 2026-11-03  
+Assets: 81 PNG files. Scene and banner references use `scene-start-wide.webp`; object and transparent icon references use `equip-generator.webp` or `icon-base.webp`; references guide style only. All prompts below are the prompts used for generation. Exact target dimensions and requested alpha channels were verified after saving.
+
+## event-tut_carrier.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-tut_carrier.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink, warm aged paper, coarse carved texture, restrained muted-gold accent, and quiet Korean mountain survival-game mood. Do not copy its composition. Create a wide 3:1 banner illustration for a game event: a lone hiker seen from behind carrying a traditional Korean wooden A-frame carrier (jige) loaded with a tent and fuel cans, leaning forward on a steep mountain trail, the load towering above the head. Maintain clear readable silhouettes, no face, no text or lettering, no logo, no watermark.
+```
+
+## event-tut_charges.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-tut_charges.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: Close still life on a flat rock: a small brown iodine bottle with a few tablets, a canvas first aid pouch with a cross, a blister strip of water purification tablets, a hand counting them, mountain haze behind. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-suyeon_neuljae.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-suyeon_neuljae.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: A small Korean village shrine (seonghwangdang) at a mountain pass, a straw rope strung between poles with many folded paper prayer notes tied on it fluttering, one dry note under the eaves, a cairn beside it. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-suyeon_hwabang.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-suyeon_hwabang.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: Inside an abandoned highway rest stop washroom, a large mirror with big handwritten lipstick letters as abstract strokes (not readable), a child's crayon drawing of three round heads with stick legs taped below it, a figure from behind looking into the mirror. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-suyeon_noinbong.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-suyeon_noinbong.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: Inside a small wooden mountain hut, an old framed portrait of a hut keeper on the wall, beside it a child's crayon drawing of three mountains and a tall walking figure pinned with a thumbtack, chalk marks on the door. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-past_cairn.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-past_cairn.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: A knee-high cairn of stacked stones beside a ridge trail, the flat top stone scratched with a single knife line, a scrap of cloth peeking out from under the stones, morning mist, a pair of boots of a figure standing before it. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-hidden_compass.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-hidden_compass.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: A wooden desk drawer pulled open in a dim mountain hut, handwritten wind notes carved and scribbled on the inside of the drawer, an old brass compass wrapped in paper glowing faintly gold. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-hidden_codebook.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-hidden_codebook.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: A military radio barracks on a mountaintop under a steel antenna tower, a desk with two open logbooks side by side and a small palm-sized notebook of frequency tables, a radio set, cold light through a small window. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-hidden_beads.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-hidden_beads.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: An old Buddhist monk seen from behind sitting under a slender stone pagoda on a mountainside temple, holding out a string of wooden prayer beads toward a hiker's open hand, quiet evening. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## event-hidden_numbers.png
+
+- Destination: `E:\Game_project\marugeum\public\art\event-hidden_numbers.png`
+- Target size: 1536x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its monochrome linocut woodblock treatment, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, and one muted gold accent used sparingly. Do not copy its composition. Create a 1536x512 wide 3:1 banner illustration for a quiet post-apocalyptic Korean mountain survival game. Subject: Inside a military signal tent at a mountain pass at night, a field radio with a glowing dial, pages of handwritten number columns spread on a crate, a soldier's silhouette and a hiker's silhouette leaning over them, a lantern. People, if present, are silhouettes or seen from behind with no visible faces. No readable text, letters, logo, or watermark.
+```
+
+## equip-compass.png
+
+- Destination: `E:\Game_project\marugeum\public\art\equip-compass.png`
+- Target size: 512x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Single centered object icon filling most of the square frame, monochrome linocut woodblock, bold black ink on warm aged paper, high contrast, simplified shapes, one muted gold accent used sparingly, plain uniform paper background, no scenery, no text or border. Subject: An old brass pocket compass with the lid open, the needle pointing up, a folded paper note tucked under it
+```
+
+## equip-codebook.png
+
+- Destination: `E:\Game_project\marugeum\public\art\equip-codebook.png`
+- Target size: 512x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Single centered object icon filling most of the square frame, monochrome linocut woodblock, bold black ink on warm aged paper, high contrast, simplified shapes, one muted gold accent used sparingly, plain uniform paper background, no scenery, no text or border. Subject: A small worn military notebook open to a grid of number tables, a pencil clipped to it, a radio frequency dial sketch on one page (no readable text)
+```
+
+## equip-beads.png
+
+- Destination: `E:\Game_project\marugeum\public\art\equip-beads.png`
+- Target size: 512x512
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Single centered object icon filling most of the square frame, monochrome linocut woodblock, bold black ink on warm aged paper, high contrast, simplified shapes, one muted gold accent used sparingly, plain uniform paper background, no scenery, no text or border. Subject: A loop of wooden Buddhist prayer beads (108 beads) with a small tassel, coiled on itself
+```
+
+## scene-place-jungsanri-wide.png
+
+- Destination: `E:\Game_project\marugeum\public\art\scene-place-jungsanri-wide.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 1600x900 pixels. Monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains, no text, logo, or watermark. Wide 16:9 composition with open ground in the lower third for small markers. Subject: Jungsanri campground at the southern foot of Jirisan at dawn: a few abandoned tents, a small wooden ranger hut, a bare flagpole, parked cars left behind, fuel cans, Jirisan ridge behind, a small gold sunrise
+```
+
+## scene-place-hyangno-wide.png
+
+- Destination: `E:\Game_project\marugeum\public\art\scene-place-hyangno-wide.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 1600x900 pixels. Monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains, no text, logo, or watermark. Wide 16:9 composition with open ground in the lower third for small markers. Subject: Hyangnobong summit refugee camp at the edge of the DMZ: rows of military tents, a radio antenna, a helicopter pad with lights, a double barbed-wire fence running over the ridge, beyond the fence a visibly greener untouched mountain range, warm generator lights
+```
+
+## icon-photo.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-photo.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A small worn family photograph with a bent corner, a folded note tucked behind it
+```
+
+## icon-cook.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-cook.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A small camping pot with steam rising over a campfire
+```
+
+## icon-purifier.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-purifier.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A water purification tablet dropping into a canteen cup with bubbles
+```
+
+## icon-windbreak.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-windbreak.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A low curved wall of stacked stones and branches with wind lines bending around it
+```
+
+## icon-iodine.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-iodine.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A small brown pill bottle with one tablet in front of it and a tiny radiation trefoil
+```
+
+## icon-medkit.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-medkit.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A canvas first aid pouch with a cross and a rolled bandage
+```
+
+## icon-radio.png
+
+- Destination: `E:\Game_project\marugeum\public\art\icon-radio.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink texture and muted-gold palette; do not copy its subject or composition. Create a game asset at 512x512 pixels. Bold simplified action icon in carved linocut style, black ink with one muted gold accent, centered and readable at 24 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, text, or border. Subject: A small portable transistor radio with an extended antenna and sound waves
+```
+
+## hand-bg-hammer.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-bg-hammer.png`
+- Target size: 1560x520
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 1560x520 game asset. Close-up still-life game backdrop, monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, no people and no text. Keep the bottom quarter plain and dark for an overlay bar. Subject: A rough wooden workbench plank seen from the front at eye level, wood grain, a few old nail holes, a coil of rope and a tin cup at the far edge, dim hut interior behind
+```
+
+## hand-bg-match.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-bg-match.png`
+- Target size: 1560x520
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 1560x520 game asset. Close-up still-life game backdrop, monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, no people and no text. Keep the bottom quarter plain and dark for an overlay bar. Subject: Low stone fire ring with dry kindling stacked inside, on an exposed mountain ridge at dusk, grass bent by wind, wind lines across the sky
+```
+
+## hand-bg-cook.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-bg-cook.png`
+- Target size: 1560x520
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 1560x520 game asset. Close-up still-life game backdrop, monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, no people and no text. Keep the bottom quarter plain and dark for an overlay bar. Subject: A small campfire ring of stones in front of a tent at night, a flat cooking stone, the dark mountain silhouette behind, sparks
+```
+
+## hand-hammer.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-hammer.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A claw hammer with a worn wooden handle, head pointing upper left, diagonal
+```
+
+## hand-nail.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-nail.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A single long iron nail standing upright, flat head on top
+```
+
+## hand-screwdriver.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-screwdriver.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A flat-head screwdriver with a wooden handle, pointing down vertically
+```
+
+## hand-screw.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-screw.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A round cross-head screw seen from the top, centered, as a circle
+```
+
+## hand-matchbox.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-matchbox.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A small Korean matchbox half open with matches inside, a strike strip on the side
+```
+
+## hand-match.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-match.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A single wooden match standing upright, unlit, red head on top
+```
+
+## hand-flame.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-flame.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A small match flame shape, teardrop of fire with a bright gold core, no match stick
+```
+
+## hand-pot.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-pot.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A dented aluminum camping pot with a wire handle, seen from the side, slightly tilted lid
+```
+
+## hand-fire.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-fire.png`
+- Target size: 512x512
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp
+
+```text
+Image 1 is a style reference only: match its ink treatment and restrained palette without copying its composition. Create the requested 512x512 game asset. Single tool or object sprite in carved linocut style, black ink with one muted gold accent, centered, isolated on a genuinely fully transparent background (PNG alpha), no shadow, no text. Subject: A small campfire of crossed logs with flames, seen from the side, flames centered
+```
+
+## hand-bg-screw.png
+
+- Destination: `E:\Game_project\marugeum\public\art\hand-bg-screw.png`
+- Target size: 1560x520
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Style reference only: use the supplied Marugeum reference's monochrome linocut print texture, warm aged paper, bold black ink, and restrained muted gold. A peaceful close-up maintenance scene for a survival game's minigame: the open service cover of an ordinary portable camping generator on a workbench, three small empty fastening points in a row, neat electrical wires and a simple circuit board inside, warm work-lamp light. Clearly a harmless appliance repair, no people, no weapons, no danger, no text. Wide 3:1 backdrop, bottom quarter plain and dark for a UI overlay.
+```
+
+## ui-stat-hp.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-hp.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A simple heart with a small cross notch
+```
+
+## ui-stat-hunger.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-hunger.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A rice bowl with chopsticks
+```
+
+## ui-stat-thirst.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-thirst.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A water drop
+```
+
+## ui-stat-temp.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-temp.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A thermometer with a small snowflake
+```
+
+## ui-stat-fatigue.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-fatigue.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A crescent moon with a closed eye
+```
+
+## ui-stat-rad.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-rad.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A radiation trefoil inside a circle
+```
+
+## ui-stat-mind.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-stat-mind.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A small flame of a candle
+```
+
+## ui-tab-go.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-tab-go.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A trail sign post with two arrows
+```
+
+## ui-tab-act.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-tab-act.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: An open hand
+```
+
+## ui-tab-pack.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-tab-pack.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A hiking backpack
+```
+
+## ui-tab-body.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-tab-body.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A simple human figure outline
+```
+
+## ui-weather-clear.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-weather-clear.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A sun over a mountain peak
+```
+
+## ui-weather-cloud.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-weather-cloud.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A cloud over a mountain peak
+```
+
+## ui-weather-rain.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-weather-rain.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: Slanted rain lines from a cloud, drops slightly yellow-gold
+```
+
+## ui-weather-fog.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-weather-fog.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: Horizontal fog bands over a peak
+```
+
+## ui-wind.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-wind.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: Three curved wind lines with an arrow tip
+```
+
+## ui-crisis-cold.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-crisis-cold.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A large snowflake with ice spikes
+```
+
+## ui-crisis-fallout.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-crisis-fallout.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A cloud dropping yellow-gold drops with a small radiation trefoil
+```
+
+## ui-crisis-snow.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-crisis-snow.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A mountain buried under a heavy snow cap with falling flakes
+```
+
+## ui-ribbon-mine.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-ribbon-mine.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A yellow-gold hiking ribbon tied in a knot on a short branch, two tails hanging
+```
+
+## ui-ribbon-ridge.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-ribbon-ridge.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A faded red hiking ribbon tied on a short branch, frayed tails
+```
+
+## ui-family.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-family.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A small photograph of two figures (an adult and a child, faceless silhouettes) with a bent corner
+```
+
+## ui-star-hard.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-star-hard.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A carved five-point star in muted gold with a thin black outline
+```
+
+## ui-hidden.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-hidden.png`
+- Target size: 256x256
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\equip-generator.webp and icon-base.webp style palette
+
+```text
+Image 1 is a style reference only: match its carved linocut texture and restrained palette; do not copy its object. Create a 256x256 transparent UI icon for Marugeum. Bold simplified carved linocut silhouette, black ink outline with warm cream fill and one muted gold accent, centered, consistent stroke weight, readable at 18 pixels, isolated on a genuinely fully transparent background (PNG alpha), no paper background, no text or border. Subject: A small closed wooden box with a keyhole and a question-mark shaped crack of light (no letter, just a crack)
+```
+
+## ui-logo.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-logo.png`
+- Target size: 2048x768
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Use Image 1 only as a style reference for carved woodblock edges and black-ink / muted-gold treatment. Create a clean, centered Korean game-title logo on a genuinely fully transparent background (PNG alpha), canvas 2048x768, with generous padding. Render exactly the three Hangul characters "마루금" in bold hand-carved woodblock lettering, black ink with rough carved edges, and a thin muted-gold underline shaped like a mountain ridgeline. No other text or marks.
+```
+
+## ui-paper.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-paper.png`
+- Target size: 1024x1024
+- Transparent background: no
+- Style reference: None; generated without an input reference.
+
+```text
+Create a 1024x1024 seamless tileable texture of warm aged paper with faint fibers and very light ink speckles. Low contrast, uniform, no objects, no text. All four edges must join without visible seams.
+```
+
+## ui-journal.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-journal.png`
+- Target size: 1600x1000
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only. Create a 1600x1000 top-down illustration of an open worn field notebook, two cream pages with faint ruled lines, a pressed leaf and small ribbon bookmark in the gutter, page edges soft and dark. Leave the pages nearly empty for text overlay. Monochrome linocut style with muted-gold accent, no readable text.
+```
+
+## ui-map.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ui-map.png`
+- Target size: 2400x800
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only for the game's linocut texture. Create a quiet 2400x800, 3:1 low-contrast background panorama of the Baekdudaegan mountain range from south to north: long overlapping ridgelines from Jirisan on the left to Seoraksan and the DMZ on the right, dark navy-black ink on deep night blue, almost no detail, no labels or text. It sits behind map nodes, so keep it subdued.
+```
+
+## ending-dead-rad.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-rad.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: An empty backpack and a pair of boots left on a low ridge under a yellowish sky, a faded family photograph tucked under a stone beside them, rain beginning. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-dead-cold.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-cold.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: A snow-covered ridge at dawn, a small mound of snow beside a burnt-out campfire ring, a blanket corner showing, the first gold light touching the peak. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-dead-hunger.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-hunger.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: An empty tin can and a spoon on a rock beside a trail, the trail continuing north into layered ridges, a walking stick lying across the path. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-dead-thirst.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-thirst.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: A dry stream bed of white stones in a valley, an empty canteen lying open, a thin line of a distant spring visible high on the slope, out of reach. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-dead-beast.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-beast.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: Torn straps of a backpack in trampled grass on a mountain slope, paw prints and hoof prints in mud leading into dark pine trees. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-dead-gun.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-dead-gun.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: An abandoned military bunker doorway on a ridge, a backpack fallen in the doorway, a single spent shell casing glinting gold on the stones. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-people.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-people.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: Inside the Hyangnobong refugee camp at morning, a line of people from behind waiting at a tent: two hikers (one limping), a teenager, a family of three with a child holding a drawing, an old water carrier, all seen from behind, warm generator lights. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## ending-afterword.png
+
+- Destination: `E:\Game_project\marugeum\public\art\ending-afterword.png`
+- Target size: 1600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, simplified shapes, one muted gold accent used sparingly, quiet post-apocalyptic Korean mountains. Do not copy its composition. Create a wide 16:9 game ending illustration at 1600x900. Subject: Spring at the opened DMZ fence gate, a long line of people from behind walking through into a green untouched valley, at the very end of the line a man, a woman and a small child holding hands, looking back once over their shoulders toward the south. People only as silhouettes or seen from behind, no faces. Death is suggested, never shown directly. No text, letters, logo, or watermark.
+```
+
+## steam-capsule-small.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-capsule-small.png`
+- Target size: 462x174
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 462x174. Subject: The hiker small at the right on a ridge line, layered peaks, empty sky on the left half for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-capsule-main.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-capsule-main.png`
+- Target size: 1232x706
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 1232x706. Subject: The hiker on a jagged ridge in the lower right, the long Baekdudaegan range receding north, a small gold sunrise, empty upper left third for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-capsule-vertical.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-capsule-vertical.png`
+- Target size: 748x896
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 748x896. Subject: The hiker climbing a steep trail toward a far gold light at the summit, tall layered ridges, empty top quarter for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-page-bg.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-page-bg.png`
+- Target size: 1438x810
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 1438x810. Subject: Very quiet, low contrast wide panorama of misty ridges at dusk, almost abstract, no figure, used behind store text. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-library-capsule.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-library-capsule.png`
+- Target size: 600x900
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 600x900. Subject: Vertical: a yellow hiking ribbon tied on a branch in the foreground, the hiker small on the ridge behind, empty top third for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-library-hero.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-library-hero.png`
+- Target size: 3840x1240
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 3840x1240. Subject: Ultra wide panorama of the entire ridge from Jirisan to the DMZ fence, the hiker tiny in the center third, no important detail in the middle area where the logo will sit. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## steam-library-logo.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-library-logo.png`
+- Target size: 1280x720
+- Transparent background: yes
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is only a style reference. Create the Korean game title "마루금" as bold hand-carved woodblock lettering, black ink with rough carved edges and a thin muted-gold mountain-ridgeline underline. Centered on a genuinely fully transparent background (PNG alpha), canvas 1280x720; exactly these three Hangul characters and no other text.
+```
+
+## steam-community-icon.png
+
+- Destination: `E:\Game_project\marugeum\store\steam-community-icon.png`
+- Target size: 184x184
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 184x184. Subject: A simple carved emblem: a mountain ridge line with a small gold ribbon, square, readable at small size. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## itch-cover.png
+
+- Destination: `E:\Game_project\marugeum\store\itch-cover.png`
+- Target size: 630x500
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 630x500. Subject: The hiker at a fork in the ridge trail, a yellow ribbon on a branch pointing north, layered peaks, empty top area for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+
+## share-card.png
+
+- Destination: `E:\Game_project\marugeum\store\share-card.png`
+- Target size: 1200x630
+- Transparent background: no
+- Style reference: E:\Game_project\marugeum\public\art\scene-start-wide.webp
+
+```text
+Image 1 is a style reference only: match monochrome linocut woodblock print, bold black ink on warm aged paper, high contrast, coarse carved texture, one muted gold accent used sparingly, Korean mountain ridges after a catastrophe. Do not copy its composition. Create the requested store image at 1200x630. Subject: Social link preview: the hiker small on the right, a family photograph pinned to a rock in the foreground left, empty middle-left for the title. Where noted, leave calm empty space for a title to be added later. No text, letters, logo, or watermark.
+```
+

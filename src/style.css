@@ -370,7 +370,7 @@ html[data-text="large"] .stat > i { width: 34px; }
 .bodygrid { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: start; }
 .figure { width: 110px; height: 200px; }
 .slines p { margin: 0 0 4px; font-size: 11px; }
-.sline { display: grid; grid-template-columns: 40px 1fr 32px 40px; align-items: center; gap: 6px; font-size: 12px; height: 25px; }
+.sline { display: grid; grid-template-columns: 58px 1fr 32px 40px; align-items: center; gap: 6px; font-size: 12px; height: 25px; }
 .sline svg { width: 100%; height: 22px; background: rgba(255, 255, 255, 0.03); border-radius: 4px; }
 .sline b { text-align: right; }
 .sline small { font-size: 11px; color: var(--muted); }
@@ -405,7 +405,7 @@ html[data-text="large"] .stat > i { width: 34px; }
 .route .ribbon.mine { color: #f0c85a; font-weight: 700; }
 
 /* 손 놀이. 수리·불·요리를 손으로 */
-.overlay.hand .card { width: min(580px, 94vw); }
+.overlay.hand .card { width: min(700px, 94vw); }
 .overlay.hand .how { margin: 0 0 10px; font-size: 13px; }
 .overlay.hand canvas { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); touch-action: none; cursor: pointer; }
 .overlay.hand .verdict { min-height: 1.4em; margin: 8px 0 0; text-align: center; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; }
@@ -415,3 +415,28 @@ html[data-text="large"] .stat > i { width: 34px; }
 .overlay .hiddens .diff { font-size: 11px; color: var(--muted); }
 .overlay .diff.hard { color: #f0c85a; font-weight: 700; }
 .end .after.secret { color: #f0d9a8; border-top-style: solid; border-top-color: rgba(240, 217, 168, 0.5); }
+
+/* UI 아이콘(ui-*.webp). 글자 높이에 맞춘다 */
+.uic { width: 1.35em; height: 1.35em; object-fit: contain; vertical-align: -0.32em; margin-right: 3px; }
+.stat .uic { width: 18px; height: 18px; margin: 0; }
+.hud .weather .uic, .hud .family .uic { width: 18px; height: 18px; }
+.hud .crisis.on .uic { filter: brightness(0.2); }
+.tabs button .uic { width: 17px; height: 17px; margin-right: 4px; }
+.tabs button.on .uic { filter: brightness(0.15); }
+.ribbon .uic { width: 15px; height: 15px; }
+.sline .sl { white-space: nowrap; }
+.sline .sl .uic { width: 15px; height: 15px; }
+.overlay .hiddens .uic { width: 16px; height: 16px; }
+.overlay .diff.hard .uic { width: 14px; height: 14px; margin: 0; }
+
+/* 제목 화면 로고. 먹 글자라 종이 띠 위에 얹는다 */
+.overlay h1.logo { display: block; padding: 12px 18px 8px; border-radius: 6px; background-color: #e9dcc0; background-size: 512px; box-shadow: inset 0 0 18px rgba(80, 60, 30, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45); letter-spacing: 0; line-height: 0; }
+.overlay h1.logo img { display: block; width: 100%; max-height: 150px; object-fit: contain; }
+
+/* 수첩 바탕 */
+.overlay.book { background-size: cover; background-position: center; }
+
+/* 엔딩의 덧그림. 길 위의 사람들, 숨은 그 뒤 */
+.end .ending-art.extra { max-height: min(220px, 20vh); margin: 10px 0; opacity: 0.95; }
+/* 좁은 화면에서는 날씨 글과 두 사람 이름을 아이콘이 대신한다(글은 title 에 남는다) */
+@media (max-width: 1400px) { .hud .weather .wtxt, .hud .family .who { display: none; } }

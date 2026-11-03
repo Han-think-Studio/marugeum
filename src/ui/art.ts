@@ -40,3 +40,8 @@ export function iconHtml(id: string, glyph: string, onReady?: () => void): strin
   const src = resolveArt(`icon:${id}`, [`./art/icon-${id}.webp`, ...(fb ? [`./art/${fb}.webp`] : [])], onReady);
   return `<span class="ico">${src ? `<img src="${src}" alt="">` : `<b class="glyph">${glyph}</b>`}</span>`;
 }
+
+// 작은 UI 아이콘(public/art/ui-*.webp). 글자 옆에 붙는다. 그림이 없으면 조용히 사라지거나 대신 글자(fallback)가 된다
+export function uiIcon(name: string, cls = '', fallback = ''): string {
+  return `<img class="uic${cls ? ' ' + cls : ''}" src="./art/ui-${name}.webp" alt="${fallback}" onerror="${fallback ? `this.replaceWith('${fallback}')` : 'this.remove()'}">`;
+}

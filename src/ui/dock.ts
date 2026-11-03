@@ -1,3 +1,4 @@
+import { uiIcon } from './art';
 import { EQUIP_INFO, SUPPLY_LABEL, type GameState, type SupplyKey } from '../core/types';
 import { condOf, equipLabel, packCap, packWeight, weightLimit, weightPenalty } from '../game/state';
 
@@ -82,7 +83,7 @@ export function bodyHtml(state: GameState): string {
     const d = Math.round(s[k] - day);
     const worse = k === 'rad' ? d > 0 : d < 0;
     const band = k === 'rad' ? '<rect x="0" y="0" width="150" height="10" fill="rgba(224,122,95,0.12)"/>' : '<rect x="0" y="18" width="150" height="8" fill="rgba(224,122,95,0.12)"/>';
-    return `<div class="sline"><span class="sl">${label}</span><svg viewBox="0 0 150 26" preserveAspectRatio="none">${band}${pts ? `<polyline points="${pts}" fill="none" stroke="${col(k)}" stroke-width="1.8"/>` : ''}</svg>` +
+    return `<div class="sline"><span class="sl">${uiIcon(`stat-${k}`)}${label}</span><svg viewBox="0 0 150 26" preserveAspectRatio="none">${band}${pts ? `<polyline points="${pts}" fill="none" stroke="${col(k)}" stroke-width="1.8"/>` : ''}</svg>` +
       `<b style="color:${col(k)}">${Math.round(s[k])}</b><small class="${d === 0 ? '' : worse ? 'bad' : 'good'}">${d > 0 ? '▲' : d < 0 ? '▼' : '·'}${d !== 0 ? Math.abs(d) : ''}</small></div>`;
   }).join('');
   return `<div class="bodygrid">${figure}<div class="slines"><p class="muted">지난 이틀 · 오른쪽 숫자는 하루 전보다</p>${lines}</div></div>` +
