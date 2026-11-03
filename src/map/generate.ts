@@ -54,6 +54,7 @@ export function generateMap(rng: Rng): MapNode[] {
       fuelClock: 0,
       heaterClock: 0,
       freshDay: 0,
+      snare: null,
     };
     nodes.push(node);
     byStage[p.stage].push(node);

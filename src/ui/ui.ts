@@ -1,4 +1,4 @@
-import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, EQUIP_INFO, SUPPLY_KEYS, SUPPLY_LABEL, FAMILY, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, edgeKey, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
+import { CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, ENDING_INFO, EQUIP_INFO, SNARE_NODES, SUPPLY_KEYS, SUPPLY_LABEL, FAMILY, INDOOR, KIND_LABEL, SIDE_LABEL, STANDOFF_ACTION_LABEL, STANDOFF_INFO, UPGRADES, WOOD_NODES, edgeKey, type GameState, type MapNode, type SceneObject, type StandoffAction } from '../core/types';
 import { drawMap, hitTest, makeView, type View } from '../map/render';
 import { REGIONS } from '../map/generate';
 const REGION_OF = (n: MapNode): string => REGIONS[n.stage] ?? '';
@@ -10,6 +10,7 @@ import {
   canScout, scout, scoutBlock, scoutHours, securingStatus, travelBlock, endingNotes, hoursTo, equipLabel,
   canMaintain, maintain, maintainNeed, condOf, canListenRadio, listenRadio, radioSource, batteryCount, crisisText, crisisActive,
   canFirstAid, canPurify, canTakeIodine, firstAid, purify, takeIodine, weightLimit,
+  SNARE_WAIT, canFilter, canSetSnare, canSmoke, checkSnare, filterWater, setSnare, smoke, snareReady,
   travelHours, travelTo, visibleObjects, waterKind, withdraw,
 } from '../game/state';
 import { showBase } from './base';
@@ -273,7 +274,7 @@ export function mountUI(root: HTMLElement, state: GameState): () => void {
     const map: Record<string, () => boolean> = {
       r: () => rest(state), s: () => { markAction(state, 'sleep'); return sleep(state); }, w: () => drink(state), q: () => fill(state),
       e: () => eat(state), f: () => lookAround(state), b: () => makeCamp(state), g: () => deposit(state), t: () => withdraw(state),
-      n: () => gatherWood(state), p: () => boil(state),
+      n: () => gatherWood(state), p: () => (canFilter(state) ? filterWater(state) : boil(state)), d: () => smoke(state),
       h: () => canLightFire(state) && handThen('match', (sk) => lightFire(state, sk), render),
       a: () => canCook(state) && handThen('cook', (sk) => cook(state, sk), render),
       c: () => { showBase(root, state, render); return false; },
@@ -538,8 +539,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
     const b = document.createElement('button');
     b.className = 'act';
     b.disabled = !enabled;
-    b.title = `${label} (${key}) · ${meta}`;
-    b.innerHTML = `${iconHtml(icon, glyph, iconReady)}<span class="al"><b>${label}</b><span class="meta">${meta}</span></span><span class="key">${key}</span>`;
+    b.title = `${label}${key ? ` (${key})` : ''} · ${meta}`;
+    b.innerHTML = `${iconHtml(icon, glyph, iconReady)}<span class="al"><b>${label}</b><span class="meta">${meta}</span></span>${key ? `<span class="key">${key}</span>` : ''}`;
     b.addEventListener('click', () => {
       if (fn()) rerender();
     });
@@ -558,6 +559,8 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
   act('fw', 'wood', '木', '땔감 모으기', 'N', !WOOD_HERE(cur.kind) ? '나무가 없다' : p.wood >= cap.wood ? '배낭이 가득' : '1시간', () => gatherWood(state), canGatherWood(state));
   act('fw', 'fire', '火', hasFire(state) ? '불 타는 중' : '불 피우기', 'H', hasFire(state) ? `${state.fire!.hours}시간 남음` : p.wood <= 0 ? '땔감이 없다' : rainBlocksFire(state) ? '비 · 지붕이 필요하다' : '땔감 1 · 10시간', () => handThen('match', (sk) => lightFire(state, sk), rerender), canLightFire(state));
   act('fw', 'cook', '煮', '국 끓이기', 'A', !hasFire(state) ? '불이 필요하다' : p.water < 1 ? '깨끗한 물이 없다' : p.food + p.fresh < 1 ? '먹을 것이 없다' : '물 1 · 먹을 것 1 · 1시간', () => handThen('cook', (sk) => cook(state, sk), rerender), canCook(state));
+  act('fw', 'smoke', '燻', '훈연하기', 'D', !hasFire(state) ? '불이 필요하다' : p.fresh < 1 ? '신선식이 없다' : p.wood < 1 ? '땔감이 없다' : `신선식 ${Math.min(3, p.fresh)} → 보존식 · 땔감 1 · 3시간`, () => smoke(state), canSmoke(state));
+  if (cur.upgrades.includes('filter')) act('fw', 'filter', '濾', '정수기로 거르기', 'P', p.dirty > 0 ? `오염수 ${Math.min(3, p.dirty)}통 · 1시간 · 불 없이` : '오염수가 없다', () => filterWater(state), canFilter(state));
   act('fw', 'boil', '沸', '물 끓이기', 'P', !hasFire(state) ? '불이 필요하다' : p.dirty > 0 ? `오염수 ${Math.min(2, p.dirty)}통 · 1시간` : '오염수가 없다', () => boil(state), canBoil(state));
   if (state.equip.some((e) => e.kind === 'purifier')) act('fw', 'purifier', '淨', '정수 알약', 'Y', canPurify(state) ? `오염수 ${Math.min(2, p.dirty)}통 정수` : '오염수가 없다', () => purify(state), canPurify(state));
   const hid = hiddenCount(cur);
@@ -568,6 +571,10 @@ function renderPanel(refs: Refs, state: GameState, rerender: () => void): void {
       const info = CAMP_TIERS[tier];
       act('place', 'camp', '營', `거점 세우기`, 'B', `${tier === 3 ? (CAMP_HOUSE_LABEL[cur.kind] ?? info.label) : info.label} · ${info.hours}시간`, () => makeCamp(state), canCamp(state));
     } else act('place', 'camp', '營', '거점 세우기', 'B', '텐트·바위굴·지붕이 필요하다', () => false, false);
+  }
+  if (SNARE_NODES.has(cur.kind)) {
+    if (cur.snare === null) act('place', 'snare', '罠', '올무 놓기', '', hasEquip(state, 'rope') ? '밧줄 · 1시간 · 열 시간 뒤에 본다' : p.parts > 0 ? '부품 1(철사) · 1시간' : '밧줄이나 부품이 필요하다', () => setSnare(state), canSetSnare(state));
+    else act('place', 'snare', '罠', '올무 보기', '', snareReady(state) ? '1시간 · 걸렸을지도' : `${Math.max(1, SNARE_WAIT - (absHour(state) - cur.snare))}시간 뒤에`, () => checkSnare(state), snareReady(state));
   }
   if (!INDOOR.has(cur.kind) && !cur.windbreak) act('place', 'windbreak', '壁', '바람막이', 'K', p.wood >= 1 ? '땔감 1 · 1시간' : '땔감이 없다', () => buildWindbreak(state), canWindbreak(state));
   act('place', 'base', '庫', atCamp(state) ? '거점 화면' : '짐 정리', 'C', atCamp(state) ? '저장고 · 시설 · 수리' : `두고 가져가기${cur.equip.length ? ` · 둔 장비 ${cur.equip.length}` : ''}`, () => { showBase(refs.hud.closest('#app') as HTMLElement, state, rerender); return false; });

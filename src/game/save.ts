@@ -42,6 +42,7 @@ function upgrade(state: GameState): GameState {
   for (const n of state.nodes) {
     if (n.campTier === undefined) n.campTier = n.camp ? (INDOOR.has(n.kind) ? 3 : n.cave ? 2 : 1) : 0;
     if (n.rested === undefined) n.rested = n.camp;
+    if (n.snare === undefined) n.snare = null;
     if (n.secured === undefined) n.secured = n.camp && n.looked;
     if (n.scouted === undefined) n.scouted = false;
   }

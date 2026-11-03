@@ -29,7 +29,7 @@ for (const e of ['reunion', 'quarantine', 'names', 'stay']) add(`ending-${e}`, '
 for (const t of ['day', 'night', 'rain', 'fog', 'snow']) add(`travel-${t}`, '이동 전환');
 for (const t of ['house', 'camp', 'fire', 'open']) add(`night-${t}`, '밤 전환');
 for (const t of ['tent', 'cave', 'house']) add(`camp-${t}`, '거점 단계');
-for (const t of ['window', 'earth', 'roof', 'hearth', 'windbreak']) add(`upgrade-${t}`, '보강');
+for (const t of ['window', 'earth', 'roof', 'hearth', 'filter', 'windbreak']) add(`upgrade-${t}`, '보강');
 const codeMissing = [...want].filter(([n]) => !art.has(n));
 
 // 2) 3차 목록에 적은 그림

@@ -46,6 +46,7 @@ export interface MapNode {
   fuelClock: number; // 발전기가 돈 시간. 8시간마다 연료 1
   heaterClock: number; // 난로가 돈 시간. 10시간마다 경유 1
   freshDay: number; // 저장고 신선식 중 가장 오래된 것을 넣은 날
+  snare: number | null; // 올무를 놓은 때(절대 시각). 열 시간이 지나면 볼 수 있다
 }
 
 // 보급품. 수량으로 센다
@@ -197,6 +198,8 @@ export const GEAR_LABEL: Record<EquipKind, string> = Object.fromEntries(
 ) as Record<EquipKind, string>;
 
 // 땔감을 모을 수 있는 곳. 군 시설과 출발·도착지는 제외
+// 올무를 놓을 만한 곳. 짐승이 다니는 숲과 골짜기
+export const SNARE_NODES: ReadonlySet<NodeKind> = new Set(['start', 'pass', 'temple', 'shelter', 'valley', 'spring']);
 export const WOOD_NODES: ReadonlySet<NodeKind> = new Set(['start', 'peak', 'pass', 'temple', 'shelter', 'village', 'valley', 'spring']);
 
 export const GEN_HOURS_PER_UNIT = 8; // 발전기 연료 1통으로 도는 시간
@@ -477,7 +480,7 @@ export const OBJECT_LABEL: Record<ObjectKind, string> = {
 // ---------- 안식처 ----------
 // 거점 보강. 생산 시설이 아니라 몸을 지키는 손질이다. 재료는 땔감과 부품과 시간뿐
 
-export type UpgradeId = 'window' | 'earth' | 'roof' | 'hearth';
+export type UpgradeId = 'window' | 'earth' | 'roof' | 'hearth' | 'filter';
 
 export interface UpgradeInfo {
   label: string;
@@ -493,8 +496,9 @@ export const UPGRADES: Record<UpgradeId, UpgradeInfo> = {
   earth: { label: '흙 덮기', desc: '피폭이 절반이 된다', story: '세 시간 동안 흙을 퍼 날라 벽 바깥에 쌓았다. 흙은 낙진을 막는다. 옛날 교본에 그렇게 적혀 있었다.', hours: 3, wood: 0, parts: 0 },
   roof: { label: '지붕 수리', desc: '비가 새지 않는다. 비 오는 날의 추위와 피폭이 줄어든다', story: '구멍 난 지붕에 천막을 대고 철사로 묶었다. 빗물이 더는 안으로 들어오지 않는다.', hours: 2, wood: 0, parts: 1 },
   hearth: { label: '화덕', desc: '불이 두 배 오래 타고 안이 더 따뜻하다', story: '돌을 쌓아 화덕을 만들고 연통을 냈다. 연기가 밖으로 빠지니 불을 밤새 둘 수 있다.', hours: 2, wood: 1, parts: 0 },
+  filter: { label: '숯·모래 정수기', desc: '불 없이 오염수를 거른다. 한 시간에 세 통', story: '구멍 낸 통에 자갈, 모래, 모닥불에서 꺼낸 숯을 켜켜이 채웠다. 맨 위에 천을 덮었다. 부은 물이 한참 뒤에 맑게 떨어졌다.', hours: 2, wood: 2, parts: 0 },
 };
-export const UPGRADE_IDS: UpgradeId[] = ['window', 'earth', 'roof', 'hearth'];
+export const UPGRADE_IDS: UpgradeId[] = ['window', 'earth', 'roof', 'hearth', 'filter'];
 
 // 거점 단계. 자리가 정한다. 텐트(1) → 바위굴(2) → 지붕 있는 집(3)
 // 단계가 높을수록 저장고가 크고 보강을 더 할 수 있고 잠이 낫다
@@ -510,9 +514,9 @@ export interface CampTierInfo {
 }
 
 export const CAMP_TIERS: Record<1 | 2 | 3, CampTierInfo> = {
-  1: { label: '텐트 거점', desc: '비와 바람을 반쯤 막는다. 저장고는 바위틈 하나. 보강은 못 한다', story: '텐트를 치고 끝자락을 돌로 눌렀다. 바위틈에 비닐을 깔아 작은 저장고를 만들었다. 작지만 돌아올 자리다.', hours: 1, storeCap: 8, upgrades: [] },
-  2: { label: '바위굴 거점', desc: '바위가 비와 낙진을 막는다. 흙 덮기와 화덕을 할 수 있다', story: '굴 안쪽을 고르고 마른 가지를 깔았다. 입구 옆 움푹한 곳에 짐을 쌓았다. 바위는 비도 낙진도 뚫지 못한다.', hours: 2, storeCap: 16, upgrades: ['earth', 'hearth'] },
-  3: { label: '집 거점', desc: '지붕과 벽. 모든 보강과 시설을 둘 수 있다', story: '창을 막고 잠자리를 만들고 저장고를 비웠다. 벽 안쪽에 내 자리가 생겼다.', hours: 3, storeCap: 40, upgrades: ['window', 'earth', 'roof', 'hearth'] },
+  1: { label: '텐트 거점', desc: '비와 바람을 반쯤 막는다. 저장고는 바위틈 하나. 보강은 정수기만', story: '텐트를 치고 끝자락을 돌로 눌렀다. 바위틈에 비닐을 깔아 작은 저장고를 만들었다. 작지만 돌아올 자리다.', hours: 1, storeCap: 8, upgrades: ['filter'] },
+  2: { label: '바위굴 거점', desc: '바위가 비와 낙진을 막는다. 흙 덮기와 화덕을 할 수 있다', story: '굴 안쪽을 고르고 마른 가지를 깔았다. 입구 옆 움푹한 곳에 짐을 쌓았다. 바위는 비도 낙진도 뚫지 못한다.', hours: 2, storeCap: 16, upgrades: ['earth', 'hearth', 'filter'] },
+  3: { label: '집 거점', desc: '지붕과 벽. 모든 보강과 시설을 둘 수 있다', story: '창을 막고 잠자리를 만들고 저장고를 비웠다. 벽 안쪽에 내 자리가 생겼다.', hours: 3, storeCap: 40, upgrades: ['window', 'earth', 'roof', 'hearth', 'filter'] },
 };
 
 // 지붕 있는 거점은 자리 종류로 부른다

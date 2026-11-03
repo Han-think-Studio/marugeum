@@ -33,6 +33,7 @@ const ICON_FALLBACK: Record<string, string> = {
   wood: 'supply-wood', fire: 'equip-matches', boil: 'supply-dirty', look: 'mark-secured', camp: 'camp-tent', windbreak: 'upgrade-windbreak',
   base: 'camp-house', maintain: 'equip-tools', deposit: 'camp-house', withdraw: 'camp-house', iodine: 'equip-iodine', medkit: 'equip-medkit',
   purifier: 'equip-purifier', radio: 'equip-radio', cook: 'supply-fresh',
+  snare: 'equip-rope', smoke: 'supply-food', filter: 'supply-water',
 };
 
 export function iconHtml(id: string, glyph: string, onReady?: () => void): string {

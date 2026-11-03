@@ -1,7 +1,7 @@
 import { Rng } from '../core/rng';
 import {
   EQUIP_INFO, FIRE_HOURS, FOOD_UNIT, INDOOR, KIND_LABEL, PACK_BIG, PACK_SMALL, REPAIR_BASE, REPAIR_HOURS, REPAIR_WITH_TOOLS,
-  SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
+  SNARE_NODES, SUPPLY_KEYS, WATER_UNIT, WOOD_NODES, edgeKey, emptySupplies,
   CARRIER_EXTRA, CAMP_HOUSE_LABEL, CAMP_TIERS, CRISIS_INFO, MAINTAIN_GAIN, MAINTAIN_HOURS, FAMILY, STANDOFF_INFO, SUPPLY_LABEL, UPGRADES, WINDBREAK, type CampTier, type Equip, type GameState, type MapNode, type PackCap, type Stats, type Supplies, type SupplyKey, type UpgradeId, type StandoffAction,
 } from '../core/types';
 import { generateMap } from '../map/generate';
@@ -906,6 +906,109 @@ export function boil(state: GameState): boolean {
     state.pack.dirty -= n;
     state.pack.water += n;
     addLog(state, `물을 끓이고 천에 걸렀다. 깨끗한 물 ${n}통이 됐다.`);
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+// ---------- 거점의 손일: 올무, 훈연, 정수기 ----------
+
+// 올무. 놓는 데 한 시간, 열 시간 뒤부터 볼 수 있다. 밧줄이 있으면 밧줄로, 없으면 부품(철사) 하나로 만든다
+export const SNARE_WAIT = 10;
+
+export function canSetSnare(state: GameState): boolean {
+  const n = currentNode(state);
+  return SNARE_NODES.has(n.kind) && n.snare === null && (hasEquip(state, 'rope') || state.pack.parts > 0);
+}
+
+export function snareReady(state: GameState): boolean {
+  const n = currentNode(state);
+  return n.snare !== null && absHour(state) - n.snare >= SNARE_WAIT;
+}
+
+export function setSnare(state: GameState): boolean {
+  if (busy(state) || !canSetSnare(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  giveRng(state, rng);
+  if (!res.died) {
+    const wire = !hasEquip(state, 'rope');
+    if (wire) state.pack.parts -= 1;
+    node.snare = absHour(state);
+    addLog(state, wire ? '부품에서 철사를 풀어 올무를 만들었다. 짐승 길목의 낮은 가지에 묶었다. 열 시간쯤 뒤에 본다.' : '밧줄 끝을 풀어 올무를 만들었다. 짐승 길목의 낮은 가지에 묶었다. 열 시간쯤 뒤에 본다.');
+  }
+  afterAction(state);
+  return true;
+}
+
+// 올무 보기. 한 시간. 잡히거나, 비었거나, 끊겨 있다. 안정된 자리는 사람 냄새가 덜해 조금 더 잘 잡힌다
+export function checkSnare(state: GameState): boolean {
+  if (busy(state) || !snareReady(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  if (!res.died) {
+    const r = rng.next() - (node.secured ? 0.1 : 0);
+    const room = packCap(state).food - state.pack.food - state.pack.fresh;
+    if (r < 0.15) {
+      node.snare = null;
+      addLog(state, '올무가 끊겨 있었다. 가지에 털 몇 가닥만 걸려 있었다. 다시 놓아야 한다.');
+    } else if (r < 0.5) {
+      node.snare = absHour(state);
+      addLog(state, '올무는 비어 있었다. 매듭을 고쳐 다시 걸어 두었다.');
+    } else {
+      const big = r > 0.92;
+      const got = Math.max(0, Math.min(big ? 3 : 2, room));
+      state.pack.fresh += got;
+      node.snare = absHour(state);
+      addLog(state, (big ? '고라니 새끼가 걸려 있었다. 오래 망설였다.' : '산토끼 한 마리가 걸려 있었다.') + (got > 0 ? ` 손질해서 신선식 ${got}을 챙겼다. 이틀 안에 먹거나 훈연해야 한다.` : ' 배낭에 자리가 없어 두고 왔다.') + ' 올무는 다시 걸어 두었다.');
+    }
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+// 훈연·말리기. 불 위에서 세 시간, 땔감 하나. 신선식 셋까지 상하지 않는 보존식이 된다
+export function canSmoke(state: GameState): boolean {
+  return hasFire(state) && state.pack.fresh > 0 && state.pack.wood > 0;
+}
+
+export function smoke(state: GameState): boolean {
+  if (busy(state) || !canSmoke(state)) return false;
+  const node = currentNode(state);
+  // 먼저 불 위에 건다. 거는 동안 상하지 않는다
+  const n = Math.min(3, state.pack.fresh);
+  state.pack.fresh -= n;
+  state.pack.wood -= 1;
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 3, 'work');
+  if (!res.died) {
+    state.pack.food += n;
+    addLog(state, `젖은 생나무를 얹어 연기를 피우고 고기와 나물을 그 위에 걸었다. 세 시간. 신선식 ${n}이 보존식이 됐다. 손과 옷에서 한동안 연기 냄새가 났다.`);
+  }
+  giveRng(state, rng);
+  afterAction(state);
+  return true;
+}
+
+// 숯·모래 정수기로 거르기. 거점 보강. 불 없이 한 시간에 오염수 세 통
+export function canFilter(state: GameState): boolean {
+  return currentNode(state).upgrades.includes('filter') && state.pack.dirty > 0;
+}
+
+export function filterWater(state: GameState): boolean {
+  if (busy(state) || !canFilter(state)) return false;
+  const node = currentNode(state);
+  const rng = takeRng(state);
+  const res = passHours(state, rng, node, 1, 'work');
+  if (!res.died) {
+    const n = Math.min(3, state.pack.dirty);
+    state.pack.dirty -= n;
+    state.pack.water += n;
+    addLog(state, `정수기에 오염수를 붓고 기다렸다. 숯과 모래를 지난 물이 맑게 떨어졌다. 깨끗한 물 ${n}통.`);
   }
   giveRng(state, rng);
   afterAction(state);
