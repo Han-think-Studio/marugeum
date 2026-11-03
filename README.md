@@ -9,6 +9,7 @@
 | 한 번에 | `play.cmd` 더블클릭 | 받기 → 빌드 → 브라우저로 열림 (http://localhost:4173). 창을 닫으면 끝 |
 | 개발 중 | `npm.cmd run dev` | 고치면 바로 반영되는 개발 서버 (http://localhost:5173) |
 | 설치 없이 앱으로 | `npm.cmd run desktop:build` 뒤 `src-tauri\target\release\Marugeum.exe` | 서버 없이 창으로 뜬다. 더블클릭 |
+| itch.io 웹 판 | `npm.cmd run pack:itch` → `release\marugeum-web-<버전>.zip` | 브라우저에서 하는 판. 올리는 순서는 `docs/release-itch.md` |
 
 바탕화면 바로가기는 `tools\make-shortcut.ps1` 을 한 번 돌리면 생긴다.
 
@@ -57,7 +58,7 @@ npm run desktop:build
 
 ```powershell
 npm run check:events   # 사건 데이터만
-npm test               # 사건 검사 + 기능 테스트 13개 (처음 한 번 npx playwright install chromium)
+npm test               # 사건 검사 + 기능 테스트 17개 (처음 한 번 npx playwright install chromium)
 ```
 
 이벤트 데이터의 막다른 선택지, 중복 id, 단계 범위, 엔딩 조건 빈틈을 잡는다.

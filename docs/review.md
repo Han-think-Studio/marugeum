@@ -212,6 +212,7 @@
 | 숨은 것 더: 아직 안 쓰는 표시 20여 개(곤돌라에 소리친 것, 바다를 오래 본 것, 숨어 있던 밤, 전단 …). 흩어진 재료는 `when.minFlags` 로 모은다 | `src/game/hidden.ts` |
 | (끝남) 히든 요소: 세워 두고 안 쓰는 표시 40개(범종·숫자 방송·열여섯 살 아이·재워 준 손님·방명록 …)를 엮어 향로봉의 숨은 장면과 숨은 엔딩으로 | `src/data/*`, 엔딩 |
 | 손 놀이를 더: 리본 묶기(매듭), 올무 매듭. | `src/ui/handwork.ts` |
+| itch.io 에 올리기: zip(`npm run pack:itch`)·스크린샷 6장(`store/screenshots`)·페이지 글은 준비됐다. 계정과 올리기는 직접. 순서는 docs/release-itch.md | itch.io |
 | 스토어: 캡슐 7장에 로고를 얹었다(`python tools/store-logo.py`, 원본은 `store/art/`). 스팀에 올리기 전에 Steamworks 템플릿으로 라이브러리 로고 크기(1280x720 또는 1280x1280)만 한 번 더 확인 | `store/` |
 | 되돌아갈 이유: 지역 자원 고갈 표시가 없다 | 지도 오른쪽 목록 |
 | all-events 안의 옛 봇(careful)이 24판 중 19판을 'stuck' 으로 끝낸다. 지금 규칙을 모르는 봇이다. bot-sim 으로 바꾸거나 지운다 | `tools/tests/all-events.cjs` |

@@ -11,6 +11,7 @@
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
+    "pack:itch": "npm run build && node tools/pack-itch.cjs",
     "check:events": "node tools/check-events.cjs",
     "test": "npm run check:events && node tools/tests/run.cjs",
     "test:bots": "node tools/tests/run.cjs --bots"
