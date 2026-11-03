@@ -231,10 +231,15 @@ function cookGame(): Game {
     draw(g, w, h, c) {
       const cx = w / 2;
       // 불. 그림이 있으면 세기만큼 키우고, 너무 세면 붉게 덮는다
-      // 불은 냄비 아래에 바닥을 맞춰 위로 자란다
-      const fs = 34 + heat * 46;
-      if (put(g, 'fire', cx, 122 - fs / 2, fs)) {
-        if (heat > 0.9) { g.fillStyle = 'rgba(224,122,95,0.35)'; g.beginPath(); g.arc(cx, 122 - fs / 2, fs / 2, 0, Math.PI * 2); g.fill(); }
+      // 불은 냄비 아래에 바닥을 맞춰 위로 자란다. 바탕 그림의 모닥불과 섞이지 않게 둘레를 빛으로 밝힌다
+      const fs = 44 + heat * 50;
+      const fy = 114 - fs / 2;
+      const glow = g.createRadialGradient(cx, fy + fs * 0.2, 4, cx, fy + fs * 0.2, fs * 0.9);
+      glow.addColorStop(0, heat > 0.9 ? 'rgba(240,110,80,0.7)' : `rgba(255,190,90,${0.25 + heat * 0.45})`);
+      glow.addColorStop(1, 'rgba(255,190,90,0)');
+      g.fillStyle = glow; g.fillRect(cx - fs, fy - fs / 2, fs * 2, fs * 1.6);
+      if (put(g, 'fire', cx, fy, fs)) {
+        if (heat > 0.9) { g.fillStyle = 'rgba(224,122,95,0.35)'; g.beginPath(); g.arc(cx, fy, fs / 2, 0, Math.PI * 2); g.fill(); }
       } else {
         const fh = 6 + heat * 26;
         for (let i = -2; i <= 2; i++) {
@@ -244,13 +249,13 @@ function cookGame(): Game {
       }
       // 냄비와 김. 끓으면 냄비가 살짝 들썩인다
       const jig = heat >= band[0] ? Math.sin(bubble * 3) * 1.2 : 0;
-      if (!put(g, 'pot', cx, 50 + jig, 72)) {
+      if (!put(g, 'pot', cx, 38 + jig, 62)) {
         g.fillStyle = '#4a4f57'; g.fillRect(cx - 50, 56, 100, 40);
         g.fillStyle = '#2d3036'; g.fillRect(cx - 56, 52, 112, 6);
       }
       if (heat >= band[0]) {
         g.strokeStyle = 'rgba(250,245,230,0.7)'; g.lineWidth = 2;
-        for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 16, 18); g.quadraticCurveTo(cx + i * 16 + Math.sin(bubble + i) * 8, 9, cx + i * 16, 0); g.stroke(); }
+        for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 14, 12); g.quadraticCurveTo(cx + i * 14 + Math.sin(bubble + i) * 6, 6, cx + i * 14, 0); g.stroke(); }
       }
       label(g, `${Math.max(0, Math.ceil(total - t))}초`, 40, h - 38, 'left', c);
       label(g, burn > 0.6 ? '바닥이 탄다' : '불 세기', w - 40, h - 38, 'right', c);
