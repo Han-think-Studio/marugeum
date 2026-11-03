@@ -272,6 +272,7 @@ function applyEffect(state: GameState, rng: Rng, node: MapNode, e: Effect, cap: 
     node.store.fresh = Math.max(0, node.store.fresh - (e.storeLoss - fromFood));
   }
   if (e.flag) state.flags[e.flag] = true;
+  if (e.flag2) state.flags[e.flag2] = true;
   if (e.clue && !state.flags[`clue:${e.clue}`]) {
     state.flags[`clue:${e.clue}`] = true;
     addLog(state, `가족의 흔적. 단서 ${clueCount(state)}개.`);

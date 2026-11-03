@@ -884,7 +884,7 @@ export const EVENTS: EventDef[] = [
     when: { places: ['neuljae'] },
     choices: [
       { text: '읽는다', outcomes: [{ text: '"하율이 열 내리게 해 주세요. 그 사람 길 잃지 않게 해 주세요. 밥 거르지 않게 해 주세요. 셋 다 들어주시면 다시 와서 절 올릴게요." 끝에 "ㅅㅇ". 수연은 늘 이니셜로 끝을 맺었다. 길 잃지 않았다. 밥은 거르는 중이다.', effects: { mind: 10, flag: 'suyeon:neuljae' } }] },
-      { text: '내 쪽지를 묶는다', outcomes: [{ text: '수첩을 한 장 찢어 그 옆에 묶었다. "다 들어주셨어요. 하나는 아직이지만." 바람이 두 장을 한꺼번에 흔들었다.', effects: { mind: 12, flag: 'suyeon:neuljae' } }] },
+      { text: '내 쪽지를 묶는다', outcomes: [{ text: '수첩을 한 장 찢어 그 옆에 묶었다. "다 들어주셨어요. 하나는 아직이지만." 바람이 두 장을 한꺼번에 흔들었다.', effects: { mind: 12, flag: 'suyeon:neuljae', flag2: 'suyeon_note_tied' } }] },
     ],
   },
   {
@@ -897,7 +897,7 @@ export const EVENTS: EventDef[] = [
     when: { places: ['hwabangjae'] },
     choices: [
       { text: '글씨를 읽는다', outcomes: [{ text: '"중산리에서 걸어오는 키 큰 남자. 우리 먼저 가. 철암에서 하룻밤 잤어. 하율이 열이 좀 내렸어. 물 끓여 먹어. 양말 말려." 잔소리까지 수연이다. 거울 속 내 얼굴이 웃고 있었다. 오랜만이다.', effects: { mind: 15, flag: 'suyeon:hwabang' } }] },
-      { text: '그림을 본다', outcomes: [{ text: '동그라미 셋. 제일 큰 것만 멀리 떨어져 있고 화살표가 그쪽을 가리킨다. 하율의 그림에 수연이 글씨를 보탰다. "아빠 여기 와." 양말을 벗어 짜고 배낭 끈에 묶어 말렸다. 시키는 대로 한다.', effects: { mind: 12, fatigue: 5, flag: 'suyeon:hwabang' } }] },
+      { text: '그림을 본다', outcomes: [{ text: '동그라미 셋. 제일 큰 것만 멀리 떨어져 있고 화살표가 그쪽을 가리킨다. 하율의 그림에 수연이 글씨를 보탰다. "아빠 여기 와." 양말을 벗어 짜고 배낭 끈에 묶어 말렸다. 시키는 대로 한다.', effects: { mind: 12, fatigue: 5, flag: 'suyeon:hwabang', flag2: 'suyeon_socks' } }] },
     ],
   },
   {
@@ -910,7 +910,7 @@ export const EVENTS: EventDef[] = [
     when: { places: ['noinbong'] },
     choices: [
       { text: '어른 글씨를 읽는다', outcomes: [{ text: '"아빠는 걸어서 와. 아빠 걸음은 느리지만 한 번도 안 멈춰. 그러니까 꼭 와." 수연이 하율에게 한 말을 그대로 받아 적은 것이다. 하율을 달래던 말인지 자기를 달래던 말인지 모르겠다. 멈추지 않는다. 그건 할 수 있다.', effects: { mind: 15, flag: 'suyeon:noinbong' } }] },
-      { text: '그림을 챙긴다', outcomes: [{ text: '압정을 뽑고 그림을 접어 사진 뒤에 끼웠다. 사진이 조금 두꺼워졌다. 산장지기 사진에 고개를 숙였다. 맡겨 두었던 것을 찾아갑니다.', effects: { mind: 12, flag: 'suyeon:noinbong' } }] },
+      { text: '그림을 챙긴다', outcomes: [{ text: '압정을 뽑고 그림을 접어 사진 뒤에 끼웠다. 사진이 조금 두꺼워졌다. 산장지기 사진에 고개를 숙였다. 맡겨 두었던 것을 찾아갑니다.', effects: { mind: 12, flag: 'suyeon:noinbong', flag2: 'suyeon_drawing' } }] },
     ],
   },
 

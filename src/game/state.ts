@@ -657,6 +657,27 @@ export function listenRadio(state: GameState): boolean {
 
 // ---------- 끝에 남는 말 ----------
 // 향로봉에 닿았거나 길에서 끝났을 때, 이 여정이 무엇이었는지 몇 줄로 돌아본다
+// 수연이 길에 남긴 것을 읽었으면, 만나서 그 이야기를 한다. 어떻게 대했는지(쪽지를 묶었다, 양말을 말렸다, 그림을 챙겼다)까지
+function suyeonNotes(state: GameState, end: string): string[] {
+  const f = state.flags;
+  const found = ['suyeon:neuljae', 'suyeon:hwabang', 'suyeon:noinbong'].filter((k) => f[k]).length;
+  if (found === 0) return [];
+  if (end === 'quarantine') return [f['suyeon:hwabang'] ? '유리창 너머에서 수연이 입 모양으로 물었다. 양 말. 웃음이 터져서 간호병이 돌아보았다.' : '유리창 너머의 수연에게 길에서 찾은 것들을 손짓으로 하나씩 말했다. 수연은 다 알아들었다.'];
+  if (end !== 'reunion') return [];
+  const out: string[] = [];
+  if (f['suyeon:neuljae']) out.push(f['suyeon_note_tied']
+    ? '늘재 성황당에 내 쪽지도 묶어 두었다고 하자, 수연이 그럼 둘이 같이 가서 절을 올려야겠다고 했다. 셋이 갈 것이다.'
+    : '늘재 성황당 쪽지를 읽었다고 하자 수연이 셋 다 들어주셨네, 하고 웃었다. 밥은 거르지 않았냐고 물었다. 거짓말을 했다.');
+  if (f['suyeon:hwabang']) out.push(f['suyeon_socks']
+    ? '화방재 거울 아래 그림을 보고 양말을 말렸다고 하자 하율이 손뼉을 쳤다. 시키는 대로 한 사람이 처음으로 칭찬을 받았다.'
+    : '양말은 말렸냐고 수연이 먼저 물었다. 화방재 거울을 읽었다고 하자 "그럼 됐어." 그게 다였다. 그걸로 충분했다.');
+  if (f['suyeon:noinbong']) out.push(f['suyeon_drawing']
+    ? '사진 뒤에서 노인봉의 크레파스 그림을 꺼내 하율에게 돌려주었다. 하율이 그림 속 큰 사람을 손가락으로 짚었다. "아빠 왔다."'
+    : '하율이 물었다. "아빠 한 번도 안 멈췄지?" 노인봉 산장 벽의 글씨가 생각났다. "응. 한 번도."');
+  if (found === 3) out.push('남긴 것을 셋 다 찾았다고 하자 수연은 한참 말이 없다가 말했다. "읽을 줄 알았어."');
+  return out;
+}
+
 export function endingNotes(state: GameState): string[] {
   const out: string[] = [];
   const visited = state.nodes.filter((n) => n.visited && n.kind !== 'start');
@@ -679,6 +700,7 @@ export function endingNotes(state: GameState): string[] {
     else if (state.flags['survivor_friend']) out.push('정우는 보이지 않았다. 향로봉에서 보자던 말은 아직 유효하다.');
     if (state.flags['family_together']) out.push('헛간의 가족과 같은 줄로 문을 들어갔다. 아이는 안에 들어가서도 한참 내 손을 놓지 않았다.');
     if (end === 'reunion' && state.flags['deserter_help']) out.push('의무대 왼쪽 세 번째 천막. 탈영병이 알려 준 대로였다.');
+    out.push(...suyeonNotes(state, end));
     if (state.flags['grandma_kimchi']) {
       out.push(end === 'reunion' ? '할머니가 싸 준 김치를 수연과 나눠 먹었다. 애 엄마 만나면 같이 먹으라던 그 김치다.'
         : end === 'quarantine' ? '할머니의 김치는 간호병 편에 유리창 너머로 보냈다.'

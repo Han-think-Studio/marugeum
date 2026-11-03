@@ -368,6 +368,7 @@ export interface Effect {
   storeLoss?: number; // 이 자리 저장고에서 먹을 것을 이만큼 잃는다. 보존식부터
   hours?: number; // 시간이 흐른다
   flag?: string;
+  flag2?: string; // 두 번째 표시. 같은 흔적이라도 어떻게 대했는지를 따로 남길 때
   fireOut?: boolean;
   poisonWell?: boolean; // 이 자리의 물을 못 쓰게 된다
   clue?: string; // 가족 단서를 얻는다
