@@ -302,6 +302,7 @@ export interface GameState {
   view: 'scene' | 'map'; // 위쪽 큰 화면에 무엇을 보여 주나
   knownStages: number[]; // 수첩 덕에 이미 아는 지역. 노드 이름이 처음부터 보인다
   knownPlaces: string[]; // 지난 여정들에서 가 본 자리
+  seenBefore: string[]; // 지난 여정들에서 만난 사건. 아직 못 본 이야기가 먼저 나오게 한다
   deadAt: string[]; // 지난 여정들이 끝난 자리. 다시 가면 떠오른다
   ribbons: string[]; // 지난 여정들에서 내가 묶은 리본이 아직 남은 길. 아는 길처럼 걷는다
   tied: string[]; // 이번 여정에 리본을 묶은 길. 수첩에 남는다

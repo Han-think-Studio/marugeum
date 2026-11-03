@@ -30,6 +30,7 @@ export function loadGame(): GameState | null {
 // 예전 저장에 없던 칸을 채운다. 거점 단계는 자리에서 되짚는다
 function upgrade(state: GameState): GameState {
   if (!Array.isArray(state.knownPlaces)) state.knownPlaces = [];
+  if (!Array.isArray(state.seenBefore)) state.seenBefore = [];
   if (!Array.isArray(state.deadAt)) state.deadAt = [];
   if (!Array.isArray(state.ribbons)) state.ribbons = [];
   if (!Array.isArray(state.tied)) state.tied = [];

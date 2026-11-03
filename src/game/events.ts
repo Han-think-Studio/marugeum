@@ -86,12 +86,18 @@ function pool(state: GameState, node: MapNode, trigger: Trigger): EventDef[] {
   return EVENTS.filter((e) => e.trigger === trigger && !(e.once && state.flags[`ev:${e.id}`]) && matches(e.when, state, node, trigger));
 }
 
-function pickWeighted(rng: Rng, list: EventDef[]): EventDef | null {
-  const total = list.reduce((a, e) => a + (e.weight ?? 1), 0);
+// 처음 보는 이야기 우선. 지난 여정들에서 한 번도 못 만난 사건은 두 배로 잘 나온다. 다시 걸을수록 새 이야기가 먼저
+function weightOf(state: GameState, e: EventDef): number {
+  const w = e.weight ?? 1;
+  return state.seenBefore.length > 0 && !state.seenBefore.includes(e.id) ? w * 2 : w;
+}
+
+function pickWeighted(rng: Rng, list: EventDef[], state: GameState): EventDef | null {
+  const total = list.reduce((a, e) => a + weightOf(state, e), 0);
   if (total <= 0) return null;
   let r = rng.next() * total;
   for (const e of list) {
-    r -= e.weight ?? 1;
+    r -= weightOf(state, e);
     if (r <= 0) return e;
   }
   return list[list.length - 1];
@@ -175,7 +181,7 @@ export function maybeArrive(state: GameState, rng: Rng, node: MapNode, first: bo
     }
   }
   if (!rng.chance(first ? ARRIVE_FIRST : ARRIVE_AGAIN)) return false;
-  const ev = pickWeighted(rng, list);
+  const ev = pickWeighted(rng, list, state);
   if (!ev) return false;
   open(state, ev);
   return true;
@@ -186,7 +192,7 @@ export function maybeLook(state: GameState, rng: Rng, node: MapNode): boolean {
   if (state.over !== 'none' || state.event || state.standoff) return false;
   const list = pool(state, node, 'arrive').filter((e) => !e.priority && !e.when?.kinds?.includes('goal'));
   if (list.length === 0 || !rng.chance(0.55)) return false;
-  const ev = pickWeighted(rng, list);
+  const ev = pickWeighted(rng, list, state);
   if (!ev) return false;
   open(state, ev);
   return true;
@@ -195,7 +201,7 @@ export function maybeLook(state: GameState, rng: Rng, node: MapNode): boolean {
 // 밤 이벤트. 잠에서 깬 뒤에 닥친다
 // 시작 장면. 첫 아침
 export function startEvent(state: GameState, rng: Rng, node: MapNode): boolean {
-  const ev = pickWeighted(rng, pool(state, node, 'start'));
+  const ev = pickWeighted(rng, pool(state, node, 'start'), state);
   if (!ev) return false;
   open(state, ev);
   return true;
@@ -204,7 +210,7 @@ export function startEvent(state: GameState, rng: Rng, node: MapNode): boolean {
 // 향로봉에 닿았을 때. 조건에 맞는 엔딩 장면 하나가 열린다
 export function openGoal(state: GameState, rng: Rng, node: MapNode): boolean {
   const list = pool(state, node, 'arrive').filter((e) => e.when?.kinds?.includes('goal'));
-  const ev = pickWeighted(rng, list);
+  const ev = pickWeighted(rng, list, state);
   if (!ev) return false;
   open(state, ev);
   return true;
@@ -221,7 +227,7 @@ export function maybeNight(state: GameState, rng: Rng, node: MapNode): boolean {
   if (!INDOOR.has(node.kind) && flashlightLit(state)) chance *= 0.7;
   if (radio) chance = Math.max(chance, 0.5);
   if (!rng.chance(chance)) return false;
-  const ev = pickWeighted(rng, pool(state, node, 'night'));
+  const ev = pickWeighted(rng, pool(state, node, 'night'), state);
   if (!ev) return false;
   open(state, ev);
   return true;

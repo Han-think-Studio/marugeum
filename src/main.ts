@@ -36,7 +36,7 @@ function start(state: GameState): void {
 
 function startNew(): void {
   clearSave();
-  start(createGame(newSeed(), { knownStages: journal.knownStages, knownPlaces: journal.knownPlaces ?? [], deadAt: deadPlaces(journal), ribbons: activeRibbons(journal, nextRunNo(journal)), runNo: nextRunNo(journal) }));
+  start(createGame(newSeed(), { knownStages: journal.knownStages, knownPlaces: journal.knownPlaces ?? [], seenBefore: Object.keys(journal.eventsSeen ?? {}), deadAt: deadPlaces(journal), ribbons: activeRibbons(journal, nextRunNo(journal)), runNo: nextRunNo(journal) }));
 }
 
 const saved = loadGame();

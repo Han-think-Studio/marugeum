@@ -142,6 +142,7 @@ export const EVENTS: EventDef[] = [
     title: '우물',
     text: '우물 뚜껑을 열자 냄새가 올라온다. 두레박을 내리기도 전에 안다. 누가 저 안에 있다.',
     when: { kinds: ['village'] },
+    weight: 2,
     choices: [
       { text: '그래도 긷는다', hint: '물 2 · 피폭', outcomes: [{ text: '눈을 감고 두 통을 길었다. 이 물을 마실 날이 안 오기를.', effects: { dirty: 2, rad: 3, mind: -6 } }] },
       { text: '뚜껑을 닫는다', outcomes: [{ text: '뚜껑 위에 돌을 올려 두었다. 이 마을 물은 끝났다.', effects: { poisonWell: true, mind: -3 } }] },
@@ -241,6 +242,7 @@ export const EVENTS: EventDef[] = [
     title: '끊어진 다리',
     text: '출렁다리가 중간에서 끊겨 있다. 아래 물살이 세다. 바위를 디디면 건널 수 있을 것 같기도 하다.',
     when: { kinds: ['valley'] },
+    weight: 2,
     choices: [
       { text: '밧줄을 걸고 건넌다', hint: '밧줄 · 안전', req: { gear: 'rope' }, outcomes: [{ text: '남은 다리 기둥에 밧줄을 걸고 몸을 묶었다. 한 번 미끄러졌지만 밧줄이 잡았다. 젖지 않고 건넜다.', effects: { mind: 3 } }] },
       { text: '바위를 디뎌 건넌다', hint: '위험', outcomes: [
@@ -269,6 +271,7 @@ export const EVENTS: EventDef[] = [
     title: '뱀',
     text: '물가 바위 위에 살모사가 몸을 말고 있다. 햇볕을 쬐는 중이다. 물을 뜨려면 저 바위를 지나야 한다.',
     when: { kinds: ['spring'] },
+    weight: 2,
     choices: [
       { text: '기다렸다가 돌아간다', hint: '1시간', outcomes: [{ text: '한 시간 뒤 뱀은 사라졌다. 바위 위에 허물만 남아 있었다.', effects: { hours: 1 } }] },
       { text: '막대로 잡는다', hint: '먹을 것 · 위험', outcomes: [

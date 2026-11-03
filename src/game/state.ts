@@ -26,7 +26,7 @@ export { hasEquip, canCarry, equipLabel, heavyLimit, tentAt, batteryCount, condO
 export { crisisActive, crisisKnownIn, crisisText, absHour } from './weather';
 export { addLog } from './log';
 
-export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; deadAt?: string[]; ribbons?: string[]; runNo?: number } = {}): GameState {
+export function createGame(seed: number, opts: { knownStages?: number[]; knownPlaces?: string[]; seenBefore?: string[]; deadAt?: string[]; ribbons?: string[]; runNo?: number } = {}): GameState {
   const mapRng = new Rng(seed);
   const nodes = generateMap(mapRng);
   const stats: Stats = { hp: 100, hunger: 90, thirst: 90, temp: 100, fatigue: 100, rad: 0, mind: 100 };
@@ -60,6 +60,7 @@ export function createGame(seed: number, opts: { knownStages?: number[]; knownPl
     view: 'scene',
     knownStages: opts.knownStages ?? [],
     knownPlaces: opts.knownPlaces ?? [],
+    seenBefore: opts.seenBefore ?? [],
     deadAt: opts.deadAt ?? [],
     ribbons: opts.ribbons ?? [],
     tied: [],
