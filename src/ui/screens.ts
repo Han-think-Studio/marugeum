@@ -199,7 +199,7 @@ export function showSettings(root: HTMLElement, onClose: () => void): HTMLElemen
             <div class="row"><span class="label">소리</span>${seg('mute', [['on', '켬'], ['off', '끔']], audio.muted ? 'off' : 'on')}</div>
             <div class="row"><span class="label">음량 <span class="muted">${vol}</span></span><input type="range" class="vol" min="0" max="100" value="${vol}"></div>
             <h3>난이도</h3>
-            <div class="row"><span class="label">낙진과 배고픔 <span class="muted">언제든 바꿀 수 있다</span></span>${seg('diff', (['easy', 'normal', 'hard'] as Difficulty[]).map((d) => [d, DIFFICULTY[d].label]), settings.difficulty)}</div>
+            <div class="row"><span class="label">난이도 <span class="muted">낙진 · 피폭 · 추위 · 배고픔. 언제든 바꿀 수 있다</span></span>${seg('diff', (['easy', 'normal', 'hard'] as Difficulty[]).map((d) => [d, DIFFICULTY[d].label]), settings.difficulty)}</div>
             <h3>화면</h3>
             <div class="row"><span class="label">글자와 칸 크기</span>${seg('text', (['small', 'normal', 'large'] as TextSize[]).map((t) => [t, TEXT_SIZE_LABEL[t]]), settings.textSize)}</div>
             <div class="row"><span class="label">여정을 열 때</span>${seg('view', [['scene', '장면'], ['map', '지도']], settings.defaultView)}</div>

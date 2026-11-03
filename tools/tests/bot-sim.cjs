@@ -24,6 +24,8 @@ const bot = MODE === 'ridge' ? ridgeBot : MODE === 'naive' ? naiveBot : trailBot
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
+  // 난이도: DIFFICULTY=easy|normal|hard 로 설정을 미리 넣는다
+  if (process.env.DIFFICULTY) await page.addInitScript((d) => localStorage.setItem('marugeum.settings.v1', JSON.stringify({ difficulty: d })), process.env.DIFFICULTY);
   const runs = [];
   for (let seed = 1; seed <= RUNS; seed++) {
     await page.goto('http://localhost:' + (process.env.TEST_PORT || 4174) + '/?seed=' + (1000 + seed), { waitUntil: 'networkidle' });
@@ -59,5 +61,5 @@ const bot = MODE === 'ridge' ? ridgeBot : MODE === 'naive' ? naiveBot : trailBot
   console.log('per run: ' + keys.map((k) => `${k} ${avg((r) => r.m[k])}`).join(' · '));
   console.log('lowest (avg of per-run minimum): ' + ['temp', 'hunger', 'thirst', 'hp'].map((k) => `${k} ${avg((r) => r.low[k])}`).join(' · '));
   console.log(`decisions per day (choices+travels+scouts+inspects) ${avg((r) => (r.m.eventChoices + r.m.travels + r.m.scouts + r.m.inspects) / Math.max(1, r.day))}`);
-  fs.writeFileSync(`${S}/bot-sim-${MODE}.json`, JSON.stringify(runs));
+  fs.writeFileSync(`${S}/bot-sim-${MODE}${process.env.DIFFICULTY ? '-' + process.env.DIFFICULTY : ''}.json`, JSON.stringify(runs));
 })();

@@ -2,11 +2,12 @@ import { audio } from '../audio/engine';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
-// 난이도. 낙진이 날마다 짙어지는 속도와 배고픔·목마름의 속도
-export const DIFFICULTY: Record<Difficulty, { label: string; fallout: number; need: number }> = {
-  easy: { label: '쉬움', fallout: 0.02, need: 0.85 },
-  normal: { label: '보통', fallout: 0.033, need: 1 },
-  hard: { label: '어려움', fallout: 0.05, need: 1.2 },
+// 난이도. 낙진이 날마다 짙어지는 속도, 배고픔·목마름의 속도, 시간당 피폭, 추위
+// 낙진 속도만으로는 봇 30판에서 차이가 거의 안 났다(쉬움·보통·어려움 모두 생존 60~70%). 그래서 피폭과 추위도 함께 움직인다
+export const DIFFICULTY: Record<Difficulty, { label: string; fallout: number; need: number; rad: number; cold: number }> = {
+  easy: { label: '쉬움', fallout: 0.02, need: 0.8, rad: 0.8, cold: 0.8 },
+  normal: { label: '보통', fallout: 0.033, need: 1, rad: 1, cold: 1 },
+  hard: { label: '어려움', fallout: 0.05, need: 1.2, rad: 1.1, cold: 1.15 },
 };
 
 // 설정. 소리는 소리 엔진이 따로 저장하고, 나머지는 여기서 저장한다. 함수 없는 평범한 객체다

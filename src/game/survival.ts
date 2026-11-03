@@ -83,7 +83,7 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   if (camp && node.upgrades.includes('window')) coldMul *= 0.5;
   if (act === 'sleep' && hasEquip(state, 'blanket')) coldMul *= 0.5;
   if (fire) coldMul *= 0.2;
-  const cold = chill * coldMul;
+  const cold = chill * coldMul * DIFFICULTY[settings.difficulty].cold;
   if (cold > 0) add(state, 'temp', -cold);
   else if (env >= 10) add(state, 'temp', act === 'travel' ? 3 : 2);
   if (camp && act === 'sleep') add(state, 'temp', tier >= 3 ? 2 : 1);
@@ -101,7 +101,12 @@ function tickOneHour(state: GameState, rng: Rng, node: MapNode, act: Activity, o
   // 피폭
   let radNow = radPerHour(state, node, indoor) * (tentHere ? 1.5 : 1); // 천막은 낙진을 반밖에 못 막는다. 바위는 막는다
   if (!indoor && state.weather === 'rain' && hasEquip(state, 'mask')) radNow *= 0.5; // 방독면
-  add(state, 'rad', radNow);
+  // 비 오는 날 걷는 것. 젖은 옷이 낙진을 붙잡고 몸을 식힌다. 기다리는 사람과 서두르는 사람이 갈리는 곳
+  if (act === 'travel' && state.weather === 'rain') {
+    radNow *= 1.3;
+    if (!hasEquip(state, 'raincoat')) add(state, 'temp', -1.5);
+  }
+  add(state, 'rad', radNow * DIFFICULTY[settings.difficulty].rad);
   // 거점에서 배부르고 목마르지 않게 쉬면 몸이 조금씩 피폭을 덜어낸다. 집 거점이 가장 잘
   if (camp && state.stats.hunger > 40 && state.stats.thirst > 40) {
     if (act === 'sleep') add(state, 'rad', tier >= 3 ? -0.6 : -0.35);
